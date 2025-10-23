@@ -66,7 +66,7 @@ export class FuturesClient extends BaseRestClient {
 
   sendOrder(params?: any): Promise<APISuccessResponse<any>> {
     return this.postPrivate('derivatives/api/v3/sendorder', {
-      ...params,
+      body: params,
     });
   }
 
@@ -75,8 +75,7 @@ export class FuturesClient extends BaseRestClient {
     cliOrdIds?: string[];
   }): Promise<APISuccessResponse<any>> {
     return this.postPrivate(`derivatives/api/v3/orders/status`, {
-      ...params,
-      // orderIds: params?.orderIds ? params.orderIds.join(',') : undefined,
+      query: params,
     });
   }
 
