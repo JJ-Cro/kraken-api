@@ -432,11 +432,17 @@ export abstract class BaseRestClient {
       //       )
       //     : JSON.stringify(data) || '';
 
+      // Don't prefix with ? as part of sign. Prefix after sign
+      const prefixWith = '';
+      // Array values are repeated into key value pairs
+      // E.g. orderIds:[1,2] becomes orderIds=1&orderIds=2
+      const repeatArrayValuesAsKVPairs = true;
       const signRequestParams = serializeParams(
         method === 'POST' ? res.requestData : requestBody,
         strictParamValidation,
         encodeQueryStringValues,
-        '', // Don't prefix with ? as part of sign. Prefix after sign
+        prefixWith,
+        repeatArrayValuesAsKVPairs,
       );
 
       const clientType = this.getClientType();

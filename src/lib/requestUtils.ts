@@ -74,6 +74,7 @@ export function serializeParams<T extends Record<string, any> | undefined = {}>(
   strict_validation: boolean | undefined,
   encodeValues: boolean,
   prefixWith: string,
+  repeatArrayValuesAsKVPairs: boolean,
 ): string {
   if (!params) {
     return '';
@@ -87,6 +88,17 @@ export function serializeParams<T extends Record<string, any> | undefined = {}>(
         throw new Error(
           'Failed to sign API request due to undefined parameter',
         );
+      }
+
+      if (repeatArrayValuesAsKVPairs && Array.isArray(value)) {
+        let values = value.map((subValue) => {
+          const encodedValue = encodeValues
+            ? encodeURIComponent(subValue)
+            : subValue;
+          return `${key}=${encodedValue}`;
+        });
+
+        return values.join('&');
       }
       const encodedValue = encodeValues ? encodeURIComponent(value) : value;
       return `${key}=${encodedValue}`;

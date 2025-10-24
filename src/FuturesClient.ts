@@ -70,6 +70,10 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
+  getOpenOrders(): Promise<any> {
+    return this.getPrivate('derivatives/api/v3/openorders');
+  }
+
   getSpecificOrdersStatus(params?: {
     orderIds?: string[];
     cliOrdIds?: string[];
