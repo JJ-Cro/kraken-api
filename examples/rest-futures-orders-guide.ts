@@ -1,17 +1,15 @@
-import { FuturesClient } from '../src/index.ts';
+import { FuturesClient } from '../src/index.js';
 // import { FuturesClient } from 'kraken-api';
-// normally you should install this module via npm: `npm install kraken-api`
+// normally you should install this module via npm: `npm install @siebly/kraken-api`
 
 async function start() {
   const account = {
     key: 'keyHere',
     secret: 'secretHere',
-    passphrase: 'memoHere',
   };
   const client = new FuturesClient({
     apiKey: account.key,
     apiSecret: account.secret,
-    apiPassphrase: account.passphrase,
   });
 
   try {
