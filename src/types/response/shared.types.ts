@@ -4,13 +4,11 @@ export type APISuccessResponse<TData> = {
 } & TData;
 
 export interface APIErrorResponse {
-  msg: string;
-  code: string;
+  // e.g. [{ code: 11; message: 'UUID string too large' }]
+  errors: { code: number; message: string }[];
+  result: 'error';
+  serverTime: string;
+  status: 'BAD_REQUEST' | string;
 }
 
 export type APIResponse<TData> = APISuccessResponse<TData> | APIErrorResponse;
-
-export interface ServiceStatus {
-  msg: string;
-  status: 'cancelonly' | 'close' | 'open';
-}

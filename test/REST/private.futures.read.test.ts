@@ -72,7 +72,6 @@ describe('REST PRIVATE FUTURES READ', () => {
             orders: expect.any(Array),
           });
         } catch (e: any) {
-          // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
           console.log(
             `err "${expect.getState().currentTestName}"`,
             e?.body || e,
@@ -91,7 +90,6 @@ describe('REST PRIVATE FUTURES READ', () => {
             orders: expect.any(Array),
           });
         } catch (e: any) {
-          // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
           // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
           const responseBody = e?.body;
           expect(responseBody).toBeUndefined();
@@ -110,7 +108,6 @@ describe('REST PRIVATE FUTURES READ', () => {
             orders: expect.any(Array),
           });
         } catch (e: any) {
-          // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
           // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
           const responseBody = e?.body;
           expect(responseBody).toBeUndefined();
@@ -132,12 +129,40 @@ describe('REST PRIVATE FUTURES READ', () => {
             orders: expect.any(Array),
           });
         } catch (e: any) {
-          // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
           // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
           const responseBody = e?.body;
           expect(responseBody).toBeUndefined();
         }
       });
+
+      it('should throw exceptions (bad request)', async () => {
+        try {
+          const res = await rest.getSpecificOrdersStatus({
+            orderIds: [
+              'a02ed7b1-096f-4629-877c-24749fab6560',
+              'a030cb03-cbf9-4e56-9a7d-cd072873760a11111111',
+            ],
+          });
+
+          console.log(`res "${expect.getState().currentTestName}"`, res);
+          expect(res).toMatchObject({
+            result: 'success',
+            orders: expect.any(Array),
+          });
+        } catch (e: any) {
+          // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
+          const responseBody = e?.body;
+          expect(responseBody).toMatchObject({
+            errors: expect.any(Array),
+            result: 'error',
+            status: 'BAD_REQUEST',
+            serverTime: expect.any(String),
+          });
+        }
+      });
+
+      // TODO: dummy order request with read-only keys
+      // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
     });
 
     // describe('DELETE requests', () => {
