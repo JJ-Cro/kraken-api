@@ -318,7 +318,20 @@ export abstract class BaseRestClient {
         throw { response };
       })
       .catch((e) =>
-        this.parseException(e, { method, endpoint, path, requestUrl, params }),
+        this.parseException(e, {
+          method,
+          endpoint,
+          path,
+          requestUrl,
+          params,
+          options: {
+            ...options,
+            headers: {
+              ...options.headers,
+              APIKey: 'omittedFromError',
+            },
+          },
+        }),
       );
   }
 
@@ -432,7 +445,8 @@ export abstract class BaseRestClient {
         case 'futures': {
           const signEndpoint = endpoint.replace('/derivatives', '');
 
-          const nonce = this.getNextRequestNonce();
+          // TODO:
+          const nonce = ''; //this.getNextRequestNonce();
           const signInput = `${signRequestParams}${nonce}${signEndpoint}`;
 
           // Only sign when no access token is provided
@@ -463,15 +477,15 @@ export abstract class BaseRestClient {
             );
 
             if (rawTrace || true) {
-              console.clear();
+              // console.clear();
               console.log('getSignature: ', {
                 data,
                 signInput,
                 privateKey: this.apiSecret,
                 method,
                 path: endpoint,
-                query: data,
-                body: data,
+                query: method === 'POST' ? res.requestData : requestBody,
+                body: method === 'POST' ? res.requestData : requestBody,
               });
             }
 
@@ -633,7 +647,7 @@ export abstract class BaseRestClient {
         ...signHeaders,
       },
       url: urlWithQueryParams,
-      // data: signResult.requestData,
+      data: signResult.requestData,
     };
   }
 }
