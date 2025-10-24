@@ -215,6 +215,10 @@ export abstract class BaseRestClient {
     return Date.now();
   }
 
+  private getNextRequestNonce(): string {
+    return String(this.apiRequestNonce++);
+  }
+
   private hasValidCredentials() {
     const hasAllAPICredentials = this.apiKey && this.apiSecret;
 
@@ -428,7 +432,7 @@ export abstract class BaseRestClient {
         case 'futures': {
           const signEndpoint = endpoint.replace('/derivatives', '');
 
-          const nonce = ''; // TODO:
+          const nonce = this.getNextRequestNonce();
           const signInput = `${signRequestParams}${nonce}${signEndpoint}`;
 
           // Only sign when no access token is provided
