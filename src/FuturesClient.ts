@@ -14,14 +14,22 @@ import {
   FuturesCancelOrderParams,
   FuturesDeadMansSwitchParams,
   FuturesEditOrderParams,
+  FuturesGetAccountLogCsvParams,
+  FuturesGetAccountLogParams,
   FuturesGetFillsParams,
   FuturesGetHistoricalFundingRatesParams,
   FuturesGetOrderbookParams,
+  FuturesGetOrderEventsParams,
+  FuturesGetPositionEventsParams,
   FuturesGetSpecificOrdersStatusParams,
   FuturesGetTradeHistoryParams,
+  FuturesGetTriggerEventsParams,
+  FuturesHistoryBaseParams,
   FuturesInitiateSubaccountTransferParams,
   FuturesInitiateWalletTransferParams,
   FuturesInitiateWithdrawalParams,
+  FuturesPlaceOfferParams,
+  FuturesReplaceOfferParams,
   FuturesSendOrderParams,
   FuturesSetLeveragePreferenceParams,
   FuturesSetPnlPreferenceParams,
@@ -30,6 +38,7 @@ import {
   FuturesUpdateSubaccountTradingStatusParams,
 } from './types/request/futures.types.js';
 import {
+  FuturesAccountLog,
   FuturesAccounts,
   FuturesAssignmentProgram,
   FuturesAssignmentProgramHistory,
@@ -41,10 +50,15 @@ import {
   FuturesFeeSchedule,
   FuturesFill,
   FuturesHistoricalFundingRate,
+  FuturesHistoryExecutionEvent,
+  FuturesHistoryOrderEvent,
+  FuturesHistoryResponse,
+  FuturesHistoryTriggerEvent,
   FuturesInstrument,
   FuturesInstrumentStatus,
   FuturesLeveragePreference,
   FuturesNotification,
+  FuturesOpenOffer,
   FuturesOpenOrder,
   FuturesOpenPosition,
   FuturesOrderBook,
@@ -52,6 +66,8 @@ import {
   FuturesPnlPreference,
   FuturesPortfolioMarginParameters,
   FuturesPortfolioSimulation,
+  FuturesPositionUpdateEvent,
+  FuturesRfq,
   FuturesSendOrderStatus,
   FuturesSubaccountsInfo,
   FuturesTicker,
@@ -462,5 +478,99 @@ export class FuturesClient extends BaseRestClient {
     return this.postPrivate('derivatives/api/v3/withdrawal', {
       query: params,
     });
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - RFQs
+   *
+   */
+
+  listAllOpenRfqs(): Promise<APISuccessResponse<{ rfqs: FuturesRfq[] }>> {
+    return this.get('derivatives/api/v3/rfqs');
+  }
+
+  getSingleOpenRfq(
+    rfqUid: string,
+  ): Promise<APISuccessResponse<{ rfq: FuturesRfq }>> {
+    return this.get(`derivatives/api/v3/rfqs/${rfqUid}`);
+  }
+
+  listOpenOffers(): Promise<
+    APISuccessResponse<{ openOffers: FuturesOpenOffer[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/rfqs/open-offers');
+  }
+
+  placeNewOffer(
+    rfqUid: string,
+    params: FuturesPlaceOfferParams,
+  ): Promise<APISuccessResponse<{ offerUid: string }>> {
+    return this.postPrivate(`derivatives/api/v3/rfqs/${rfqUid}/place-offer`, {
+      body: params,
+    });
+  }
+
+  replaceOpenOffer(
+    rfqUid: string,
+    params: FuturesReplaceOfferParams,
+  ): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.putPrivate(`derivatives/api/v3/rfqs/${rfqUid}/replace-offer`, {
+      body: params,
+    });
+  }
+
+  cancelOpenOffer(
+    rfqUid: string,
+  ): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.deletePrivate(`derivatives/api/v3/rfqs/${rfqUid}/cancel-offer`);
+  }
+
+  /**
+   *
+   * Futures REST API - History - Account History
+   *
+   */
+
+  getExecutionEvents(
+    params?: FuturesHistoryBaseParams,
+  ): Promise<
+    APISuccessResponse<FuturesHistoryResponse<FuturesHistoryExecutionEvent>>
+  > {
+    return this.getPrivate('api/history/v3/executions', { params });
+  }
+
+  getOrderEvents(
+    params?: FuturesGetOrderEventsParams,
+  ): Promise<
+    APISuccessResponse<FuturesHistoryResponse<FuturesHistoryOrderEvent>>
+  > {
+    return this.getPrivate('api/history/v3/orders', { params });
+  }
+
+  getTriggerEvents(
+    params?: FuturesGetTriggerEventsParams,
+  ): Promise<
+    APISuccessResponse<FuturesHistoryResponse<FuturesHistoryTriggerEvent>>
+  > {
+    return this.getPrivate('api/history/v3/triggers', { params });
+  }
+
+  getPositionEvents(
+    params?: FuturesGetPositionEventsParams,
+  ): Promise<
+    APISuccessResponse<FuturesHistoryResponse<FuturesPositionUpdateEvent>>
+  > {
+    return this.getPrivate('api/history/v3/positions', { params });
+  }
+
+  getAccountLog(
+    params?: FuturesGetAccountLogParams,
+  ): Promise<APISuccessResponse<FuturesAccountLog>> {
+    return this.getPrivate('api/history/v3/account-log', { params });
+  }
+
+  getAccountLogCsv(params?: FuturesGetAccountLogCsvParams): Promise<string> {
+    return this.getPrivate('api/history/v3/accountlogcsv', { params });
   }
 }

@@ -772,3 +772,113 @@ export interface FuturesSubaccountsInfo {
   masterAccountUid: string;
   subaccounts: FuturesSubaccount[];
 }
+
+/**
+ * RFQs
+ */
+
+export interface FuturesRfqLeg {
+  symbol: string;
+  size: number;
+  markPrice: number;
+}
+
+export interface FuturesRfq {
+  rfqUid: string;
+  expiry: string;
+  markPrice: number;
+  legs: FuturesRfqLeg[];
+}
+
+export interface FuturesOpenOffer {
+  uid: string;
+  rfqUid: string;
+  placementDate: string;
+  lastUpdateDate: string;
+  bid?: string;
+  ask?: string;
+}
+
+/**
+ * Account History
+ */
+
+export interface FuturesHistoryResponse<T> {
+  accountUid: string;
+  len: number;
+  serverTime: string;
+  elements: T[];
+  continuationToken?: string;
+}
+
+export interface FuturesHistoryEventElement<T> {
+  uid: string;
+  timestamp: number;
+  event: T;
+}
+
+// Complex nested structures with multiple oneOf variants - keeping generic for flexibility
+export type FuturesHistoryExecutionEvent = FuturesHistoryEventElement<any>;
+export type FuturesHistoryOrderEvent = FuturesHistoryEventElement<any>;
+export type FuturesHistoryTriggerEvent = FuturesHistoryEventElement<any>;
+
+export interface FuturesPositionUpdateEvent {
+  accountUid: string;
+  tradeable: string;
+  oldPosition: string;
+  oldAverageEntryPrice: string | null;
+  newPosition: string;
+  newAverageEntryPrice: string;
+  fillTime?: number | null;
+  fee?: string;
+  feeCurrency?: string;
+  realizedPnL?: string;
+  positionChange:
+    | 'open'
+    | 'close'
+    | 'increase'
+    | 'decrease'
+    | 'reverse'
+    | 'noChange';
+  executionUid?: string;
+  executionPrice?: string;
+  executionSize?: string;
+  tradeType?: 'userExecution' | 'liquidation' | 'assignment' | 'unwind';
+  fundingRealizationTime?: number;
+  realizedFunding?: string;
+  settlementPrice?: string;
+  timestamp: number;
+  updateReason: 'trade' | 'fundingRealisation' | 'settlement';
+}
+
+export interface FuturesAccountLogEntry {
+  asset: string;
+  booking_uid: string;
+  collateral: string | null;
+  contract: string | null;
+  date: string; // RFC 3339 formatted date-time
+  execution: string | null;
+  fee: number | null;
+  funding_rate: number | null;
+  id: number;
+  info: string;
+  margin_account: string;
+  mark_price: number | null;
+  new_average_entry_price: number | null;
+  new_balance: number;
+  old_average_entry_price: number | null;
+  old_balance: number;
+  realized_funding: number | null;
+  realized_pnl: number | null;
+  trade_price: number | null;
+  conversion_spread_percentage?: number | null;
+  liquidation_fee?: number | null;
+  exchange_rate?: number;
+  conversion_fee?: number;
+  exchange_rate_from?: string;
+}
+
+export interface FuturesAccountLog {
+  accountUid: string;
+  logs: FuturesAccountLogEntry[];
+}

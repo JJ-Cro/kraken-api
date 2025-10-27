@@ -237,3 +237,55 @@ export interface FuturesReplaceOfferParams {
   bid?: number;
   ask?: number;
 }
+
+/**
+ * Account History
+ */
+
+export interface FuturesHistoryBaseParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  sort?: 'asc' | 'desc';
+  continuation_token?: string; // base64
+  count?: number;
+  tradeable?: string;
+}
+
+export interface FuturesGetOrderEventsParams extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+}
+
+export interface FuturesGetTriggerEventsParams
+  extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+}
+
+export interface FuturesGetPositionEventsParams
+  extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+  increased?: boolean;
+  decreased?: boolean;
+  reversed?: boolean;
+  no_change?: boolean;
+  trades?: boolean;
+  funding_realization?: boolean;
+  settlement?: boolean;
+}
+
+export interface FuturesGetAccountLogParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  from?: number; // ID of the first entry (inclusive)
+  to?: number; // ID of the last entry (inclusive)
+  sort?: 'asc' | 'desc';
+  info?: string[]; // Types of entry to filter by
+  count?: number;
+  conversion_details?: boolean;
+}
+
+export interface FuturesGetAccountLogCsvParams {
+  conversion_details?: boolean;
+}
