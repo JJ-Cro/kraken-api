@@ -882,3 +882,135 @@ export interface FuturesAccountLog {
   accountUid: string;
   logs: FuturesAccountLogEntry[];
 }
+
+/**
+ * Market History
+ */
+
+export interface FuturesMarketHistoryResponse<T> {
+  len: number;
+  elements: T[];
+  continuationToken?: string;
+}
+
+export interface FuturesMarketHistoryEventElement<T> {
+  uid: string;
+  timestamp: number;
+  event: T;
+}
+
+// Complex nested structures - keeping generic for flexibility
+export type FuturesPublicExecutionEvent = FuturesMarketHistoryEventElement<any>;
+export type FuturesPublicOrderEvent = FuturesMarketHistoryEventElement<any>;
+
+export interface FuturesPublicMarkPriceEvent {
+  uid: string;
+  timestamp: number;
+  event: {
+    price: string;
+  };
+}
+
+/**
+ * Charts - Candles
+ */
+
+export type FuturesTickType = 'spot' | 'mark' | 'trade';
+export type FuturesResolution =
+  | '1m'
+  | '5m'
+  | '15m'
+  | '30m'
+  | '1h'
+  | '4h'
+  | '12h'
+  | '1d'
+  | '1w';
+
+export interface FuturesCandle {
+  time: number; // Epoch in ms
+  high: string;
+  low: string;
+  open: string;
+  close: string;
+  volume: number;
+}
+
+export interface FuturesCandles {
+  candles: FuturesCandle[];
+  more_candles: boolean;
+}
+
+/**
+ * Charts - Analytics
+ */
+
+export type FuturesAnalyticsType =
+  | 'open-interest'
+  | 'aggressor-differential'
+  | 'trade-volume'
+  | 'trade-count'
+  | 'liquidation-volume'
+  | 'rolling-volatility'
+  | 'long-short-ratio'
+  | 'long-short-info'
+  | 'cvd'
+  | 'top-traders'
+  | 'orderbook'
+  | 'spreads'
+  | 'liquidity'
+  | 'slippage'
+  | 'future-basis';
+
+export interface FuturesAnalyticsError {
+  severity: string;
+  error_class: string;
+  type: string;
+  msg: string;
+  value?: string;
+  field?: string;
+}
+
+export interface FuturesAnalyticsResponse {
+  result: {
+    timestamp: number[];
+    more: boolean;
+    data: any; // Complex oneOf structure with multiple types - keeping generic
+  };
+  errors: FuturesAnalyticsError[];
+}
+
+/**
+ * Auth - API Keys
+ */
+
+export type FuturesApiKeyV3AccessLevel =
+  | 'NO_ACCESS'
+  | 'READ_ONLY'
+  | 'FULL_ACCESS';
+
+export interface FuturesApiKeyV3Check {
+  apiKey: string; // base64
+  accountUid: string; // uuid
+  iiban: string; // Account IIBAN (format: ^AA[A-Z0-9]{2} [A-Z0-9]{4} [A-Z0-9]{4} [A-Z0-9]{4}$)
+  createdAt: string; // RFC 3339 date-time
+  permissions: {
+    general: FuturesApiKeyV3AccessLevel;
+    transfer: FuturesApiKeyV3AccessLevel;
+  };
+  allowedCidrBlock: string | null; // CIDR format (e.g., 192.168.0.0/16)
+}
+
+/**
+ * Stats - Market Share
+ */
+
+export interface FuturesMarketShareContract {
+  marketShare: string;
+  volume: string;
+  usdRebateCredited: string;
+}
+
+export interface FuturesMarketShare {
+  contracts: Record<string, FuturesMarketShareContract>;
+}

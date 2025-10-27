@@ -289,3 +289,35 @@ export interface FuturesGetAccountLogParams {
 export interface FuturesGetAccountLogCsvParams {
   conversion_details?: boolean;
 }
+
+/**
+ * Market History
+ */
+
+export interface FuturesMarketHistoryBaseParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  sort?: 'asc' | 'desc';
+  continuation_token?: string; // base64
+  count?: number;
+}
+
+/**
+ * Charts - Candles
+ */
+
+export interface FuturesGetCandlesParams {
+  from?: number; // From date in epoch seconds
+  to?: number; // To date in epoch seconds
+  count?: number; // Number of candles to return
+}
+
+/**
+ * Charts - Analytics
+ */
+
+export interface FuturesGetAnalyticsParams {
+  since: number; // Epoch time in seconds (required)
+  interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
+  to?: number; // Epoch time in seconds, default now
+}

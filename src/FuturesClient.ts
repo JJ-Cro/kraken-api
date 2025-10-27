@@ -16,6 +16,8 @@ import {
   FuturesEditOrderParams,
   FuturesGetAccountLogCsvParams,
   FuturesGetAccountLogParams,
+  FuturesGetAnalyticsParams,
+  FuturesGetCandlesParams,
   FuturesGetFillsParams,
   FuturesGetHistoricalFundingRatesParams,
   FuturesGetOrderbookParams,
@@ -28,6 +30,7 @@ import {
   FuturesInitiateSubaccountTransferParams,
   FuturesInitiateWalletTransferParams,
   FuturesInitiateWithdrawalParams,
+  FuturesMarketHistoryBaseParams,
   FuturesPlaceOfferParams,
   FuturesReplaceOfferParams,
   FuturesSendOrderParams,
@@ -40,11 +43,15 @@ import {
 import {
   FuturesAccountLog,
   FuturesAccounts,
+  FuturesAnalyticsResponse,
+  FuturesAnalyticsType,
+  FuturesApiKeyV3Check,
   FuturesAssignmentProgram,
   FuturesAssignmentProgramHistory,
   FuturesBatchOrderStatus,
   FuturesCancelAllOrdersStatus,
   FuturesCancelOrderStatus,
+  FuturesCandles,
   FuturesDeadMansSwitchStatus,
   FuturesEditOrderStatus,
   FuturesFeeSchedule,
@@ -57,6 +64,8 @@ import {
   FuturesInstrument,
   FuturesInstrumentStatus,
   FuturesLeveragePreference,
+  FuturesMarketHistoryResponse,
+  FuturesMarketShare,
   FuturesNotification,
   FuturesOpenOffer,
   FuturesOpenOrder,
@@ -67,10 +76,15 @@ import {
   FuturesPortfolioMarginParameters,
   FuturesPortfolioSimulation,
   FuturesPositionUpdateEvent,
+  FuturesPublicExecutionEvent,
+  FuturesPublicMarkPriceEvent,
+  FuturesPublicOrderEvent,
+  FuturesResolution,
   FuturesRfq,
   FuturesSendOrderStatus,
   FuturesSubaccountsInfo,
   FuturesTicker,
+  FuturesTickType,
   FuturesTradeHistoryItem,
   FuturesUnwindQueuePosition,
 } from './types/response/futures.types.js';
@@ -572,5 +586,108 @@ export class FuturesClient extends BaseRestClient {
 
   getAccountLogCsv(params?: FuturesGetAccountLogCsvParams): Promise<string> {
     return this.getPrivate('api/history/v3/accountlogcsv', { params });
+  }
+
+  /**
+   *
+   * Futures REST API - History - Market History
+   *
+   */
+
+  getPublicExecutionEvents(
+    tradeable: string,
+    params?: FuturesMarketHistoryBaseParams,
+  ): Promise<FuturesMarketHistoryResponse<FuturesPublicExecutionEvent>> {
+    return this.get(`api/history/v3/market/${tradeable}/executions`, {
+      params,
+    });
+  }
+
+  getPublicOrderEvents(
+    tradeable: string,
+    params?: FuturesMarketHistoryBaseParams,
+  ): Promise<FuturesMarketHistoryResponse<FuturesPublicOrderEvent>> {
+    return this.get(`api/history/v3/market/${tradeable}/orders`, { params });
+  }
+
+  getPublicMarkPriceEvents(
+    tradeable: string,
+    params?: FuturesMarketHistoryBaseParams,
+  ): Promise<FuturesMarketHistoryResponse<FuturesPublicMarkPriceEvent>> {
+    return this.get(`api/history/v3/market/${tradeable}/price`, { params });
+  }
+
+  /**
+   *
+   * Futures REST API - Charts - Candles
+   *
+   */
+
+  getTickTypes(): Promise<FuturesTickType[]> {
+    return this.get('api/charts/v1/');
+  }
+
+  getMarketsForTickType(tickType: FuturesTickType): Promise<string[]> {
+    return this.get(`api/charts/v1/${tickType}`);
+  }
+
+  getResolutions(
+    tickType: FuturesTickType,
+    symbol: string,
+  ): Promise<FuturesResolution[]> {
+    return this.get(`api/charts/v1/${tickType}/${symbol}`);
+  }
+
+  getCandles(
+    tickType: FuturesTickType,
+    symbol: string,
+    resolution: FuturesResolution,
+    params?: FuturesGetCandlesParams,
+  ): Promise<FuturesCandles> {
+    return this.get(`api/charts/v1/${tickType}/${symbol}/${resolution}`, {
+      params,
+    });
+  }
+
+  /**
+   *
+   * Futures REST API - Charts - Analytics
+   *
+   */
+
+  getLiquidityPoolStatistic(
+    params: FuturesGetAnalyticsParams,
+  ): Promise<FuturesAnalyticsResponse> {
+    return this.get('api/charts/v1/analytics/liquidity-pool', { params });
+  }
+
+  getMarketAnalytics(
+    symbol: string,
+    analyticsType: FuturesAnalyticsType,
+    params: FuturesGetAnalyticsParams,
+  ): Promise<FuturesAnalyticsResponse> {
+    return this.get(`api/charts/v1/analytics/${symbol}/${analyticsType}`, {
+      params,
+    });
+  }
+
+  /**
+   *
+   * Futures REST API - Auth - API Keys
+   *
+   */
+
+  checkApiKeyV3(): Promise<FuturesApiKeyV3Check> {
+    return this.getPrivate('api/auth/v1/api-keys/v3/check');
+  }
+
+  /**
+   *
+   * Futures REST API - Stats - Market Share
+   *
+   */
+
+  getAccountMarketShare(): Promise<FuturesMarketShare> {
+    return this.getPrivate('api/stats/v1/rebates/self-market-share');
   }
 }
