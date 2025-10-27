@@ -1,17 +1,4 @@
 /**
- * Market Data
- */
-
-export interface FuturesGetTradeHistoryParams {
-  symbol: string;
-  lastTime?: string; // Returns the last 100 trades from the specified lastTime value
-}
-
-export interface FuturesGetOrderbookParams {
-  symbol: string;
-}
-
-/**
  * Order Management
  */
 
@@ -68,14 +55,6 @@ export interface FuturesBatchOrderParams {
   };
 }
 
-export interface FuturesCancelAllOrdersParams {
-  symbol?: string;
-}
-
-export interface FuturesDeadMansSwitchParams {
-  timeout: number;
-}
-
 export interface FuturesCancelOrderParams {
   processBefore?: string;
   order_id?: string;
@@ -120,33 +99,6 @@ export interface FuturesSendOrderParams {
   broker?: string;
 }
 
-export interface FuturesGetSpecificOrdersStatusParams {
-  orderIds?: string[];
-  cliOrdIds?: string[];
-}
-
-/**
- * Multi-Collateral
- */
-
-export interface FuturesSetPnlPreferenceParams {
-  symbol: string;
-  pnlPreference: string;
-}
-
-export interface FuturesSetLeveragePreferenceParams {
-  symbol: string;
-  maxLeverage?: number;
-}
-
-/**
- * Account Information
- */
-
-export interface FuturesSimulatePortfolioParams {
-  json: any; // Complex structure for portfolio simulation
-}
-
 /**
  * Assignment Program
  */
@@ -163,22 +115,6 @@ export interface FuturesAddAssignmentPreferenceParams {
 }
 
 /**
- * Historical Data
- */
-
-export interface FuturesGetFillsParams {
-  lastFillTime?: string;
-}
-
-/**
- * Historical Funding Rates
- */
-
-export interface FuturesGetHistoricalFundingRatesParams {
-  symbol: string;
-}
-
-/**
  * Trading Settings
  */
 
@@ -188,14 +124,6 @@ export interface FuturesUpdateSelfTradeStrategyParams {
     | 'CANCEL_MAKER_SELF'
     | 'CANCEL_MAKER_CHILD'
     | 'CANCEL_MAKER_ANY';
-}
-
-/**
- * Subaccounts
- */
-
-export interface FuturesUpdateSubaccountTradingStatusParams {
-  tradingEnabled: boolean;
 }
 
 /**
@@ -224,19 +152,6 @@ export interface FuturesInitiateWithdrawalParams {
   sourceWallet?: string;
 }
 
-/**
- * RFQs
- */
-
-export interface FuturesPlaceOfferParams {
-  bid?: number;
-  ask?: number;
-}
-
-export interface FuturesReplaceOfferParams {
-  bid?: number;
-  ask?: number;
-}
 
 /**
  * Account History
@@ -283,10 +198,6 @@ export interface FuturesGetAccountLogParams {
   sort?: 'asc' | 'desc';
   info?: string[]; // Types of entry to filter by
   count?: number;
-  conversion_details?: boolean;
-}
-
-export interface FuturesGetAccountLogCsvParams {
   conversion_details?: boolean;
 }
 

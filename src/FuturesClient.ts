@@ -10,35 +10,21 @@ import {
 import {
   FuturesAddAssignmentPreferenceParams,
   FuturesBatchOrderParams,
-  FuturesCancelAllOrdersParams,
   FuturesCancelOrderParams,
-  FuturesDeadMansSwitchParams,
   FuturesEditOrderParams,
-  FuturesGetAccountLogCsvParams,
   FuturesGetAccountLogParams,
   FuturesGetAnalyticsParams,
   FuturesGetCandlesParams,
-  FuturesGetFillsParams,
-  FuturesGetHistoricalFundingRatesParams,
-  FuturesGetOrderbookParams,
   FuturesGetOrderEventsParams,
   FuturesGetPositionEventsParams,
-  FuturesGetSpecificOrdersStatusParams,
-  FuturesGetTradeHistoryParams,
   FuturesGetTriggerEventsParams,
   FuturesHistoryBaseParams,
   FuturesInitiateSubaccountTransferParams,
   FuturesInitiateWalletTransferParams,
   FuturesInitiateWithdrawalParams,
   FuturesMarketHistoryBaseParams,
-  FuturesPlaceOfferParams,
-  FuturesReplaceOfferParams,
   FuturesSendOrderParams,
-  FuturesSetLeveragePreferenceParams,
-  FuturesSetPnlPreferenceParams,
-  FuturesSimulatePortfolioParams,
   FuturesUpdateSelfTradeStrategyParams,
-  FuturesUpdateSubaccountTradingStatusParams,
 } from './types/request/futures.types.js';
 import {
   FuturesAccountLog,
@@ -127,15 +113,17 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  getTradeHistory(
-    params: FuturesGetTradeHistoryParams,
-  ): Promise<APISuccessResponse<{ history: FuturesTradeHistoryItem[] }>> {
+
+  getTradeHistory(params: {
+    symbol: string;
+    lastTime?: string;
+  }): Promise<APISuccessResponse<{ history: FuturesTradeHistoryItem[] }>> {
     return this.get('derivatives/api/v3/history', params);
   }
 
-  getOrderbook(
-    params: FuturesGetOrderbookParams,
-  ): Promise<APISuccessResponse<{ orderBook: FuturesOrderBook }>> {
+  getOrderbook(params: {
+    symbol: string;
+  }): Promise<APISuccessResponse<{ orderBook: FuturesOrderBook }>> {
     return this.get('derivatives/api/v3/orderbook', params);
   }
 
@@ -143,7 +131,7 @@ export class FuturesClient extends BaseRestClient {
     return this.get('derivatives/api/v3/tickers');
   }
 
-  getTickerBySymbol(
+  getTicker(
     symbol: string,
   ): Promise<APISuccessResponse<{ ticker: FuturesTicker }>> {
     return this.get(`derivatives/api/v3/tickers/${symbol}`);
@@ -188,9 +176,9 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
-  cancelAllOrders(
-    params?: FuturesCancelAllOrdersParams,
-  ): Promise<
+  cancelAllOrders(params?: {
+    symbol?: string;
+  }): Promise<
     APISuccessResponse<{ cancelStatus: FuturesCancelAllOrdersStatus }>
   > {
     return this.postPrivate('derivatives/api/v3/cancelallorders', {
@@ -198,9 +186,9 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
-  cancelAllOrdersAfter(
-    params: FuturesDeadMansSwitchParams,
-  ): Promise<APISuccessResponse<{ status: FuturesDeadMansSwitchStatus }>> {
+  cancelAllOrdersAfter(params: {
+    timeout: number;
+  }): Promise<APISuccessResponse<{ status: FuturesDeadMansSwitchStatus }>> {
     return this.postPrivate('derivatives/api/v3/cancelallordersafter', {
       query: params,
     });
@@ -228,7 +216,7 @@ export class FuturesClient extends BaseRestClient {
     return this.getPrivate('derivatives/api/v3/openorders');
   }
 
-  sendOrder(
+  submitOrder(
     params: FuturesSendOrderParams,
   ): Promise<APISuccessResponse<{ sendStatus: FuturesSendOrderStatus }>> {
     return this.postPrivate('derivatives/api/v3/sendorder', {
@@ -236,9 +224,10 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
-  getSpecificOrdersStatus(
-    params: FuturesGetSpecificOrdersStatusParams,
-  ): Promise<APISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>> {
+  getOrderStatus(params: {
+    orderIds?: string[];
+    cliOrdIds?: string[];
+  }): Promise<APISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>> {
     return this.postPrivate('derivatives/api/v3/orders/status', {
       query: params,
     });
@@ -256,9 +245,10 @@ export class FuturesClient extends BaseRestClient {
     return this.getPrivate('derivatives/api/v3/pnlpreferences');
   }
 
-  setPnlPreference(
-    params: FuturesSetPnlPreferenceParams,
-  ): Promise<APISuccessResponse<Record<string, never>>> {
+  setPnlPreference(params: {
+    symbol: string;
+    pnlPreference: string;
+  }): Promise<APISuccessResponse<Record<string, never>>> {
     return this.putPrivate('derivatives/api/v3/pnlpreferences', {
       query: params,
     });
@@ -270,9 +260,10 @@ export class FuturesClient extends BaseRestClient {
     return this.getPrivate('derivatives/api/v3/leveragepreferences');
   }
 
-  setLeveragePreference(
-    params: FuturesSetLeveragePreferenceParams,
-  ): Promise<APISuccessResponse<Record<string, never>>> {
+  setLeveragePreference(params: {
+    symbol: string;
+    maxLeverage?: number;
+  }): Promise<APISuccessResponse<Record<string, never>>> {
     return this.putPrivate('derivatives/api/v3/leveragepreferences', {
       query: params,
     });
@@ -294,7 +285,7 @@ export class FuturesClient extends BaseRestClient {
     return this.getPrivate('derivatives/api/v3/openpositions');
   }
 
-  getUnwindQueue(): Promise<
+  getPositionPercentile(): Promise<
     APISuccessResponse<{ queue: FuturesUnwindQueuePosition[] }>
   > {
     return this.getPrivate('derivatives/api/v3/unwindqueue');
@@ -306,9 +297,12 @@ export class FuturesClient extends BaseRestClient {
     return this.getPrivate('derivatives/api/v3/portfolio-margining/parameters');
   }
 
-  simulatePortfolio(
-    params: FuturesSimulatePortfolioParams,
-  ): Promise<APISuccessResponse<FuturesPortfolioSimulation>> {
+  /**
+   * DEMO ONLY
+   */
+  simulateMarginRequirements(params: {
+    json: any; // Complex structure for portfolio simulation
+  }): Promise<APISuccessResponse<FuturesPortfolioSimulation>> {
     return this.postPrivate('derivatives/api/v3/portfolio-margining/simulate', {
       query: params,
     });
@@ -320,7 +314,7 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  listAssignmentPrograms(): Promise<
+  getAssignmentPrograms(): Promise<
     APISuccessResponse<{ participants: FuturesAssignmentProgram[] }>
   > {
     return this.getPrivate('derivatives/api/v3/assignmentprogram/current');
@@ -342,7 +336,7 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
-  listAssignmentPreferencesHistory(): Promise<
+  getAssignmentPreferencesHistory(): Promise<
     APISuccessResponse<{ participants: FuturesAssignmentProgramHistory[] }>
   > {
     return this.getPrivate('derivatives/api/v3/assignmentprogram/history');
@@ -384,9 +378,9 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  getFills(
-    params?: FuturesGetFillsParams,
-  ): Promise<APISuccessResponse<{ fills: FuturesFill[] }>> {
+  getFills(params?: {
+    lastFillTime?: string;
+  }): Promise<APISuccessResponse<{ fills: FuturesFill[] }>> {
     return this.getPrivate('derivatives/api/v3/fills', params);
   }
 
@@ -396,9 +390,9 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  getHistoricalFundingRates(
-    params: FuturesGetHistoricalFundingRatesParams,
-  ): Promise<APISuccessResponse<{ rates: FuturesHistoricalFundingRate[] }>> {
+  getHistoricalFundingRates(params: {
+    symbol: string;
+  }): Promise<APISuccessResponse<{ rates: FuturesHistoricalFundingRate[] }>> {
     return this.get('derivatives/api/v3/historical-funding-rates', params);
   }
 
@@ -442,7 +436,7 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  checkSubaccountTradingStatus(
+  getSubaccountTradingStatus(
     subaccountUid: string,
   ): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
     return this.getPrivate(
@@ -452,7 +446,9 @@ export class FuturesClient extends BaseRestClient {
 
   updateSubaccountTradingStatus(
     subaccountUid: string,
-    params: FuturesUpdateSubaccountTradingStatusParams,
+    params: {
+      tradingEnabled: boolean;
+    },
   ): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
     return this.putPrivate(
       `derivatives/api/v3/subaccount/${subaccountUid}/trading-enabled`,
@@ -470,7 +466,7 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  initiateWalletTransfer(
+  submitWalletTransfer(
     params: FuturesInitiateWalletTransferParams,
   ): Promise<APISuccessResponse<Record<string, never>>> {
     return this.postPrivate('derivatives/api/v3/transfer', {
@@ -478,7 +474,7 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
-  initiateSubaccountTransfer(
+  submitSubaccountTransfer(
     params: FuturesInitiateSubaccountTransferParams,
   ): Promise<APISuccessResponse<Record<string, never>>> {
     return this.postPrivate('derivatives/api/v3/transfer/subaccount', {
@@ -486,7 +482,7 @@ export class FuturesClient extends BaseRestClient {
     });
   }
 
-  initiateWithdrawal(
+  submitWithdrawal(
     params: FuturesInitiateWithdrawalParams,
   ): Promise<APISuccessResponse<{ uid: string }>> {
     return this.postPrivate('derivatives/api/v3/withdrawal', {
@@ -500,41 +496,47 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  listAllOpenRfqs(): Promise<APISuccessResponse<{ rfqs: FuturesRfq[] }>> {
+  getOpenRfqs(): Promise<APISuccessResponse<{ rfqs: FuturesRfq[] }>> {
     return this.get('derivatives/api/v3/rfqs');
   }
 
-  getSingleOpenRfq(
+  getOpenRfq(
     rfqUid: string,
   ): Promise<APISuccessResponse<{ rfq: FuturesRfq }>> {
     return this.get(`derivatives/api/v3/rfqs/${rfqUid}`);
   }
 
-  listOpenOffers(): Promise<
+  getOpenOffers(): Promise<
     APISuccessResponse<{ openOffers: FuturesOpenOffer[] }>
   > {
     return this.getPrivate('derivatives/api/v3/rfqs/open-offers');
   }
 
-  placeNewOffer(
+  submitNewOffer(
     rfqUid: string,
-    params: FuturesPlaceOfferParams,
+    params: {
+      bid?: number;
+      ask?: number;
+    },
   ): Promise<APISuccessResponse<{ offerUid: string }>> {
     return this.postPrivate(`derivatives/api/v3/rfqs/${rfqUid}/place-offer`, {
       body: params,
     });
   }
 
-  replaceOpenOffer(
+  updateOpenOffer(
     rfqUid: string,
-    params: FuturesReplaceOfferParams,
+    params: {
+      bid?: number;
+      ask?: number;
+    },
   ): Promise<APISuccessResponse<Record<string, never>>> {
     return this.putPrivate(`derivatives/api/v3/rfqs/${rfqUid}/replace-offer`, {
       body: params,
     });
   }
 
-  cancelOpenOffer(
+  cancelOffer(
     rfqUid: string,
   ): Promise<APISuccessResponse<Record<string, never>>> {
     return this.deletePrivate(`derivatives/api/v3/rfqs/${rfqUid}/cancel-offer`);
@@ -584,7 +586,7 @@ export class FuturesClient extends BaseRestClient {
     return this.getPrivate('api/history/v3/account-log', { params });
   }
 
-  getAccountLogCsv(params?: FuturesGetAccountLogCsvParams): Promise<string> {
+  getAccountLogCsv(params?: { conversion_details?: boolean }): Promise<string> {
     return this.getPrivate('api/history/v3/accountlogcsv', { params });
   }
 
