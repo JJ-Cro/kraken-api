@@ -1,3 +1,4 @@
+export * from './SpotClient.js';
 export * from './FuturesClient.js';
 export * from './lib/websocket/logger.js';
 export * from './lib/websocket/websocket-util.js';

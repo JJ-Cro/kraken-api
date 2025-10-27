@@ -2,7 +2,7 @@
  * Used to switch how authentication/requests work under the hood
  */
 export const REST_CLIENT_TYPE_ENUM = {
-  /** Spot & Margin */
+  /** Spot */
   main: 'main',
   /** Futures */
   futures: 'futures',
