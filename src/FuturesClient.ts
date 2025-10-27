@@ -3,16 +3,62 @@ import { nanoid } from 'nanoid';
 
 import { BaseRestClient } from './lib/BaseRestClient.js';
 import {
-  APIIDMain,
-  APIIDMainKey,
   REST_CLIENT_TYPE_ENUM,
   RestClientOptions,
   RestClientType,
 } from './lib/requestUtils.js';
-import { AccountFillsRequest } from './types/request/futures.types.js';
-import { AccountBalance } from './types/response/futures.types.js';
+import {
+  FuturesAddAssignmentPreferenceParams,
+  FuturesBatchOrderParams,
+  FuturesCancelAllOrdersParams,
+  FuturesCancelOrderParams,
+  FuturesDeadMansSwitchParams,
+  FuturesEditOrderParams,
+  FuturesGetFillsParams,
+  FuturesGetHistoricalFundingRatesParams,
+  FuturesGetOrderbookParams,
+  FuturesGetSpecificOrdersStatusParams,
+  FuturesGetTradeHistoryParams,
+  FuturesInitiateSubaccountTransferParams,
+  FuturesInitiateWalletTransferParams,
+  FuturesInitiateWithdrawalParams,
+  FuturesSendOrderParams,
+  FuturesSetLeveragePreferenceParams,
+  FuturesSetPnlPreferenceParams,
+  FuturesSimulatePortfolioParams,
+  FuturesUpdateSelfTradeStrategyParams,
+  FuturesUpdateSubaccountTradingStatusParams,
+} from './types/request/futures.types.js';
+import {
+  FuturesAccounts,
+  FuturesAssignmentProgram,
+  FuturesAssignmentProgramHistory,
+  FuturesBatchOrderStatus,
+  FuturesCancelAllOrdersStatus,
+  FuturesCancelOrderStatus,
+  FuturesDeadMansSwitchStatus,
+  FuturesEditOrderStatus,
+  FuturesFeeSchedule,
+  FuturesFill,
+  FuturesHistoricalFundingRate,
+  FuturesInstrument,
+  FuturesInstrumentStatus,
+  FuturesLeveragePreference,
+  FuturesNotification,
+  FuturesOpenOrder,
+  FuturesOpenPosition,
+  FuturesOrderBook,
+  FuturesOrderStatusInfo,
+  FuturesPnlPreference,
+  FuturesPortfolioMarginParameters,
+  FuturesPortfolioSimulation,
+  FuturesSendOrderStatus,
+  FuturesSubaccountsInfo,
+  FuturesTicker,
+  FuturesTradeHistoryItem,
+  FuturesUnwindQueuePosition,
+} from './types/response/futures.types.js';
 import { APISuccessResponse } from './types/response/shared.types.js';
-import { WsConnectionInfo } from './types/response/ws.js';
 
 /**
  * The FuturesClient provides integration to the Kraken Futures API.
@@ -51,11 +97,50 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  getTradeHistory(params: {
-    symbol: string;
-    lastTime?: string;
-  }): Promise<APISuccessResponse<{ history: any[] }>> {
-    return this.get(`derivatives/api/v3/history`, params);
+  getTradeHistory(
+    params: FuturesGetTradeHistoryParams,
+  ): Promise<APISuccessResponse<{ history: FuturesTradeHistoryItem[] }>> {
+    return this.get('derivatives/api/v3/history', params);
+  }
+
+  getOrderbook(
+    params: FuturesGetOrderbookParams,
+  ): Promise<APISuccessResponse<{ orderBook: FuturesOrderBook }>> {
+    return this.get('derivatives/api/v3/orderbook', params);
+  }
+
+  getTickers(): Promise<APISuccessResponse<{ tickers: FuturesTicker[] }>> {
+    return this.get('derivatives/api/v3/tickers');
+  }
+
+  getTickerBySymbol(
+    symbol: string,
+  ): Promise<APISuccessResponse<{ ticker: FuturesTicker }>> {
+    return this.get(`derivatives/api/v3/tickers/${symbol}`);
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Instrument Details
+   *
+   */
+
+  getInstruments(): Promise<
+    APISuccessResponse<{ instruments: FuturesInstrument[] }>
+  > {
+    return this.get('derivatives/api/v3/instruments');
+  }
+
+  getInstrumentStatusList(): Promise<
+    APISuccessResponse<{ instrumentStatus: FuturesInstrumentStatus[] }>
+  > {
+    return this.get('derivatives/api/v3/instruments/status');
+  }
+
+  getInstrumentStatus(
+    symbol: string,
+  ): Promise<APISuccessResponse<FuturesInstrumentStatus>> {
+    return this.get(`derivatives/api/v3/instruments/${symbol}/status`);
   }
 
   /**
@@ -64,21 +149,101 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  sendOrder(params?: any): Promise<APISuccessResponse<any>> {
-    return this.postPrivate('derivatives/api/v3/sendorder', {
-      body: params,
+  batchOrderManagement(
+    params: FuturesBatchOrderParams,
+  ): Promise<APISuccessResponse<{ batchStatus: FuturesBatchOrderStatus[] }>> {
+    return this.postPrivate('derivatives/api/v3/batchorder', {
+      query: { ProcessBefore: params.ProcessBefore },
+      body: params.json,
     });
   }
 
-  getOpenOrders(): Promise<any> {
+  cancelAllOrders(
+    params?: FuturesCancelAllOrdersParams,
+  ): Promise<
+    APISuccessResponse<{ cancelStatus: FuturesCancelAllOrdersStatus }>
+  > {
+    return this.postPrivate('derivatives/api/v3/cancelallorders', {
+      query: params,
+    });
+  }
+
+  cancelAllOrdersAfter(
+    params: FuturesDeadMansSwitchParams,
+  ): Promise<APISuccessResponse<{ status: FuturesDeadMansSwitchStatus }>> {
+    return this.postPrivate('derivatives/api/v3/cancelallordersafter', {
+      query: params,
+    });
+  }
+
+  cancelOrder(
+    params: FuturesCancelOrderParams,
+  ): Promise<APISuccessResponse<{ cancelStatus: FuturesCancelOrderStatus }>> {
+    return this.postPrivate('derivatives/api/v3/cancelorder', {
+      query: params,
+    });
+  }
+
+  editOrder(
+    params: FuturesEditOrderParams,
+  ): Promise<APISuccessResponse<{ editStatus: FuturesEditOrderStatus }>> {
+    return this.postPrivate('derivatives/api/v3/editorder', {
+      query: params,
+    });
+  }
+
+  getOpenOrders(): Promise<
+    APISuccessResponse<{ openOrders: FuturesOpenOrder[] }>
+  > {
     return this.getPrivate('derivatives/api/v3/openorders');
   }
 
-  getSpecificOrdersStatus(params?: {
-    orderIds?: string[];
-    cliOrdIds?: string[];
-  }): Promise<APISuccessResponse<any>> {
-    return this.postPrivate(`derivatives/api/v3/orders/status`, {
+  sendOrder(
+    params: FuturesSendOrderParams,
+  ): Promise<APISuccessResponse<{ sendStatus: FuturesSendOrderStatus }>> {
+    return this.postPrivate('derivatives/api/v3/sendorder', {
+      query: params,
+    });
+  }
+
+  getSpecificOrdersStatus(
+    params: FuturesGetSpecificOrdersStatusParams,
+  ): Promise<APISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>> {
+    return this.postPrivate('derivatives/api/v3/orders/status', {
+      query: params,
+    });
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Multi-Collateral
+   *
+   */
+
+  getPnlPreferences(): Promise<
+    APISuccessResponse<{ preferences: FuturesPnlPreference[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/pnlpreferences');
+  }
+
+  setPnlPreference(
+    params: FuturesSetPnlPreferenceParams,
+  ): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.putPrivate('derivatives/api/v3/pnlpreferences', {
+      query: params,
+    });
+  }
+
+  getLeveragePreferences(): Promise<
+    APISuccessResponse<{ leveragePreferences: FuturesLeveragePreference[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/leveragepreferences');
+  }
+
+  setLeveragePreference(
+    params: FuturesSetLeveragePreferenceParams,
+  ): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.putPrivate('derivatives/api/v3/leveragepreferences', {
       query: params,
     });
   }
@@ -89,8 +254,98 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  getWallets(): Promise<APISuccessResponse<{ accounts: any }>> {
-    return this.getPrivate(`derivatives/api/v3/accounts`);
+  getAccounts(): Promise<APISuccessResponse<{ accounts: FuturesAccounts }>> {
+    return this.getPrivate('derivatives/api/v3/accounts');
+  }
+
+  getOpenPositions(): Promise<
+    APISuccessResponse<{ openPositions: FuturesOpenPosition[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/openpositions');
+  }
+
+  getUnwindQueue(): Promise<
+    APISuccessResponse<{ queue: FuturesUnwindQueuePosition[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/unwindqueue');
+  }
+
+  getPortfolioMarginParameters(): Promise<
+    APISuccessResponse<FuturesPortfolioMarginParameters>
+  > {
+    return this.getPrivate('derivatives/api/v3/portfolio-margining/parameters');
+  }
+
+  simulatePortfolio(
+    params: FuturesSimulatePortfolioParams,
+  ): Promise<APISuccessResponse<FuturesPortfolioSimulation>> {
+    return this.postPrivate('derivatives/api/v3/portfolio-margining/simulate', {
+      query: params,
+    });
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Assignment Program
+   *
+   */
+
+  listAssignmentPrograms(): Promise<
+    APISuccessResponse<{ participants: FuturesAssignmentProgram[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/assignmentprogram/current');
+  }
+
+  addAssignmentPreference(
+    params: FuturesAddAssignmentPreferenceParams,
+  ): Promise<APISuccessResponse<FuturesAssignmentProgram>> {
+    return this.postPrivate('derivatives/api/v3/assignmentprogram/add', {
+      query: params,
+    });
+  }
+
+  deleteAssignmentPreference(params: {
+    id: number;
+  }): Promise<APISuccessResponse<FuturesAssignmentProgram>> {
+    return this.postPrivate('derivatives/api/v3/assignmentprogram/delete', {
+      query: params,
+    });
+  }
+
+  listAssignmentPreferencesHistory(): Promise<
+    APISuccessResponse<{ participants: FuturesAssignmentProgramHistory[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/assignmentprogram/history');
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Fee Schedules
+   *
+   */
+
+  getFeeSchedules(): Promise<
+    APISuccessResponse<{ feeSchedules: FuturesFeeSchedule[] }>
+  > {
+    return this.get('derivatives/api/v3/feeschedules');
+  }
+
+  getFeeScheduleVolumes(): Promise<
+    APISuccessResponse<{ volumesByFeeSchedule: Record<string, number> }>
+  > {
+    return this.getPrivate('derivatives/api/v3/feeschedules/volumes');
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - General
+   *
+   */
+
+  getNotifications(): Promise<
+    APISuccessResponse<{ notifications: FuturesNotification[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/notifications');
   }
 
   /**
@@ -99,9 +354,113 @@ export class FuturesClient extends BaseRestClient {
    *
    */
 
-  getYourFills(params?: {
-    lastFillTime?: string;
-  }): Promise<APISuccessResponse<any>> {
-    return this.getPrivate(`derivatives/api/v3/fills`, params);
+  getFills(
+    params?: FuturesGetFillsParams,
+  ): Promise<APISuccessResponse<{ fills: FuturesFill[] }>> {
+    return this.getPrivate('derivatives/api/v3/fills', params);
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Historical Funding Rates
+   *
+   */
+
+  getHistoricalFundingRates(
+    params: FuturesGetHistoricalFundingRatesParams,
+  ): Promise<APISuccessResponse<{ rates: FuturesHistoricalFundingRate[] }>> {
+    return this.get('derivatives/api/v3/historical-funding-rates', params);
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Trading Settings
+   *
+   */
+
+  getSelfTradeStrategy(): Promise<
+    APISuccessResponse<{
+      strategy:
+        | 'REJECT_TAKER'
+        | 'CANCEL_MAKER_SELF'
+        | 'CANCEL_MAKER_CHILD'
+        | 'CANCEL_MAKER_ANY';
+    }>
+  > {
+    return this.getPrivate('derivatives/api/v3/self-trade-strategy');
+  }
+
+  updateSelfTradeStrategy(
+    params: FuturesUpdateSelfTradeStrategyParams,
+  ): Promise<
+    APISuccessResponse<{
+      strategy:
+        | 'REJECT_TAKER'
+        | 'CANCEL_MAKER_SELF'
+        | 'CANCEL_MAKER_CHILD'
+        | 'CANCEL_MAKER_ANY';
+    }>
+  > {
+    return this.putPrivate('derivatives/api/v3/self-trade-strategy', {
+      query: params,
+    });
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Subaccounts
+   *
+   */
+
+  checkSubaccountTradingStatus(
+    subaccountUid: string,
+  ): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+    return this.getPrivate(
+      `derivatives/api/v3/subaccount/${subaccountUid}/trading-enabled`,
+    );
+  }
+
+  updateSubaccountTradingStatus(
+    subaccountUid: string,
+    params: FuturesUpdateSubaccountTradingStatusParams,
+  ): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+    return this.putPrivate(
+      `derivatives/api/v3/subaccount/${subaccountUid}/trading-enabled`,
+      { query: params },
+    );
+  }
+
+  getSubaccounts(): Promise<APISuccessResponse<FuturesSubaccountsInfo>> {
+    return this.getPrivate('derivatives/api/v3/subaccounts');
+  }
+
+  /**
+   *
+   * Futures REST API - Trading - Transfers
+   *
+   */
+
+  initiateWalletTransfer(
+    params: FuturesInitiateWalletTransferParams,
+  ): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.postPrivate('derivatives/api/v3/transfer', {
+      query: params,
+    });
+  }
+
+  initiateSubaccountTransfer(
+    params: FuturesInitiateSubaccountTransferParams,
+  ): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.postPrivate('derivatives/api/v3/transfer/subaccount', {
+      query: params,
+    });
+  }
+
+  initiateWithdrawal(
+    params: FuturesInitiateWithdrawalParams,
+  ): Promise<APISuccessResponse<{ uid: string }>> {
+    return this.postPrivate('derivatives/api/v3/withdrawal', {
+      query: params,
+    });
   }
 }
