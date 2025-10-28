@@ -214,8 +214,7 @@ export class FuturesClient extends BaseRestClient {
     params: FuturesBatchOrderParams,
   ): Promise<APISuccessResponse<{ batchStatus: FuturesBatchOrderStatus[] }>> {
     return this.postPrivate('derivatives/api/v3/batchorder', {
-      query: { ProcessBefore: params.ProcessBefore },
-      body: params.json,
+      body: params,
     });
   }
 
