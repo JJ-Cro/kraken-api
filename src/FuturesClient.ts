@@ -30,7 +30,6 @@ import {
   FuturesAccountLog,
   FuturesAccounts,
   FuturesAnalyticsResponse,
-  FuturesAnalyticsType,
   FuturesApiKeyV3Check,
   FuturesAssignmentProgram,
   FuturesAssignmentProgramHistory,
@@ -67,6 +66,7 @@ import {
   FuturesPublicOrderEvent,
   FuturesResolution,
   FuturesRfq,
+  FuturesSelfTradeStrategy,
   FuturesSendOrderStatus,
   FuturesSubaccountsInfo,
   FuturesTicker,
@@ -151,10 +151,10 @@ export class FuturesClient extends BaseRestClient {
    *
    * Get market data for contract or index by symbol.
    */
-  getTicker(
-    symbol: string,
-  ): Promise<APISuccessResponse<{ ticker: FuturesTicker }>> {
-    return this.get(`derivatives/api/v3/tickers/${symbol}`);
+  getTicker(params: {
+    symbol: string;
+  }): Promise<APISuccessResponse<{ ticker: FuturesTicker }>> {
+    return this.get(`derivatives/api/v3/tickers/${params.symbol}`);
   }
 
   /**
@@ -190,10 +190,10 @@ export class FuturesClient extends BaseRestClient {
    *
    * Returns price dislocation and volatility details for given market.
    */
-  getInstrumentStatus(
-    symbol: string,
-  ): Promise<APISuccessResponse<FuturesInstrumentStatus>> {
-    return this.get(`derivatives/api/v3/instruments/${symbol}/status`);
+  getInstrumentStatus(params: {
+    symbol: string;
+  }): Promise<APISuccessResponse<FuturesInstrumentStatus>> {
+    return this.get(`derivatives/api/v3/instruments/${params.symbol}/status`);
   }
 
   /**
@@ -204,6 +204,8 @@ export class FuturesClient extends BaseRestClient {
 
   /**
    * Batch order management
+   *
+   * TODO: Check this endpoint request, see if it is properly formatted for query/body
    *
    * This endpoint allows sending limit or stop order(s) and/or cancelling open order(s) and/or editing open order(s) for a currently listed Futures contract in batch.
    * When editing an order, if the trailingStopMaxDeviation and trailingStopDeviationUnit parameters are sent unchanged, the system will recalculate a new stop price upon successful order modification.
@@ -348,18 +350,19 @@ export class FuturesClient extends BaseRestClient {
    *
    * Returns list of configured leverage preferences.
    */
-  getLeveragePreferences(): Promise<
+  getLeverageSettings(): Promise<
     APISuccessResponse<{ leveragePreferences: FuturesLeveragePreference[] }>
   > {
     return this.getPrivate('derivatives/api/v3/leveragepreferences');
   }
 
   /**
-   * Set leverage preference
+   * Set leverage settings
    *
-   * Sets the leverage preference for a specific symbol.
+   * Sets a contract's margin mode, either "isolated" or "cross" margin.
+   * When specifying a max leverage, the contract's margin mode will be isolated.
    */
-  setLeveragePreference(params: {
+  setLeverageSettings(params: {
     symbol: string;
     maxLeverage?: number;
   }): Promise<APISuccessResponse<Record<string, never>>> {
@@ -377,7 +380,9 @@ export class FuturesClient extends BaseRestClient {
   /**
    * Get wallets
    *
-   * This endpoint returns key information relating to all your accounts which may either be cash accounts or margin accounts. This includes digital asset balances, instrument balances, margin requirements, margin trigger estimates and auxiliary information such as available funds, PnL of open positions and portfolio value.
+   * This endpoint returns key information relating to all your accounts which may either be cash accounts or margin accounts.
+   * This includes digital asset balances, instrument balances, margin requirements, margin trigger estimates and
+   * auxiliary information such as available funds, PnL of open positions and portfolio value.
    */
   getAccounts(): Promise<APISuccessResponse<{ accounts: FuturesAccounts }>> {
     return this.getPrivate('derivatives/api/v3/accounts');
@@ -386,7 +391,8 @@ export class FuturesClient extends BaseRestClient {
   /**
    * Get open positions
    *
-   * This endpoint returns the size and average entry price of all open positions in Futures contracts. This includes Futures contracts that have matured but have not yet been settled.
+   * This endpoint returns the size and average entry price of all open positions in Futures contracts.
+   * This includes Futures contracts that have matured but have not yet been settled.
    */
   getOpenPositions(): Promise<
     APISuccessResponse<{ openPositions: FuturesOpenPosition[] }>
@@ -578,11 +584,7 @@ export class FuturesClient extends BaseRestClient {
    */
   getSelfTradeStrategy(): Promise<
     APISuccessResponse<{
-      strategy:
-        | 'REJECT_TAKER'
-        | 'CANCEL_MAKER_SELF'
-        | 'CANCEL_MAKER_CHILD'
-        | 'CANCEL_MAKER_ANY';
+      strategy: FuturesSelfTradeStrategy;
     }>
   > {
     return this.getPrivate('derivatives/api/v3/self-trade-strategy');
@@ -597,11 +599,7 @@ export class FuturesClient extends BaseRestClient {
     params: FuturesUpdateSelfTradeStrategyParams,
   ): Promise<
     APISuccessResponse<{
-      strategy:
-        | 'REJECT_TAKER'
-        | 'CANCEL_MAKER_SELF'
-        | 'CANCEL_MAKER_CHILD'
-        | 'CANCEL_MAKER_ANY';
+      strategy: FuturesSelfTradeStrategy;
     }>
   > {
     return this.putPrivate('derivatives/api/v3/self-trade-strategy', {
@@ -620,11 +618,11 @@ export class FuturesClient extends BaseRestClient {
    *
    * Returns trading capability info for given subaccount.
    */
-  getSubaccountTradingStatus(
-    subaccountUid: string,
-  ): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+  getSubaccountTradingStatus(params: {
+    subaccountUid: string;
+  }): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
     return this.getPrivate(
-      `derivatives/api/v3/subaccount/${subaccountUid}/trading-enabled`,
+      `derivatives/api/v3/subaccount/${params.subaccountUid}/trading-enabled`,
     );
   }
 
@@ -633,15 +631,14 @@ export class FuturesClient extends BaseRestClient {
    *
    * Updates trading capabilities for given subaccount.
    */
-  updateSubaccountTradingStatus(
-    subaccountUid: string,
-    params: {
-      tradingEnabled: boolean;
-    },
-  ): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+  updateSubaccountTradingStatus(params: {
+    subaccountUid: string;
+    tradingEnabled: boolean;
+  }): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+    const { subaccountUid, ...otherParams } = params;
     return this.putPrivate(
       `derivatives/api/v3/subaccount/${subaccountUid}/trading-enabled`,
-      { query: params },
+      { query: otherParams },
     );
   }
 
@@ -722,8 +719,10 @@ export class FuturesClient extends BaseRestClient {
    * Retrieve a specific open RFQ by its unique identifier.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  getOpenRfq(rfqUid: string): Promise<APISuccessResponse<{ rfq: FuturesRfq }>> {
-    return this.get(`derivatives/api/v3/rfqs/${rfqUid}`);
+  getOpenRfq(params: {
+    rfqUid: string;
+  }): Promise<APISuccessResponse<{ rfq: FuturesRfq }>> {
+    return this.get(`derivatives/api/v3/rfqs/${params.rfqUid}`);
   }
 
   /**
@@ -744,15 +743,14 @@ export class FuturesClient extends BaseRestClient {
    * Place a new offer for the given amount in USD on the specified open RFQ, bid and ask are optional but at least one must be provided.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  submitNewOffer(
-    rfqUid: string,
-    params: {
-      bid?: number;
-      ask?: number;
-    },
-  ): Promise<APISuccessResponse<{ offerUid: string }>> {
+  submitNewOffer(params: {
+    rfqUid: string;
+    bid?: number;
+    ask?: number;
+  }): Promise<APISuccessResponse<{ offerUid: string }>> {
+    const { rfqUid, ...bodyParams } = params;
     return this.postPrivate(`derivatives/api/v3/rfqs/${rfqUid}/place-offer`, {
-      body: params,
+      body: bodyParams,
     });
   }
 
@@ -762,15 +760,14 @@ export class FuturesClient extends BaseRestClient {
    * Replace the current open offer on the specified open RFQ, bid and ask are optional but at least one must be provided.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  updateOpenOffer(
-    rfqUid: string,
-    params: {
-      bid?: number;
-      ask?: number;
-    },
-  ): Promise<APISuccessResponse<Record<string, never>>> {
+  updateOpenOffer(params: {
+    rfqUid: string;
+    bid?: number;
+    ask?: number;
+  }): Promise<APISuccessResponse<Record<string, never>>> {
+    const { rfqUid, ...bodyParams } = params;
     return this.putPrivate(`derivatives/api/v3/rfqs/${rfqUid}/replace-offer`, {
-      body: params,
+      body: bodyParams,
     });
   }
 
@@ -780,10 +777,12 @@ export class FuturesClient extends BaseRestClient {
    * Cancel the current open offer on the specified open RFQ.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  cancelOffer(
-    rfqUid: string,
-  ): Promise<APISuccessResponse<Record<string, never>>> {
-    return this.deletePrivate(`derivatives/api/v3/rfqs/${rfqUid}/cancel-offer`);
+  cancelOffer(params: {
+    rfqUid: string;
+  }): Promise<APISuccessResponse<Record<string, never>>> {
+    return this.deletePrivate(
+      `derivatives/api/v3/rfqs/${params.rfqUid}/cancel-offer`,
+    );
   }
 
   /**
@@ -877,11 +876,11 @@ export class FuturesClient extends BaseRestClient {
    * Lists trades for a market.
    */
   getPublicExecutionEvents(
-    tradeable: string,
-    params?: FuturesMarketHistoryBaseParams,
+    params: FuturesMarketHistoryBaseParams,
   ): Promise<FuturesMarketHistoryResponse<FuturesPublicExecutionEvent>> {
+    const { tradeable, ...otherParams } = params;
     return this.get(`api/history/v3/market/${tradeable}/executions`, {
-      params,
+      params: otherParams,
     });
   }
 
@@ -891,10 +890,12 @@ export class FuturesClient extends BaseRestClient {
    * Lists order events for a market.
    */
   getPublicOrderEvents(
-    tradeable: string,
-    params?: FuturesMarketHistoryBaseParams,
+    params: FuturesMarketHistoryBaseParams,
   ): Promise<FuturesMarketHistoryResponse<FuturesPublicOrderEvent>> {
-    return this.get(`api/history/v3/market/${tradeable}/orders`, { params });
+    const { tradeable, ...otherParams } = params;
+    return this.get(`api/history/v3/market/${tradeable}/orders`, {
+      params: otherParams,
+    });
   }
 
   /**
@@ -903,10 +904,12 @@ export class FuturesClient extends BaseRestClient {
    * Lists price events for a market.
    */
   getPublicMarkPriceEvents(
-    tradeable: string,
-    params?: FuturesMarketHistoryBaseParams,
+    params: FuturesMarketHistoryBaseParams,
   ): Promise<FuturesMarketHistoryResponse<FuturesPublicMarkPriceEvent>> {
-    return this.get(`api/history/v3/market/${tradeable}/price`, { params });
+    const { tradeable, ...otherParams } = params;
+    return this.get(`api/history/v3/market/${tradeable}/price`, {
+      params: otherParams,
+    });
   }
 
   /**
@@ -930,8 +933,10 @@ export class FuturesClient extends BaseRestClient {
    * Markets available for specified tick type.
    * List of available tick types can be fetched from the getTickTypes() endpoint.
    */
-  getMarketsForTickType(tickType: FuturesTickType): Promise<string[]> {
-    return this.get(`api/charts/v1/${tickType}`);
+  getMarketsForTickType(params: {
+    tickType: FuturesTickType;
+  }): Promise<string[]> {
+    return this.get(`api/charts/v1/${params.tickType}`);
   }
 
   /**
@@ -941,11 +946,11 @@ export class FuturesClient extends BaseRestClient {
    * List of available tick types can be fetched from the getTickTypes() endpoint.
    * List of available markets can be fetched from the getMarketsForTickType() endpoint.
    */
-  getResolutions(
-    tickType: FuturesTickType,
-    symbol: string,
-  ): Promise<FuturesResolution[]> {
-    return this.get(`api/charts/v1/${tickType}/${symbol}`);
+  getResolutions(params: {
+    tickType: FuturesTickType;
+    symbol: string;
+  }): Promise<FuturesResolution[]> {
+    return this.get(`api/charts/v1/${params.tickType}/${params.symbol}`);
   }
 
   /**
@@ -956,14 +961,10 @@ export class FuturesClient extends BaseRestClient {
    * List of available markets can be fetched from the getMarketsForTickType() endpoint.
    * List of available resolutions can be fetched from the getResolutions() endpoint.
    */
-  getCandles(
-    tickType: FuturesTickType,
-    symbol: string,
-    resolution: FuturesResolution,
-    params?: FuturesGetCandlesParams,
-  ): Promise<FuturesCandles> {
+  getCandles(params: FuturesGetCandlesParams): Promise<FuturesCandles> {
+    const { tickType, symbol, resolution, ...otherParams } = params;
     return this.get(`api/charts/v1/${tickType}/${symbol}/${resolution}`, {
-      params,
+      params: otherParams,
     });
   }
 
@@ -990,12 +991,11 @@ export class FuturesClient extends BaseRestClient {
    * Analytics data divided into time buckets.
    */
   getMarketAnalytics(
-    symbol: string,
-    analyticsType: FuturesAnalyticsType,
     params: FuturesGetAnalyticsParams,
   ): Promise<FuturesAnalyticsResponse> {
+    const { symbol, analyticsType, ...otherParams } = params;
     return this.get(`api/charts/v1/analytics/${symbol}/${analyticsType}`, {
-      params,
+      params: otherParams,
     });
   }
 

@@ -152,7 +152,6 @@ export interface FuturesInitiateWithdrawalParams {
   sourceWallet?: string;
 }
 
-
 /**
  * Account History
  */
@@ -206,6 +205,7 @@ export interface FuturesGetAccountLogParams {
  */
 
 export interface FuturesMarketHistoryBaseParams {
+  tradeable: string; // Symbol of the contract
   since?: number; // Timestamp in milliseconds
   before?: number; // Timestamp in milliseconds
   sort?: 'asc' | 'desc';
@@ -218,6 +218,9 @@ export interface FuturesMarketHistoryBaseParams {
  */
 
 export interface FuturesGetCandlesParams {
+  tickType: 'spot' | 'mark' | 'trade';
+  symbol: string;
+  resolution: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '12h' | '1d' | '1w';
   from?: number; // From date in epoch seconds
   to?: number; // To date in epoch seconds
   count?: number; // Number of candles to return
@@ -228,6 +231,8 @@ export interface FuturesGetCandlesParams {
  */
 
 export interface FuturesGetAnalyticsParams {
+  symbol: string;
+  analyticsType: string;
   since: number; // Epoch time in seconds (required)
   interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
   to?: number; // Epoch time in seconds, default now

@@ -1014,3 +1014,11 @@ export interface FuturesMarketShareContract {
 export interface FuturesMarketShare {
   contracts: Record<string, FuturesMarketShareContract>;
 }
+
+// trading settings
+
+export type FuturesSelfTradeStrategy =
+  | 'REJECT_TAKER'
+  | 'CANCEL_MAKER_SELF'
+  | 'CANCEL_MAKER_CHILD'
+  | 'CANCEL_MAKER_ANY';
