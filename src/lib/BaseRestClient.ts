@@ -6,6 +6,7 @@ import {
   APIIDMain,
   APIIDMainKey,
   getRestBaseUrl,
+  REST_CLIENT_TYPE_ENUM,
   RestClientOptions,
   RestClientType,
   serializeParams,
@@ -216,6 +217,14 @@ export abstract class BaseRestClient {
   }
 
   private getNextRequestNonce(): string {
+    switch (this.getClientType()) {
+      case REST_CLIENT_TYPE_ENUM.futures: {
+        return String(this.apiRequestNonce++);
+      }
+      case REST_CLIENT_TYPE_ENUM.main: {
+        return Date.now().toString();
+      }
+    }
     return String(this.apiRequestNonce++);
   }
 
@@ -311,6 +320,15 @@ export abstract class BaseRestClient {
             response.data?.code !== '200000'
           ) {
             throw { response };
+          }
+
+          switch (this.getClientType()) {
+            case REST_CLIENT_TYPE_ENUM.main: {
+              if (response.data?.error?.length) {
+                throw { response };
+              }
+              break;
+            }
           }
 
           return response.data;
@@ -422,33 +440,103 @@ export abstract class BaseRestClient {
     const encodeQueryStringValues = true;
 
     if (signMethod === 'kraken') {
-      // const signRequestParams =
-      //   method === 'GET' || method === 'DELETE'
-      //     ? serializeParams(
-      //         data,
-      //         strictParamValidation,
-      //         encodeQueryStringValues,
-      //         '', // Don't prefix with ? as part of sign. Prefix after sign
-      //       )
-      //     : JSON.stringify(data) || '';
-
       // Don't prefix with ? as part of sign. Prefix after sign
       const prefixWith = '';
       // Array values are repeated into key value pairs
       // E.g. orderIds:[1,2] becomes orderIds=1&orderIds=2
       const repeatArrayValuesAsKVPairs = true;
-      const signRequestParams = serializeParams(
-        method === 'POST' ? res.requestData : requestBody,
-        strictParamValidation,
-        encodeQueryStringValues,
-        prefixWith,
-        repeatArrayValuesAsKVPairs,
-      );
 
       const clientType = this.getClientType();
 
       switch (clientType) {
-        case 'futures': {
+        case REST_CLIENT_TYPE_ENUM.main: {
+          // Set default nonce, if not set yet
+          if (!Array.isArray(res.requestData)) {
+            if (!(res.requestData as any)?.nonce) {
+              res.requestData = {
+                nonce: this.getNextRequestNonce(),
+                ...res.requestData,
+              };
+            }
+          }
+
+          // Allow nonce override in reuqest
+          // Should never fallback to new nonce, since it's pre-set above with default val
+          const nonce =
+            (res.requestData as any)?.nonce || this.getNextRequestNonce();
+
+          const serialisedParams = serializeParams(
+            data?.query,
+            strictParamValidation,
+            encodeQueryStringValues,
+            prefixWith,
+            repeatArrayValuesAsKVPairs,
+          );
+
+          // for spot, serialise GET params, use JSON for POST
+          const signRequestParams =
+            method === 'GET'
+              ? serialisedParams
+              : JSON.stringify(res.requestData);
+
+          const signEndpoint = endpoint;
+          const signInput = `${nonce}${signRequestParams}`;
+
+          // Only sign when no access token is provided
+          if (!this.hasAccessToken()) {
+            const signMessageInput =
+              signEndpoint +
+              (await hashMessage(signInput, 'binary', 'SHA-256'));
+
+            // node:crypto equivalent
+            // const sign = createHmac(
+            //   'sha512',
+            //   Buffer.from(this.apiSecret!, 'base64'),
+            // )
+            //   .update(signMessage, 'binary')
+            //   .digest('base64');
+
+            const sign = await signMessage(
+              signMessageInput,
+              this.apiSecret!,
+              'base64',
+              'SHA-512',
+              {
+                isSecretB64Encoded: true,
+                isInputBinaryString: true,
+              },
+            );
+
+            if (rawTrace) {
+              // console.clear();
+              console.log('getSignature: ', {
+                data,
+                signMessageInput,
+                signInput,
+                privateKey: this.apiSecret,
+                method,
+                path: endpoint,
+                query: method === 'POST' ? res.requestData : requestBody,
+                body: method === 'POST' ? res.requestData : requestBody,
+              });
+            }
+
+            res.sign = sign;
+          }
+
+          res.queryParamsWithSign = serialisedParams;
+
+          break;
+        }
+        case REST_CLIENT_TYPE_ENUM.futures: {
+          // for futures, serialise GET & POST values as query
+          const signRequestParams = serializeParams(
+            method === 'POST' ? res.requestData : requestBody,
+            strictParamValidation,
+            encodeQueryStringValues,
+            prefixWith,
+            repeatArrayValuesAsKVPairs,
+          );
           const signEndpoint = endpoint.replace('/derivatives', '');
 
           // TODO:
@@ -482,7 +570,7 @@ export abstract class BaseRestClient {
               },
             );
 
-            if (rawTrace || true) {
+            if (rawTrace) {
               // console.clear();
               console.log('getSignature: ', {
                 data,
@@ -500,10 +588,6 @@ export abstract class BaseRestClient {
 
           res.queryParamsWithSign = signRequestParams;
 
-          break;
-        }
-        case 'main': {
-          // todo:
           break;
         }
       }
@@ -593,26 +677,34 @@ export abstract class BaseRestClient {
       isPublicApi,
     );
 
-    // TODO: this is for futures, is this any diff for spot?
-    const authHeaders = {
-      APIKey: this.apiKey,
-      // Nonce: 1,// Optional: enable "useNonce" to enable. TODO:
-    };
-
     let signHeaders: Record<string, string> = {};
 
-    // Support for Authorization header, if provided:
-    // https://github.com/tiagosiebler/kucoin-api/issues/2
-    // Use restClient.setAccessToken(newToken), if you need to store a new access token
-    // Not supported for Kraken at this time
-    if (this.apiAccessToken) {
-      signHeaders = {
-        Authorization: this.apiAccessToken,
-      };
-    } else {
-      signHeaders = {
-        Authent: signResult.sign,
-      };
+    switch (this.getClientType()) {
+      case REST_CLIENT_TYPE_ENUM.main: {
+        signHeaders = {
+          'API-Key': this.apiKey,
+          'API-Sign': signResult.sign,
+        };
+        break;
+      }
+      case REST_CLIENT_TYPE_ENUM.futures: {
+        // Support for Authorization header, if provided:
+        // https://github.com/tiagosiebler/kucoin-api/issues/2
+        // Use restClient.setAccessToken(newToken), if you need to store a new access token
+        // Not supported for Kraken at this time
+        if (this.apiAccessToken) {
+          signHeaders = {
+            Authorization: this.apiAccessToken,
+          };
+        } else {
+          signHeaders = {
+            Authent: signResult.sign,
+            APIKey: this.apiKey,
+            // Nonce: 1,// Optional: enable "useNonce" to enable. TODO:
+          };
+        }
+        break;
+      }
     }
 
     const queryParams = signResult.queryParamsWithSign
@@ -625,7 +717,6 @@ export abstract class BaseRestClient {
       console.log('merged headers: ', {
         options,
         headers: {
-          ...authHeaders,
           ...options.headers,
           ...signHeaders,
         },
@@ -633,27 +724,26 @@ export abstract class BaseRestClient {
         data: params,
       });
 
-    if (method === 'GET' || !params?.body) {
+    if (method === 'POST') {
       return {
         ...options,
         headers: {
-          ...authHeaders,
           ...options.headers,
           ...signHeaders,
         },
         url: urlWithQueryParams,
+        // url: options.url,
+        data: signResult.requestData,
       };
     }
 
     return {
       ...options,
       headers: {
-        ...authHeaders,
         ...options.headers,
         ...signHeaders,
       },
       url: urlWithQueryParams,
-      data: signResult.requestData,
     };
   }
 }
