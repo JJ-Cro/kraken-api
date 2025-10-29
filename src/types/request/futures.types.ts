@@ -1,288 +1,239 @@
 /**
- * REST - ACCOUNT  - BASIC INFO
- * Get Account Ledgers - Futures
+ * Order Management
  */
 
-export interface GetTransactionsRequest {
-  startAt?: number;
-  endAt?: number;
-  type?:
-    | 'RealisedPNL'
-    | 'Deposit'
-    | 'Withdrawal'
-    | 'Transferin'
-    | 'TransferOut';
-  offset?: number;
-  maxCount?: number;
-  currency?: string;
-  forward?: boolean;
-}
-
-/**
- * REST - ACCOUNT  - SUBACCOUNT API
- */
-
-export interface GetSubAPIsRequest {
-  apiKey?: string;
-  subName: string;
-}
-
-export interface CreateSubAPIRequest {
-  subName: string;
-  passphrase: string;
-  remark: string;
-  permission?: string;
-  ipWhitelist?: string;
-  expire?: string;
-}
-
-export interface UpdateSubAPIRequest {
-  subName: string;
-  apiKey: string;
-  passphrase: string;
-  permission?: string;
-  ipWhitelist?: string;
-  expire?: string;
-}
-
-export interface DeleteSubAPIRequest {
-  apiKey: string;
-  passphrase: string;
-  subName: string;
-}
-
-/**
- * REST - FUNDING - FUNDING OVERVIEW
- */
-
-/**
- * REST - FUNDING - TRANSFER
- */
-
-export interface SubmitTransfer {
-  amount: number;
-  currency: string;
-  recAccountType: 'MAIN' | 'TRADE';
-}
-
-export interface GetTransfersRequest {
-  startAt?: number;
-  endAt?: number;
-  status?: 'PROCESSING' | 'SUCCESS' | 'FAILURE';
-  queryStatus?: 'PROCESSING' | 'SUCCESS' | 'FAILURE'[];
-  currency?: string;
-  currentPage?: number;
-  pageSize?: number;
-}
-
-/**
- *
- * Futures Market Data
- *
- */
-
-export interface GetKlinesRequest {
+export interface FuturesBatchOrderSend {
+  order: 'send';
+  order_tag: string;
+  orderType:
+    | 'lmt'
+    | 'post'
+    | 'ioc'
+    | 'mkt'
+    | 'stp'
+    | 'take_profit'
+    | 'trailing_stop'
+    | 'fok';
   symbol: string;
-  granularity: number;
-  from?: number;
-  to?: number;
-}
-
-export interface GetInterestRatesRequest {
-  symbol: string;
-  startAt?: number;
-  endAt?: number;
-  reverse?: boolean;
-  offset?: number;
-  forward?: boolean;
-  maxCount?: number;
-}
-
-/**
- *
- ***********
- * Account
- ***********
- *
- */
-
-/**
- *
- * Orders
- *
- */
-
-export interface Order {
-  clientOid: string;
   side: 'buy' | 'sell';
-  symbol: string;
-  leverage?: number;
-  type?: 'limit' | 'market';
-  remark?: string;
-  stop?: 'down' | 'up';
-  stopPriceType?: 'TP' | 'MP' | 'IP';
-  stopPrice?: string;
-  reduceOnly?: boolean;
-  closeOrder?: boolean;
-  forceHold?: boolean;
-  stp?: 'CN' | 'CO' | 'CB';
-  marginMode?: 'ISOLATED' | 'CROSS';
-  price?: string;
-  size?: number;
-  qty?: string;
-  valueQty?: string;
-  timeInForce?: 'GTC' | 'IOC';
-  postOnly?: boolean;
-  hidden?: boolean;
-  iceberg?: boolean;
-  visibleSize?: string;
-}
-
-export interface SLTPOrder {
-  clientOid: string;
-  side: 'buy' | 'sell';
-  symbol: string;
-  leverage?: number;
-  type: 'limit' | 'market';
-  remark?: string;
-  triggerStopUpPrice?: string;
-  stopPriceType?: 'TP' | 'MP' | 'IP';
-  triggerStopDownPrice?: string;
-  reduceOnly?: boolean;
-  closeOrder?: boolean;
-  forceHold?: boolean;
-  stp?: 'CN' | 'CO' | 'CB';
-  marginMode?: 'ISOLATED' | 'CROSS';
-  price?: string;
-  size?: number;
-  qty?: string;
-  valueQty?: string;
-  timeInForce?: 'GTC' | 'IOC';
-  postOnly?: boolean;
-  hidden?: boolean;
-  iceberg?: boolean;
-  visibleSize?: string;
-}
-export interface GetOrdersRequest {
-  status: 'active' | 'done';
-  symbol?: string;
-  side: 'buy' | 'sell';
-  type: 'limit' | 'market' | 'limit_stop' | 'market_stop';
-  startAt?: number;
-  endAt?: number;
-  currentPage?: number;
-  pageSize?: number;
-}
-
-export interface GetStopOrdersRequest {
-  symbol?: string;
-  side?: 'buy' | 'sell';
-  type?: 'limit' | 'market';
-  startAt?: number;
-  endAt?: number;
-  currentPage?: number;
-  pageSize?: number;
-}
-
-// Note: Either orderIdsList or clientOidsList must be provided, but not both.
-// When both are provided, orderIdsList takes precedence.
-export interface BatchCancelOrdersRequest {
-  orderIdsList?: string[];
-  clientOidsList?: {
-    symbol: string;
-    clientOid: string;
-  }[];
-}
-
-/**
- *
- * Futures Fills
- *
- */
-
-export interface AccountFillsRequest {
-  orderId?: string;
-  symbol?: string;
-  side?: 'buy' | 'sell';
-  type?: 'limit' | 'market' | 'limit_stop' | 'market_stop';
-  startAt?: number;
-  endAt?: number;
-  currentPage?: number;
-  pageSize?: number;
-  tradeTypes?: string;
-}
-
-/**
- *
- * Futures Positions
- *
- */
-
-export interface MaxOpenSizeRequest {
-  symbol: string;
-  price: string;
-  leverage: number;
-}
-
-/**
- *
- * Futures risk limit
- *
- */
-
-/**
- *
- * Futures funding fees
- *
- */
-
-export interface GetFundingRatesRequest {
-  symbol: string;
-  from: number;
-  to: number;
-}
-
-export interface GetFundingHistoryRequest {
-  symbol: string;
-  from?: number;
-  to?: number;
-  reverse?: boolean;
-  offset?: number;
-  forward?: boolean;
-  maxCount?: number;
-}
-
-/**
- *
- * Futures Copy Trading
- *
- */
-
-export interface CopyTradeOrderRequest {
-  clientOid: string;
-  side: 'buy' | 'sell';
-  symbol: string;
-  type: 'limit' | 'market';
-  leverage?: number;
-  remark?: string;
-  stop?: 'up' | 'down';
-  stopPriceType?: 'TP' | 'MP' | 'IP';
-  stopPrice?: string;
-  reduceOnly?: boolean;
-  closeOrder?: boolean;
-  forceHold?: boolean;
-  marginMode?: 'ISOLATED' | 'CROSS';
-  price?: string;
   size: number;
-  timeInForce?: 'GTC' | 'IOC';
-  postOnly?: boolean;
-  hidden?: boolean;
-  iceberg?: boolean;
-  visibleSize?: string;
+  limitPrice?: number;
+  stopPrice?: number;
+  cliOrdId?: string;
+  triggerSignal?: 'mark' | 'index' | 'last';
+  reduceOnly?: boolean;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
 }
 
-export interface CopyTradeSLTPOrderRequest extends CopyTradeOrderRequest {
-  triggerStopUpPrice?: string; // Take profit price
-  triggerStopDownPrice?: string; // Stop loss price
-  stopPriceType?: 'TP' | 'MP' | 'IP';
+export interface FuturesBatchOrderEdit {
+  order: 'edit';
+  order_id: string;
+  cliOrdId?: string | null;
+  size?: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  qtyMode?: 'ABSOLUTE' | 'RELATIVE';
+}
+
+export interface FuturesBatchOrderCancel {
+  order: 'cancel';
+  order_id?: string;
+  cliOrdId?: string;
+}
+
+export interface FuturesBatchOrderParams {
+  ProcessBefore?: string;
+  json: {
+    batchOrder: (
+      | FuturesBatchOrderSend
+      | FuturesBatchOrderEdit
+      | FuturesBatchOrderCancel
+    )[];
+  };
+}
+
+export interface FuturesCancelOrderParams {
+  processBefore?: string;
+  order_id?: string;
+  cliOrdId?: string;
+}
+
+export interface FuturesEditOrderParams {
+  processBefore?: string;
+  orderId?: string;
+  cliOrdId?: string;
+  size?: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  qtyMode?: 'ABSOLUTE' | 'RELATIVE';
+}
+
+export interface FuturesSendOrderParams {
+  processBefore?: string;
+  orderType:
+    | 'lmt'
+    | 'post'
+    | 'ioc'
+    | 'mkt'
+    | 'stp'
+    | 'take_profit'
+    | 'trailing_stop'
+    | 'fok';
+  symbol: string;
+  side: 'buy' | 'sell';
+  size: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  cliOrdId?: string;
+  triggerSignal?: 'mark' | 'index' | 'last';
+  reduceOnly?: boolean;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  limitPriceOffsetValue?: number;
+  limitPriceOffsetUnit?: 'QUOTE_CURRENCY' | 'PERCENT';
+  broker?: string;
+}
+
+/**
+ * Assignment Program
+ */
+
+export interface FuturesAddAssignmentPreferenceParams {
+  contractType: string;
+  contract?: string;
+  maxSize?: number;
+  maxPosition?: number;
+  acceptLong: boolean;
+  acceptShort: boolean;
+  timeFrame: 'all' | 'weekdays' | 'weekends';
+  enabled: boolean;
+}
+
+/**
+ * Trading Settings
+ */
+
+export interface FuturesUpdateSelfTradeStrategyParams {
+  strategy:
+    | 'REJECT_TAKER'
+    | 'CANCEL_MAKER_SELF'
+    | 'CANCEL_MAKER_CHILD'
+    | 'CANCEL_MAKER_ANY';
+}
+
+/**
+ * Transfers
+ */
+
+export interface FuturesInitiateWalletTransferParams {
+  fromAccount: string;
+  toAccount: string;
+  unit: string;
+  amount: string;
+}
+
+export interface FuturesInitiateSubaccountTransferParams {
+  fromUser: string;
+  toUser: string;
+  fromAccount: string;
+  toAccount: string;
+  unit: string;
+  amount: string;
+}
+
+export interface FuturesSubmitToSpotParams {
+  currency: string;
+  amount: string;
+  sourceWallet?: string;
+}
+
+/**
+ * Account History
+ */
+
+export interface FuturesHistoryBaseParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  sort?: 'asc' | 'desc';
+  continuation_token?: string; // base64
+  count?: number;
+  tradeable?: string;
+}
+
+export interface FuturesGetOrderEventsParams extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+}
+
+export interface FuturesGetTriggerEventsParams
+  extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+}
+
+export interface FuturesGetPositionEventsParams
+  extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+  increased?: boolean;
+  decreased?: boolean;
+  reversed?: boolean;
+  no_change?: boolean;
+  trades?: boolean;
+  funding_realization?: boolean;
+  settlement?: boolean;
+}
+
+export interface FuturesGetAccountLogParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  from?: number; // ID of the first entry (inclusive)
+  to?: number; // ID of the last entry (inclusive)
+  sort?: 'asc' | 'desc';
+  info?: string[]; // Types of entry to filter by
+  count?: number;
+  conversion_details?: boolean;
+}
+
+/**
+ * Market History
+ */
+
+export interface FuturesMarketHistoryBaseParams {
+  tradeable: string; // Symbol of the contract
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  sort?: 'asc' | 'desc';
+  continuation_token?: string; // base64
+  count?: number;
+}
+
+/**
+ * Charts - Candles
+ */
+
+export interface FuturesGetCandlesParams {
+  tickType: 'spot' | 'mark' | 'trade';
+  symbol: string;
+  resolution: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '12h' | '1d' | '1w';
+  from?: number; // From date in epoch seconds
+  to?: number; // To date in epoch seconds
+  count?: number; // Number of candles to return
+}
+
+/**
+ * Charts - Analytics
+ */
+
+export interface FuturesGetAnalyticsParams {
+  symbol: string;
+  analyticsType: string;
+  since: number; // Epoch time in seconds (required)
+  interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
+  to?: number; // Epoch time in seconds, default now
 }
