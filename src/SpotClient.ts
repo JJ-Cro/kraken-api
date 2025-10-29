@@ -9,41 +9,21 @@ import {
 } from './lib/requestUtils.js';
 import {
   SpotAccountTransferParams,
-  SpotAllocateEarnFundsParams,
   SpotAmendOrderParams,
-  SpotCancelAllOrdersAfterParams,
-  SpotCancelOrderBatchParams,
-  SpotCancelOrderParams,
-  SpotCancelWithdrawalParams,
-  SpotCreateSubaccountParams,
-  SpotDeallocateEarnFundsParams,
-  SpotDeleteExportReportParams,
-  SpotGetAccountBalanceParams,
-  SpotGetAllocationStatusParams,
-  SpotGetAssetInfoParams,
   SpotGetAssetPairsParams,
   SpotGetClosedOrdersParams,
-  SpotGetCreditLinesParams,
-  SpotGetDeallocationStatusParams,
   SpotGetDepositAddressesParams,
   SpotGetDepositMethodsParams,
   SpotGetDepositStatusParams,
-  SpotGetExportReportStatusParams,
-  SpotGetExtendedBalanceParams,
   SpotGetLedgersInfoParams,
   SpotGetOHLCParams,
   SpotGetOpenOrdersParams,
   SpotGetOpenPositionsParams,
-  SpotGetOrderAmendsParams,
   SpotGetOrderBookParams,
   SpotGetPostTradeDataParams,
-  SpotGetPreTradeDataParams,
   SpotGetRecentSpreadsParams,
   SpotGetRecentTradesParams,
-  SpotGetTickerParams,
-  SpotGetTradeBalanceParams,
   SpotGetTradesHistoryParams,
-  SpotGetTradeVolumeParams,
   SpotGetWithdrawalAddressesParams,
   SpotGetWithdrawalInfoParams,
   SpotGetWithdrawalMethodsParams,
@@ -54,7 +34,6 @@ import {
   SpotQueryOrdersParams,
   SpotQueryTradesParams,
   SpotRequestExportReportParams,
-  SpotRetrieveExportParams,
   SpotSubmitOrderBatchParams,
   SpotSubmitOrderParams,
   SpotWalletTransferParams,
@@ -64,25 +43,21 @@ import { SpotAPISuccessResponse } from './types/response/shared.types.js';
 import {
   SpotAccountBalance,
   SpotAccountTransferResponse,
-  SpotAmendOrderResponse,
   SpotAssetInfo,
   SpotAssetPair,
   SpotAssetTickerInfo,
-  SpotCancelAllOrdersAfterResponse,
-  SpotCancelOrderBatchResponse,
-  SpotCancelOrderResponse,
+  SpotBatchOrderResult,
   SpotClosedOrdersResponse,
   SpotCreditLines,
   SpotDeleteExportReportResponse,
   SpotDepositAddress,
   SpotDepositMethod,
   SpotDepositStatusResponse,
-  SpotEarnOperationStatus,
+  SpotEarnStrategy,
   SpotExportReportStatus,
   SpotExtendedBalance,
   SpotLedgersInfoResponse,
   SpotListEarnAllocationsResponse,
-  SpotListEarnStrategiesResponse,
   SpotOHLCResponse,
   SpotOpenOrdersResponse,
   SpotOpenPositionsResponse,
@@ -96,20 +71,16 @@ import {
   SpotRecentSpreadsResponse,
   SpotRecentTradesResponse,
   SpotRequestExportReportResponse,
-  SpotServerTime,
-  SpotSubmitOrderBatchResponse,
   SpotSubmitOrderResponse,
   SpotSystemStatus,
   SpotTradeBalance,
   SpotTradesHistoryResponse,
   SpotTradeVolume,
-  SpotWalletTransferResponse,
   SpotWebSocketsTokenResponse,
   SpotWithdrawalAddress,
   SpotWithdrawalInfo,
   SpotWithdrawalMethod,
   SpotWithdrawalStatus,
-  SpotWithdrawFundsResponse,
 } from './types/response/spot.types.js';
 
 /**
@@ -154,7 +125,12 @@ export class SpotClient extends BaseRestClient {
    *
    * Get the server's time.
    */
-  getServerTime(): Promise<SpotAPISuccessResponse<SpotServerTime>> {
+  getServerTime(): Promise<
+    SpotAPISuccessResponse<{
+      unixtime: number;
+      rfc1123: string;
+    }>
+  > {
     return this.get(`0/public/Time`);
   }
 
@@ -172,9 +148,10 @@ export class SpotClient extends BaseRestClient {
    *
    * Get information about the assets that are available for deposit, withdrawal, trading and earn.
    */
-  getAssetInfo(
-    params?: SpotGetAssetInfoParams,
-  ): Promise<SpotAPISuccessResponse<Record<string, SpotAssetInfo>>> {
+  getAssetInfo(params?: {
+    asset?: string;
+    aclass?: 'currency' | 'tokenized_asset';
+  }): Promise<SpotAPISuccessResponse<Record<string, SpotAssetInfo>>> {
     return this.get('0/public/Assets', params);
   }
 
@@ -196,9 +173,10 @@ export class SpotClient extends BaseRestClient {
    * Note: Today's prices start at midnight UTC.
    * Leaving the pair parameter blank will return tickers for all tradeable assets on Kraken.
    */
-  getTicker(
-    params?: SpotGetTickerParams,
-  ): Promise<SpotAPISuccessResponse<Record<string, SpotAssetTickerInfo>>> {
+  getTicker(params?: {
+    pair?: string;
+    asset_class?: 'tokenized_asset' | 'forex';
+  }): Promise<SpotAPISuccessResponse<Record<string, SpotAssetTickerInfo>>> {
     return this.get('0/public/Ticker', params);
   }
 
@@ -260,9 +238,9 @@ export class SpotClient extends BaseRestClient {
    *
    * Retrieve all cash balances, net of pending withdrawals.
    */
-  getAccountBalance(
-    params?: SpotGetAccountBalanceParams,
-  ): Promise<SpotAPISuccessResponse<SpotAccountBalance>> {
+  getAccountBalance(params?: {
+    rebase_multiplier?: 'rebased' | 'base';
+  }): Promise<SpotAPISuccessResponse<SpotAccountBalance>> {
     return this.postPrivate('0/private/Balance', { body: params });
   }
 
@@ -272,9 +250,9 @@ export class SpotClient extends BaseRestClient {
    * Retrieve all extended account balances, including credits and held amounts.
    * Balance available for trading is calculated as: available balance = balance + credit - credit_used - hold_trade
    */
-  getExtendedBalance(
-    params?: SpotGetExtendedBalanceParams,
-  ): Promise<SpotAPISuccessResponse<SpotExtendedBalance>> {
+  getExtendedBalance(params?: {
+    rebase_multiplier?: 'rebased' | 'base';
+  }): Promise<SpotAPISuccessResponse<SpotExtendedBalance>> {
     return this.postPrivate('0/private/BalanceEx', { body: params });
   }
 
@@ -283,9 +261,9 @@ export class SpotClient extends BaseRestClient {
    *
    * Retrieve all credit line details for VIPs with this functionality.
    */
-  getCreditLines(
-    params?: SpotGetCreditLinesParams,
-  ): Promise<SpotAPISuccessResponse<SpotCreditLines | null>> {
+  getCreditLines(params?: {
+    rebase_multiplier?: 'rebased' | 'base';
+  }): Promise<SpotAPISuccessResponse<SpotCreditLines | null>> {
     return this.postPrivate('0/private/CreditLines', { body: params });
   }
 
@@ -294,9 +272,9 @@ export class SpotClient extends BaseRestClient {
    *
    * Retrieve a summary of collateral balances, margin position valuations, equity and margin level.
    */
-  getTradeBalance(
-    params?: SpotGetTradeBalanceParams,
-  ): Promise<SpotAPISuccessResponse<SpotTradeBalance>> {
+  getTradeBalance(params?: {
+    rebase_multiplier?: 'rebased' | 'base';
+  }): Promise<SpotAPISuccessResponse<SpotTradeBalance>> {
     return this.postPrivate('0/private/TradeBalance', { body: params });
   }
 
@@ -340,9 +318,10 @@ export class SpotClient extends BaseRestClient {
    * Retrieves an audit trail of amend transactions on the specified order.
    * The list is ordered by ascending amend timestamp.
    */
-  getOrderAmends(
-    params: SpotGetOrderAmendsParams,
-  ): Promise<SpotAPISuccessResponse<SpotOrderAmendsResponse>> {
+  getOrderAmends(params: {
+    order_id: string;
+    rebase_multiplier?: 'rebased' | 'base';
+  }): Promise<SpotAPISuccessResponse<SpotOrderAmendsResponse>> {
     return this.postPrivate('0/private/OrderAmends', { body: params });
   }
 
@@ -406,9 +385,10 @@ export class SpotClient extends BaseRestClient {
    *
    * Returns 30 day USD trading volume and resulting fee schedule for any asset pair(s) provided.
    */
-  getTradingVolume(
-    params?: SpotGetTradeVolumeParams,
-  ): Promise<SpotAPISuccessResponse<SpotTradeVolume>> {
+  getTradingVolume(params?: {
+    pair?: string;
+    rebase_multiplier?: 'rebased' | 'base';
+  }): Promise<SpotAPISuccessResponse<SpotTradeVolume>> {
     return this.postPrivate('0/private/TradeVolume', { body: params });
   }
 
@@ -428,9 +408,9 @@ export class SpotClient extends BaseRestClient {
    *
    * Get status of requested data exports.
    */
-  getExportStatus(
-    params: SpotGetExportReportStatusParams,
-  ): Promise<SpotAPISuccessResponse<SpotExportReportStatus[]>> {
+  getExportStatus(params: {
+    report: 'trades' | 'ledgers';
+  }): Promise<SpotAPISuccessResponse<SpotExportReportStatus[]>> {
     return this.postPrivate('0/private/ExportStatus', { body: params });
   }
 
@@ -439,7 +419,7 @@ export class SpotClient extends BaseRestClient {
    *
    * Retrieve a processed data export (binary zip archive).
    */
-  getLedgersExport(params: SpotRetrieveExportParams): Promise<any> {
+  getLedgersExport(params: { id: string }): Promise<any> {
     return this.postPrivate('0/private/RetrieveExport', { body: params });
   }
 
@@ -448,9 +428,10 @@ export class SpotClient extends BaseRestClient {
    *
    * Delete or cancel exported trades/ledgers report.
    */
-  deleteLedgersExport(
-    params: SpotDeleteExportReportParams,
-  ): Promise<SpotAPISuccessResponse<SpotDeleteExportReportResponse>> {
+  deleteLedgersExport(params: {
+    id: string;
+    type: 'cancel' | 'delete';
+  }): Promise<SpotAPISuccessResponse<SpotDeleteExportReportResponse>> {
     return this.postPrivate('0/private/RemoveExport', { body: params });
   }
 
@@ -481,9 +462,11 @@ export class SpotClient extends BaseRestClient {
    * Amend an existing order. The order identifiers assigned by Kraken and/or client will stay the same.
    * Queue priority in the order book will be maintained where possible.
    */
-  amendOrder(
-    params: SpotAmendOrderParams,
-  ): Promise<SpotAPISuccessResponse<SpotAmendOrderResponse>> {
+  amendOrder(params: SpotAmendOrderParams): Promise<
+    SpotAPISuccessResponse<{
+      amend_id: string;
+    }>
+  > {
     return this.postPrivate('0/private/AmendOrder', {
       body: params,
     });
@@ -494,9 +477,12 @@ export class SpotClient extends BaseRestClient {
    *
    * Cancel a particular open order (or set of open orders) by txid, userref or cl_ord_id.
    */
-  cancelOrder(
-    params: SpotCancelOrderParams,
-  ): Promise<SpotAPISuccessResponse<SpotCancelOrderResponse>> {
+  cancelOrder(params: { txid?: string | number; cl_ord_id?: string }): Promise<
+    SpotAPISuccessResponse<{
+      count: number;
+      pending?: boolean;
+    }>
+  > {
     return this.postPrivate('0/private/CancelOrder', {
       body: params,
     });
@@ -507,7 +493,12 @@ export class SpotClient extends BaseRestClient {
    *
    * Cancel all open orders.
    */
-  cancelAllOrders(): Promise<SpotAPISuccessResponse<SpotCancelOrderResponse>> {
+  cancelAllOrders(): Promise<
+    SpotAPISuccessResponse<{
+      count: number;
+      pending: boolean;
+    }>
+  > {
     return this.postPrivate('0/private/CancelAll', { body: {} });
   }
 
@@ -518,9 +509,12 @@ export class SpotClient extends BaseRestClient {
    * extreme latency or unexpected matching engine downtime. The client can send a request with a timeout (in seconds),
    * that will start a countdown timer which will cancel all client orders when the timer expires.
    */
-  cancelAllOrdersAfter(
-    params: SpotCancelAllOrdersAfterParams,
-  ): Promise<SpotAPISuccessResponse<SpotCancelAllOrdersAfterResponse>> {
+  cancelAllOrdersAfter(params: { timeout: number }): Promise<
+    SpotAPISuccessResponse<{
+      currentTime: string;
+      triggerTime: string;
+    }>
+  > {
     return this.postPrivate('0/private/CancelAllOrdersAfter', {
       body: params,
     });
@@ -544,9 +538,11 @@ export class SpotClient extends BaseRestClient {
    * Sends a collection of orders (minimum of 2 and maximum 15). All orders in batch are limited to a single pair.
    * Validation is performed on the whole batch prior to submission. If an order fails validation, the whole batch will be rejected.
    */
-  submitBatchOrder(
-    params: SpotSubmitOrderBatchParams,
-  ): Promise<SpotAPISuccessResponse<SpotSubmitOrderBatchResponse>> {
+  submitBatchOrder(params: SpotSubmitOrderBatchParams): Promise<
+    SpotAPISuccessResponse<{
+      orders: SpotBatchOrderResult[];
+    }>
+  > {
     return this.postPrivate('0/private/AddOrderBatch', {
       body: params,
     });
@@ -557,9 +553,14 @@ export class SpotClient extends BaseRestClient {
    *
    * Cancel multiple open orders by txid, userref or cl_ord_id (maximum 50 total unique IDs/references).
    */
-  cancelOrderBatch(
-    params: SpotCancelOrderBatchParams,
-  ): Promise<SpotAPISuccessResponse<SpotCancelOrderBatchResponse>> {
+  cancelBatchOrder(params: {
+    orders?: Array<string | number>;
+    cl_ord_ids?: string[];
+  }): Promise<
+    SpotAPISuccessResponse<{
+      count: number;
+    }>
+  > {
     return this.postPrivate('0/private/CancelOrderBatch', {
       body: params,
     });
@@ -642,9 +643,11 @@ export class SpotClient extends BaseRestClient {
    *
    * Make a withdrawal request.
    */
-  submitWithdrawal(
-    params: SpotWithdrawFundsParams,
-  ): Promise<SpotAPISuccessResponse<SpotWithdrawFundsResponse>> {
+  submitWithdrawal(params: SpotWithdrawFundsParams): Promise<
+    SpotAPISuccessResponse<{
+      refid: string;
+    }>
+  > {
     return this.postPrivate('0/private/Withdraw', { body: params });
   }
 
@@ -664,9 +667,10 @@ export class SpotClient extends BaseRestClient {
    *
    * Cancel a recently requested withdrawal, if it has not already been successfully processed.
    */
-  cancelWithdrawal(
-    params: SpotCancelWithdrawalParams,
-  ): Promise<SpotAPISuccessResponse<boolean>> {
+  cancelWithdrawal(params: {
+    asset: string;
+    refid: string;
+  }): Promise<SpotAPISuccessResponse<boolean>> {
     return this.postPrivate('0/private/WithdrawCancel', { body: params });
   }
 
@@ -676,9 +680,11 @@ export class SpotClient extends BaseRestClient {
    * Transfer from a Kraken spot wallet to a Kraken Futures wallet.
    * Note: Transfer in the other direction must be requested via the Kraken Futures API.
    */
-  submitTransferToFutures(
-    params: SpotWalletTransferParams,
-  ): Promise<SpotAPISuccessResponse<SpotWalletTransferResponse>> {
+  submitTransferToFutures(params: SpotWalletTransferParams): Promise<
+    SpotAPISuccessResponse<{
+      refid: string;
+    }>
+  > {
     return this.postPrivate('0/private/WalletTransfer', { body: params });
   }
 
@@ -694,9 +700,10 @@ export class SpotClient extends BaseRestClient {
    * Create a trading subaccount.
    * Note: CreateSubaccount must be called using an API key from the master account.
    */
-  createSubaccount(
-    params: SpotCreateSubaccountParams,
-  ): Promise<SpotAPISuccessResponse<boolean>> {
+  createSubaccount(params: {
+    username: string;
+    email: string;
+  }): Promise<SpotAPISuccessResponse<boolean>> {
     return this.postPrivate('0/private/CreateSubaccount', { body: params });
   }
 
@@ -724,9 +731,10 @@ export class SpotClient extends BaseRestClient {
    * Allocate funds to the Strategy.
    * This method is asynchronous. Use getAllocationStatus() to poll the result.
    */
-  allocateEarnFunds(
-    params: SpotAllocateEarnFundsParams,
-  ): Promise<SpotAPISuccessResponse<boolean>> {
+  allocateEarnFunds(params: {
+    amount: string;
+    strategy_id: string;
+  }): Promise<SpotAPISuccessResponse<boolean>> {
     return this.postPrivate('0/private/Earn/Allocate', { body: params });
   }
 
@@ -736,9 +744,10 @@ export class SpotClient extends BaseRestClient {
    * Deallocate funds from a strategy.
    * This method is asynchronous. Use getDeallocationStatus() to poll the result.
    */
-  deallocateEarnFunds(
-    params: SpotDeallocateEarnFundsParams,
-  ): Promise<SpotAPISuccessResponse<boolean>> {
+  deallocateEarnFunds(params: {
+    amount: string;
+    strategy_id: string;
+  }): Promise<SpotAPISuccessResponse<boolean>> {
     return this.postPrivate('0/private/Earn/Deallocate', { body: params });
   }
 
@@ -747,9 +756,11 @@ export class SpotClient extends BaseRestClient {
    *
    * Get the status of the last allocation request.
    */
-  getEarnAllocationStatus(
-    params: SpotGetAllocationStatusParams,
-  ): Promise<SpotAPISuccessResponse<SpotEarnOperationStatus>> {
+  getEarnAllocationStatus(params: { strategy_id: string }): Promise<
+    SpotAPISuccessResponse<{
+      pending: boolean;
+    }>
+  > {
     return this.postPrivate('0/private/Earn/AllocateStatus', { body: params });
   }
 
@@ -758,9 +769,11 @@ export class SpotClient extends BaseRestClient {
    *
    * Get the status of the last deallocation request.
    */
-  getEarnDeallocationStatus(
-    params: SpotGetDeallocationStatusParams,
-  ): Promise<SpotAPISuccessResponse<SpotEarnOperationStatus>> {
+  getEarnDeallocationStatus(params: { strategy_id: string }): Promise<
+    SpotAPISuccessResponse<{
+      pending: boolean;
+    }>
+  > {
     return this.postPrivate('0/private/Earn/DeallocateStatus', {
       body: params,
     });
@@ -772,9 +785,12 @@ export class SpotClient extends BaseRestClient {
    * List earn strategies along with their parameters.
    * Returns only strategies that are available to the user based on geographic region.
    */
-  getEarnStrategies(
-    params?: SpotListEarnStrategiesParams,
-  ): Promise<SpotAPISuccessResponse<SpotListEarnStrategiesResponse>> {
+  getEarnStrategies(params?: SpotListEarnStrategiesParams): Promise<
+    SpotAPISuccessResponse<{
+      items: SpotEarnStrategy[];
+      next_cursor?: string;
+    }>
+  > {
     return this.postPrivate('0/private/Earn/Strategies', { body: params });
   }
 
@@ -802,9 +818,9 @@ export class SpotClient extends BaseRestClient {
    * Returns the price levels in the order book with aggregated order quantities at each price level.
    * The top 10 levels are returned for each trading pair.
    */
-  getPreTradeData(
-    params: SpotGetPreTradeDataParams,
-  ): Promise<SpotAPISuccessResponse<SpotPreTradeData>> {
+  getPreTradeData(params: {
+    symbol: string;
+  }): Promise<SpotAPISuccessResponse<SpotPreTradeData>> {
     return this.get('0/public/PreTrade', params);
   }
 

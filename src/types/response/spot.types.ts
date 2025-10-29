@@ -2,11 +2,6 @@
  * Market Data
  */
 
-export interface SpotServerTime {
-  unixtime: number;
-  rfc1123: string;
-}
-
 export interface SpotSystemStatus {
   status: 'online' | 'maintenance' | 'cancel_only' | 'post_only';
   timestamp: string;
@@ -426,20 +421,6 @@ export interface SpotSubmitOrderResponse {
   txid: string[];
 }
 
-export interface SpotAmendOrderResponse {
-  amend_id: string;
-}
-
-export interface SpotCancelOrderResponse {
-  count: number;
-  pending?: boolean;
-}
-
-export interface SpotCancelAllOrdersAfterResponse {
-  currentTime: string;
-  triggerTime: string;
-}
-
 export interface SpotWebSocketsTokenResponse {
   token: string;
   expires: number;
@@ -453,13 +434,6 @@ export interface SpotBatchOrderResult {
   txid?: string;
 }
 
-export interface SpotSubmitOrderBatchResponse {
-  orders: SpotBatchOrderResult[];
-}
-
-export interface SpotCancelOrderBatchResponse {
-  count: number;
-}
 
 /**
  * Funding
@@ -524,10 +498,6 @@ export interface SpotWithdrawalInfo {
   fee: string;
 }
 
-export interface SpotWithdrawFundsResponse {
-  refid: string;
-}
-
 export interface SpotWithdrawalStatus {
   method: string;
   network: string;
@@ -549,10 +519,6 @@ export interface SpotWithdrawalStatus {
   key: string;
 }
 
-export interface SpotWalletTransferResponse {
-  refid: string;
-}
-
 /**
  * Subaccounts
  */
@@ -565,10 +531,6 @@ export interface SpotAccountTransferResponse {
 /**
  * Earn
  */
-
-export interface SpotEarnOperationStatus {
-  pending: boolean;
-}
 
 export interface SpotEarnAmount {
   native: string;
@@ -657,11 +619,6 @@ export interface SpotEarnStrategy {
   can_deallocate: boolean;
   allocation_restriction_info: string[];
   user_cap?: string;
-}
-
-export interface SpotListEarnStrategiesResponse {
-  items: SpotEarnStrategy[];
-  next_cursor?: string;
 }
 
 /**

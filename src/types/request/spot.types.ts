@@ -2,21 +2,11 @@
  * Market Data
  */
 
-export interface SpotGetAssetInfoParams {
-  asset?: string;
-  aclass?: 'currency' | 'tokenized_asset';
-}
-
 export interface SpotGetAssetPairsParams {
   pair?: string;
   aclass_base?: 'currency' | 'tokenized_asset';
   info?: 'info' | 'leverage' | 'fees' | 'margin';
   country_code?: string;
-}
-
-export interface SpotGetTickerParams {
-  pair?: string;
-  asset_class?: 'tokenized_asset' | 'forex';
 }
 
 export interface SpotGetOHLCParams {
@@ -49,23 +39,6 @@ export interface SpotGetRecentSpreadsParams {
  * Account Data
  */
 
-export interface SpotGetAccountBalanceParams {
-  rebase_multiplier?: 'rebased' | 'base';
-}
-
-export interface SpotGetExtendedBalanceParams {
-  rebase_multiplier?: 'rebased' | 'base';
-}
-
-export interface SpotGetCreditLinesParams {
-  rebase_multiplier?: 'rebased' | 'base';
-}
-
-export interface SpotGetTradeBalanceParams {
-  asset?: string;
-  rebase_multiplier?: 'rebased' | 'base';
-}
-
 export interface SpotGetOpenOrdersParams {
   trades?: boolean;
   userref?: number;
@@ -91,11 +64,6 @@ export interface SpotQueryOrdersParams {
   userref?: number;
   txid: string;
   consolidate_taker?: boolean;
-  rebase_multiplier?: 'rebased' | 'base';
-}
-
-export interface SpotGetOrderAmendsParams {
-  order_id: string;
   rebase_multiplier?: 'rebased' | 'base';
 }
 
@@ -159,11 +127,6 @@ export interface SpotQueryLedgersParams {
   rebase_multiplier?: 'rebased' | 'base';
 }
 
-export interface SpotGetTradeVolumeParams {
-  pair?: string;
-  rebase_multiplier?: 'rebased' | 'base';
-}
-
 export interface SpotRequestExportReportParams {
   report: 'trades' | 'ledgers';
   format?: 'CSV' | 'TSV';
@@ -171,19 +134,6 @@ export interface SpotRequestExportReportParams {
   fields?: string;
   starttm?: number;
   endtm?: number;
-}
-
-export interface SpotGetExportReportStatusParams {
-  report: 'trades' | 'ledgers';
-}
-
-export interface SpotRetrieveExportParams {
-  id: string;
-}
-
-export interface SpotDeleteExportReportParams {
-  id: string;
-  type: 'cancel' | 'delete';
 }
 
 /**
@@ -238,15 +188,6 @@ export interface SpotAmendOrderParams {
   deadline?: string;
 }
 
-export interface SpotCancelOrderParams {
-  txid?: string | number;
-  cl_ord_id?: string;
-}
-
-export interface SpotCancelAllOrdersAfterParams {
-  timeout: number;
-}
-
 export interface SpotBatchOrderItem {
   userref?: number;
   cl_ord_id?: string;
@@ -287,11 +228,6 @@ export interface SpotSubmitOrderBatchParams {
   asset_class?: 'tokenized_asset';
   deadline?: string;
   validate?: boolean;
-}
-
-export interface SpotCancelOrderBatchParams {
-  orders?: Array<string | number>;
-  cl_ord_ids?: string[];
 }
 
 /**
@@ -365,11 +301,6 @@ export interface SpotGetWithdrawalsStatusParams {
   rebase_multiplier?: 'rebased' | 'base';
 }
 
-export interface SpotCancelWithdrawalParams {
-  asset: string;
-  refid: string;
-}
-
 export interface SpotWalletTransferParams {
   asset: string;
   from: 'Spot Wallet';
@@ -380,11 +311,6 @@ export interface SpotWalletTransferParams {
 /**
  * Subaccounts
  */
-
-export interface SpotCreateSubaccountParams {
-  username: string;
-  email: string;
-}
 
 export interface SpotAccountTransferParams {
   asset: string;
@@ -397,24 +323,6 @@ export interface SpotAccountTransferParams {
 /**
  * Earn
  */
-
-export interface SpotAllocateEarnFundsParams {
-  amount: string;
-  strategy_id: string;
-}
-
-export interface SpotDeallocateEarnFundsParams {
-  amount: string;
-  strategy_id: string;
-}
-
-export interface SpotGetAllocationStatusParams {
-  strategy_id: string;
-}
-
-export interface SpotGetDeallocationStatusParams {
-  strategy_id: string;
-}
 
 export interface SpotListEarnStrategiesParams {
   ascending?: boolean;
@@ -433,10 +341,6 @@ export interface SpotListEarnAllocationsParams {
 /**
  * Transparency
  */
-
-export interface SpotGetPreTradeDataParams {
-  symbol: string;
-}
 
 export interface SpotGetPostTradeDataParams {
   symbol?: string;
