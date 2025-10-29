@@ -8,25 +8,108 @@ import {
   RestClientType,
 } from './lib/requestUtils.js';
 import {
+  SpotAccountTransferParams,
+  SpotAllocateEarnFundsParams,
+  SpotAmendOrderParams,
+  SpotCancelAllOrdersAfterParams,
+  SpotCancelOrderBatchParams,
+  SpotCancelOrderParams,
+  SpotCancelWithdrawalParams,
+  SpotCreateSubaccountParams,
+  SpotDeallocateEarnFundsParams,
+  SpotDeleteExportReportParams,
+  SpotGetAccountBalanceParams,
+  SpotGetAllocationStatusParams,
   SpotGetAssetInfoParams,
   SpotGetAssetPairsParams,
+  SpotGetClosedOrdersParams,
+  SpotGetCreditLinesParams,
+  SpotGetDeallocationStatusParams,
+  SpotGetDepositAddressesParams,
+  SpotGetDepositMethodsParams,
+  SpotGetDepositStatusParams,
+  SpotGetExportReportStatusParams,
+  SpotGetExtendedBalanceParams,
+  SpotGetLedgersInfoParams,
   SpotGetOHLCParams,
+  SpotGetOpenOrdersParams,
+  SpotGetOpenPositionsParams,
+  SpotGetOrderAmendsParams,
   SpotGetOrderBookParams,
+  SpotGetPostTradeDataParams,
+  SpotGetPreTradeDataParams,
   SpotGetRecentSpreadsParams,
   SpotGetRecentTradesParams,
   SpotGetTickerParams,
+  SpotGetTradeBalanceParams,
+  SpotGetTradesHistoryParams,
+  SpotGetTradeVolumeParams,
+  SpotGetWithdrawalAddressesParams,
+  SpotGetWithdrawalInfoParams,
+  SpotGetWithdrawalMethodsParams,
+  SpotGetWithdrawalsStatusParams,
+  SpotListEarnAllocationsParams,
+  SpotListEarnStrategiesParams,
+  SpotQueryLedgersParams,
+  SpotQueryOrdersParams,
+  SpotQueryTradesParams,
+  SpotRequestExportReportParams,
+  SpotRetrieveExportParams,
+  SpotSubmitOrderBatchParams,
+  SpotSubmitOrderParams,
+  SpotWalletTransferParams,
+  SpotWithdrawFundsParams,
 } from './types/request/spot.types.js';
 import { SpotAPISuccessResponse } from './types/response/shared.types.js';
 import {
+  SpotAccountBalance,
+  SpotAccountTransferResponse,
+  SpotAmendOrderResponse,
   SpotAssetInfo,
   SpotAssetPair,
   SpotAssetTickerInfo,
+  SpotCancelAllOrdersAfterResponse,
+  SpotCancelOrderBatchResponse,
+  SpotCancelOrderResponse,
+  SpotClosedOrdersResponse,
+  SpotCreditLines,
+  SpotDeleteExportReportResponse,
+  SpotDepositAddress,
+  SpotDepositMethod,
+  SpotDepositStatusResponse,
+  SpotEarnOperationStatus,
+  SpotExportReportStatus,
+  SpotExtendedBalance,
+  SpotLedgersInfoResponse,
+  SpotListEarnAllocationsResponse,
+  SpotListEarnStrategiesResponse,
   SpotOHLCResponse,
+  SpotOpenOrdersResponse,
+  SpotOpenPositionsResponse,
+  SpotOrderAmendsResponse,
   SpotOrderBookResponse,
+  SpotPostTradeDataResponse,
+  SpotPreTradeData,
+  SpotQueryLedgersResponse,
+  SpotQueryOrdersResponse,
+  SpotQueryTradesResponse,
   SpotRecentSpreadsResponse,
   SpotRecentTradesResponse,
+  SpotRequestExportReportResponse,
   SpotServerTime,
+  SpotSubmitOrderBatchResponse,
+  SpotSubmitOrderResponse,
   SpotSystemStatus,
+  SpotTradeBalance,
+  SpotTradesHistoryResponse,
+  SpotTradeVolume,
+  SpotWalletTransferResponse,
+  SpotWebSocketsTokenResponse,
+  SpotWithdrawalAddress,
+  SpotWithdrawalInfo,
+  SpotWithdrawalMethod,
+  SpotWithdrawalStatus,
+  SpotWithdrawFundsResponse,
 } from './types/response/spot.types.js';
 
 /**
@@ -168,12 +251,207 @@ export class SpotClient extends BaseRestClient {
 
   /**
    *
-   * Spot REST API - AccountData
+   * Spot REST API - Account Data
    *
    */
 
-  getOpenOrders(params?: any): Promise<SpotAPISuccessResponse<any>> {
-    return this.postPrivate('0/private/OpenOrders', params);
+  /**
+   * Get Account Balance
+   *
+   * Retrieve all cash balances, net of pending withdrawals.
+   */
+  getAccountBalance(
+    params?: SpotGetAccountBalanceParams,
+  ): Promise<SpotAPISuccessResponse<SpotAccountBalance>> {
+    return this.postPrivate('0/private/Balance', { body: params });
+  }
+
+  /**
+   * Get Extended Balance
+   *
+   * Retrieve all extended account balances, including credits and held amounts.
+   * Balance available for trading is calculated as: available balance = balance + credit - credit_used - hold_trade
+   */
+  getExtendedBalance(
+    params?: SpotGetExtendedBalanceParams,
+  ): Promise<SpotAPISuccessResponse<SpotExtendedBalance>> {
+    return this.postPrivate('0/private/BalanceEx', { body: params });
+  }
+
+  /**
+   * Get Credit Lines
+   *
+   * Retrieve all credit line details for VIPs with this functionality.
+   */
+  getCreditLines(
+    params?: SpotGetCreditLinesParams,
+  ): Promise<SpotAPISuccessResponse<SpotCreditLines | null>> {
+    return this.postPrivate('0/private/CreditLines', { body: params });
+  }
+
+  /**
+   * Get Trade Balance
+   *
+   * Retrieve a summary of collateral balances, margin position valuations, equity and margin level.
+   */
+  getTradeBalance(
+    params?: SpotGetTradeBalanceParams,
+  ): Promise<SpotAPISuccessResponse<SpotTradeBalance>> {
+    return this.postPrivate('0/private/TradeBalance', { body: params });
+  }
+
+  /**
+   * Get Open Orders
+   *
+   * Retrieve information about currently open orders.
+   */
+  getOpenOrders(
+    params?: SpotGetOpenOrdersParams,
+  ): Promise<SpotAPISuccessResponse<SpotOpenOrdersResponse>> {
+    return this.postPrivate('0/private/OpenOrders', { body: params });
+  }
+
+  /**
+   * Get Closed Orders
+   *
+   * Retrieve information about orders that have been closed (filled or cancelled).
+   * 50 results are returned at a time, the most recent by default.
+   */
+  getClosedOrders(
+    params?: SpotGetClosedOrdersParams,
+  ): Promise<SpotAPISuccessResponse<SpotClosedOrdersResponse>> {
+    return this.postPrivate('0/private/ClosedOrders', { body: params });
+  }
+
+  /**
+   * Query Orders Info
+   *
+   * Retrieve information about specific orders.
+   */
+  getOrders(
+    params: SpotQueryOrdersParams,
+  ): Promise<SpotAPISuccessResponse<SpotQueryOrdersResponse>> {
+    return this.postPrivate('0/private/QueryOrders', { body: params });
+  }
+
+  /**
+   * Get Order Amends
+   *
+   * Retrieves an audit trail of amend transactions on the specified order.
+   * The list is ordered by ascending amend timestamp.
+   */
+  getOrderAmends(
+    params: SpotGetOrderAmendsParams,
+  ): Promise<SpotAPISuccessResponse<SpotOrderAmendsResponse>> {
+    return this.postPrivate('0/private/OrderAmends', { body: params });
+  }
+
+  /**
+   * Get Trades History
+   *
+   * Retrieve information about trades/fills. 50 results are returned at a time, the most recent by default.
+   */
+  getTradesHistory(
+    params?: SpotGetTradesHistoryParams,
+  ): Promise<SpotAPISuccessResponse<SpotTradesHistoryResponse>> {
+    return this.postPrivate('0/private/TradesHistory', { body: params });
+  }
+
+  /**
+   * Query Trades Info
+   *
+   * Retrieve information about specific trades/fills.
+   */
+  getTrades(
+    params: SpotQueryTradesParams,
+  ): Promise<SpotAPISuccessResponse<SpotQueryTradesResponse>> {
+    return this.postPrivate('0/private/QueryTrades', { body: params });
+  }
+
+  /**
+   * Get Open Positions
+   *
+   * Get information about open margin positions.
+   */
+  getOpenPositions(
+    params?: SpotGetOpenPositionsParams,
+  ): Promise<SpotAPISuccessResponse<SpotOpenPositionsResponse>> {
+    return this.postPrivate('0/private/OpenPositions', { body: params });
+  }
+
+  /**
+   * Get Ledgers Info
+   *
+   * Retrieve information about ledger entries. 50 results are returned at a time, the most recent by default.
+   */
+  getLedgersInfo(
+    params?: SpotGetLedgersInfoParams,
+  ): Promise<SpotAPISuccessResponse<SpotLedgersInfoResponse>> {
+    return this.postPrivate('0/private/Ledgers', { body: params });
+  }
+
+  /**
+   * Query Ledgers
+   *
+   * Retrieve information about specific ledger entries.
+   */
+  getLedgers(
+    params: SpotQueryLedgersParams,
+  ): Promise<SpotAPISuccessResponse<SpotQueryLedgersResponse>> {
+    return this.postPrivate('0/private/QueryLedgers', { body: params });
+  }
+
+  /**
+   * Get Trade Volume
+   *
+   * Returns 30 day USD trading volume and resulting fee schedule for any asset pair(s) provided.
+   */
+  getTradingVolume(
+    params?: SpotGetTradeVolumeParams,
+  ): Promise<SpotAPISuccessResponse<SpotTradeVolume>> {
+    return this.postPrivate('0/private/TradeVolume', { body: params });
+  }
+
+  /**
+   * Request Export Report
+   *
+   * Request export of trades or ledgers.
+   */
+  requestLedgersExport(
+    params: SpotRequestExportReportParams,
+  ): Promise<SpotAPISuccessResponse<SpotRequestExportReportResponse>> {
+    return this.postPrivate('0/private/AddExport', { body: params });
+  }
+
+  /**
+   * Get Export Report Status
+   *
+   * Get status of requested data exports.
+   */
+  getExportStatus(
+    params: SpotGetExportReportStatusParams,
+  ): Promise<SpotAPISuccessResponse<SpotExportReportStatus[]>> {
+    return this.postPrivate('0/private/ExportStatus', { body: params });
+  }
+
+  /**
+   * Retrieve Data Export
+   *
+   * Retrieve a processed data export (binary zip archive).
+   */
+  getLedgersExport(params: SpotRetrieveExportParams): Promise<any> {
+    return this.postPrivate('0/private/RetrieveExport', { body: params });
+  }
+
+  /**
+   * Delete Export Report
+   *
+   * Delete or cancel exported trades/ledgers report.
+   */
+  deleteLedgersExport(
+    params: SpotDeleteExportReportParams,
+  ): Promise<SpotAPISuccessResponse<SpotDeleteExportReportResponse>> {
+    return this.postPrivate('0/private/RemoveExport', { body: params });
   }
 
   /**
@@ -182,19 +460,363 @@ export class SpotClient extends BaseRestClient {
    *
    */
 
-  addOrder(params: any): Promise<SpotAPISuccessResponse<any>> {
+  /**
+   * Add Order
+   *
+   * Place a new order.
+   * Note: See the getAssetPairs() endpoint for details on the available trading pairs, their price and quantity precisions,
+   * order minimums, available leverage, etc.
+   */
+  submitOrder(
+    params: SpotSubmitOrderParams,
+  ): Promise<SpotAPISuccessResponse<SpotSubmitOrderResponse>> {
     return this.postPrivate('0/private/AddOrder', {
       body: params,
     });
   }
 
   /**
+   * Amend Order
    *
-   * Spot REST API - Account Information
+   * Amend an existing order. The order identifiers assigned by Kraken and/or client will stay the same.
+   * Queue priority in the order book will be maintained where possible.
+   */
+  amendOrder(
+    params: SpotAmendOrderParams,
+  ): Promise<SpotAPISuccessResponse<SpotAmendOrderResponse>> {
+    return this.postPrivate('0/private/AmendOrder', {
+      body: params,
+    });
+  }
+
+  /**
+   * Cancel Order
+   *
+   * Cancel a particular open order (or set of open orders) by txid, userref or cl_ord_id.
+   */
+  cancelOrder(
+    params: SpotCancelOrderParams,
+  ): Promise<SpotAPISuccessResponse<SpotCancelOrderResponse>> {
+    return this.postPrivate('0/private/CancelOrder', {
+      body: params,
+    });
+  }
+
+  /**
+   * Cancel All Orders
+   *
+   * Cancel all open orders.
+   */
+  cancelAllOrders(): Promise<SpotAPISuccessResponse<SpotCancelOrderResponse>> {
+    return this.postPrivate('0/private/CancelAll', { body: {} });
+  }
+
+  /**
+   * Cancel All Orders After X
+   *
+   * CancelAllOrdersAfter provides a "Dead Man's Switch" mechanism to protect the client from network malfunction,
+   * extreme latency or unexpected matching engine downtime. The client can send a request with a timeout (in seconds),
+   * that will start a countdown timer which will cancel all client orders when the timer expires.
+   */
+  cancelAllOrdersAfter(
+    params: SpotCancelAllOrdersAfterParams,
+  ): Promise<SpotAPISuccessResponse<SpotCancelAllOrdersAfterResponse>> {
+    return this.postPrivate('0/private/CancelAllOrdersAfter', {
+      body: params,
+    });
+  }
+
+  /**
+   * Get Websockets Token
+   *
+   * An authentication token must be requested via this REST API endpoint in order to connect to and authenticate
+   * with the Websockets API. The token should be used within 15 minutes of creation.
+   */
+  getWebSocketsToken(): Promise<
+    SpotAPISuccessResponse<SpotWebSocketsTokenResponse>
+  > {
+    return this.postPrivate('0/private/GetWebSocketsToken', { body: {} });
+  }
+
+  /**
+   * Add Order Batch
+   *
+   * Sends a collection of orders (minimum of 2 and maximum 15). All orders in batch are limited to a single pair.
+   * Validation is performed on the whole batch prior to submission. If an order fails validation, the whole batch will be rejected.
+   */
+  submitBatchOrder(
+    params: SpotSubmitOrderBatchParams,
+  ): Promise<SpotAPISuccessResponse<SpotSubmitOrderBatchResponse>> {
+    return this.postPrivate('0/private/AddOrderBatch', {
+      body: params,
+    });
+  }
+
+  /**
+   * Cancel Order Batch
+   *
+   * Cancel multiple open orders by txid, userref or cl_ord_id (maximum 50 total unique IDs/references).
+   */
+  cancelOrderBatch(
+    params: SpotCancelOrderBatchParams,
+  ): Promise<SpotAPISuccessResponse<SpotCancelOrderBatchResponse>> {
+    return this.postPrivate('0/private/CancelOrderBatch', {
+      body: params,
+    });
+  }
+
+  /**
+   *
+   * Spot REST API - Funding
    *
    */
 
-  getAccountBalance(params: any): Promise<SpotAPISuccessResponse<any>> {
-    return this.getPrivate(`0/private/Balance`, params);
+  /**
+   * Get Deposit Methods
+   *
+   * Retrieve methods available for depositing a particular asset.
+   */
+  getDepositMethods(
+    params: SpotGetDepositMethodsParams,
+  ): Promise<SpotAPISuccessResponse<SpotDepositMethod[]>> {
+    return this.postPrivate('0/private/DepositMethods', { body: params });
+  }
+
+  /**
+   * Get Deposit Addresses
+   *
+   * Retrieve (or generate a new) deposit addresses for a particular asset and method.
+   */
+  getDepositAddresses(
+    params: SpotGetDepositAddressesParams,
+  ): Promise<SpotAPISuccessResponse<SpotDepositAddress[]>> {
+    return this.postPrivate('0/private/DepositAddresses', { body: params });
+  }
+
+  /**
+   * Get Status of Recent Deposits
+   *
+   * Retrieve information about recent deposits. Results are sorted by recency.
+   */
+  getDepositsStatus(
+    params?: SpotGetDepositStatusParams,
+  ): Promise<SpotAPISuccessResponse<SpotDepositStatusResponse>> {
+    return this.postPrivate('0/private/DepositStatus', { body: params });
+  }
+
+  /**
+   * Get Withdrawal Methods
+   *
+   * Retrieve a list of withdrawal methods available for the user.
+   */
+  getWithdrawalMethods(
+    params?: SpotGetWithdrawalMethodsParams,
+  ): Promise<SpotAPISuccessResponse<SpotWithdrawalMethod[]>> {
+    return this.postPrivate('0/private/WithdrawMethods', { body: params });
+  }
+
+  /**
+   * Get Withdrawal Addresses
+   *
+   * Retrieve a list of withdrawal addresses available for the user.
+   */
+  getWithdrawalAddresses(
+    params?: SpotGetWithdrawalAddressesParams,
+  ): Promise<SpotAPISuccessResponse<SpotWithdrawalAddress[]>> {
+    return this.postPrivate('0/private/WithdrawAddresses', { body: params });
+  }
+
+  /**
+   * Get Withdrawal Information
+   *
+   * Retrieve fee information about potential withdrawals for a particular asset, key and amount.
+   */
+  getWithdrawalInfo(
+    params: SpotGetWithdrawalInfoParams,
+  ): Promise<SpotAPISuccessResponse<SpotWithdrawalInfo>> {
+    return this.postPrivate('0/private/WithdrawInfo', { body: params });
+  }
+
+  /**
+   * Withdraw Funds
+   *
+   * Make a withdrawal request.
+   */
+  submitWithdrawal(
+    params: SpotWithdrawFundsParams,
+  ): Promise<SpotAPISuccessResponse<SpotWithdrawFundsResponse>> {
+    return this.postPrivate('0/private/Withdraw', { body: params });
+  }
+
+  /**
+   * Get Status of Recent Withdrawals
+   *
+   * Retrieve information about recent withdrawals. Results are sorted by recency.
+   */
+  getWithdrawalsStatus(
+    params?: SpotGetWithdrawalsStatusParams,
+  ): Promise<SpotAPISuccessResponse<SpotWithdrawalStatus[]>> {
+    return this.postPrivate('0/private/WithdrawStatus', { body: params });
+  }
+
+  /**
+   * Request Withdrawal Cancellation
+   *
+   * Cancel a recently requested withdrawal, if it has not already been successfully processed.
+   */
+  cancelWithdrawal(
+    params: SpotCancelWithdrawalParams,
+  ): Promise<SpotAPISuccessResponse<boolean>> {
+    return this.postPrivate('0/private/WithdrawCancel', { body: params });
+  }
+
+  /**
+   * Request Wallet Transfer
+   *
+   * Transfer from a Kraken spot wallet to a Kraken Futures wallet.
+   * Note: Transfer in the other direction must be requested via the Kraken Futures API.
+   */
+  submitTransferToFutures(
+    params: SpotWalletTransferParams,
+  ): Promise<SpotAPISuccessResponse<SpotWalletTransferResponse>> {
+    return this.postPrivate('0/private/WalletTransfer', { body: params });
+  }
+
+  /**
+   *
+   * Subaccounts
+   *
+   */
+
+  /**
+   * Create Subaccount
+   *
+   * Create a trading subaccount.
+   * Note: CreateSubaccount must be called using an API key from the master account.
+   */
+  createSubaccount(
+    params: SpotCreateSubaccountParams,
+  ): Promise<SpotAPISuccessResponse<boolean>> {
+    return this.postPrivate('0/private/CreateSubaccount', { body: params });
+  }
+
+  /**
+   * Account Transfer
+   *
+   * Transfer funds to and from master and subaccounts.
+   * Note: AccountTransfer must be called using an API key from the master account.
+   */
+  submitSubaccountTransfer(
+    params: SpotAccountTransferParams,
+  ): Promise<SpotAPISuccessResponse<SpotAccountTransferResponse>> {
+    return this.postPrivate('0/private/AccountTransfer', { body: params });
+  }
+
+  /**
+   *
+   * Earn
+   *
+   */
+
+  /**
+   * Allocate Earn Funds
+   *
+   * Allocate funds to the Strategy.
+   * This method is asynchronous. Use getAllocationStatus() to poll the result.
+   */
+  allocateEarnFunds(
+    params: SpotAllocateEarnFundsParams,
+  ): Promise<SpotAPISuccessResponse<boolean>> {
+    return this.postPrivate('0/private/Earn/Allocate', { body: params });
+  }
+
+  /**
+   * Deallocate Earn Funds
+   *
+   * Deallocate funds from a strategy.
+   * This method is asynchronous. Use getDeallocationStatus() to poll the result.
+   */
+  deallocateEarnFunds(
+    params: SpotDeallocateEarnFundsParams,
+  ): Promise<SpotAPISuccessResponse<boolean>> {
+    return this.postPrivate('0/private/Earn/Deallocate', { body: params });
+  }
+
+  /**
+   * Get Allocation Status
+   *
+   * Get the status of the last allocation request.
+   */
+  getEarnAllocationStatus(
+    params: SpotGetAllocationStatusParams,
+  ): Promise<SpotAPISuccessResponse<SpotEarnOperationStatus>> {
+    return this.postPrivate('0/private/Earn/AllocateStatus', { body: params });
+  }
+
+  /**
+   * Get Deallocation Status
+   *
+   * Get the status of the last deallocation request.
+   */
+  getEarnDeallocationStatus(
+    params: SpotGetDeallocationStatusParams,
+  ): Promise<SpotAPISuccessResponse<SpotEarnOperationStatus>> {
+    return this.postPrivate('0/private/Earn/DeallocateStatus', {
+      body: params,
+    });
+  }
+
+  /**
+   * List Earn Strategies
+   *
+   * List earn strategies along with their parameters.
+   * Returns only strategies that are available to the user based on geographic region.
+   */
+  getEarnStrategies(
+    params?: SpotListEarnStrategiesParams,
+  ): Promise<SpotAPISuccessResponse<SpotListEarnStrategiesResponse>> {
+    return this.postPrivate('0/private/Earn/Strategies', { body: params });
+  }
+
+  /**
+   * List Earn Allocations
+   *
+   * List all allocations for the user.
+   * By default all allocations are returned, even for strategies that have been used in the past and have zero balance now.
+   */
+  getEarnAllocations(
+    params?: SpotListEarnAllocationsParams,
+  ): Promise<SpotAPISuccessResponse<SpotListEarnAllocationsResponse>> {
+    return this.postPrivate('0/private/Earn/Allocations', { body: params });
+  }
+
+  /**
+   *
+   * Transparency
+   *
+   */
+
+  /**
+   * Pre-Trade Data
+   *
+   * Returns the price levels in the order book with aggregated order quantities at each price level.
+   * The top 10 levels are returned for each trading pair.
+   */
+  getPreTradeData(
+    params: SpotGetPreTradeDataParams,
+  ): Promise<SpotAPISuccessResponse<SpotPreTradeData>> {
+    return this.get('0/public/PreTrade', params);
+  }
+
+  /**
+   * Post-Trade Data
+   *
+   * Returns a list of trades on the spot exchange.
+   * If no filter parameters are specified, the last 1000 trades for all pairs are received.
+   */
+  getPostTradeData(
+    params?: SpotGetPostTradeDataParams,
+  ): Promise<SpotAPISuccessResponse<SpotPostTradeDataResponse>> {
+    return this.get('0/public/PostTrade', params);
   }
 }
