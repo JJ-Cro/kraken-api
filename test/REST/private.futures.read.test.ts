@@ -32,7 +32,7 @@ describe('REST PRIVATE FUTURES READ', () => {
     describe('GET requests', () => {
       test('without params', async () => {
         try {
-          const res = await rest.getWallets();
+          const res = await rest.getAccounts();
           // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
@@ -46,7 +46,7 @@ describe('REST PRIVATE FUTURES READ', () => {
 
       test('with params', async () => {
         try {
-          const res = await rest.getYourFills({
+          const res = await rest.getFills({
             lastFillTime: '2020-07-22T13:45:00.000Z',
           });
           // console.log(`res "${expect.getState().currentTestName}"`, res);
@@ -64,7 +64,7 @@ describe('REST PRIVATE FUTURES READ', () => {
     describe('POST requests', () => {
       test('without params', async () => {
         try {
-          const res = await rest.getSpecificOrdersStatus();
+          const res = await rest.getOrderStatus();
 
           // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
@@ -82,7 +82,7 @@ describe('REST PRIVATE FUTURES READ', () => {
       });
       test('without empty params as query', async () => {
         try {
-          const res = await rest.getSpecificOrdersStatus({});
+          const res = await rest.getOrderStatus({});
 
           // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
@@ -98,7 +98,7 @@ describe('REST PRIVATE FUTURES READ', () => {
 
       test('with params as query', async () => {
         try {
-          const res = await rest.getSpecificOrdersStatus({
+          const res = await rest.getOrderStatus({
             orderIds: ['a02ed7b1-096f-4629-877c-24749fab6560'],
           });
 
@@ -116,7 +116,7 @@ describe('REST PRIVATE FUTURES READ', () => {
 
       test('with multiple values in list params', async () => {
         try {
-          const res = await rest.getSpecificOrdersStatus({
+          const res = await rest.getOrderStatus({
             orderIds: [
               'a02ed7b1-096f-4629-877c-24749fab6560',
               'a030cb03-cbf9-4e56-9a7d-cd072873760a',
@@ -137,9 +137,10 @@ describe('REST PRIVATE FUTURES READ', () => {
 
       it('should throw exceptions (bad request)', async () => {
         try {
-          const res = await rest.getSpecificOrdersStatus({
+          const res = await rest.getOrderStatus({
             orderIds: [
               'a02ed7b1-096f-4629-877c-24749fab6560',
+              // bad request because order GUID is unusually long
               'a030cb03-cbf9-4e56-9a7d-cd072873760a11111111',
             ],
           });
