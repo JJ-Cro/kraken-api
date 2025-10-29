@@ -303,7 +303,7 @@ export class FuturesClient extends BaseRestClient {
    *
    * Returns information on specified orders which are open or were filled/cancelled in the last 5 seconds.
    */
-  getOrderStatus(params: {
+  getOrderStatus(params?: {
     orderIds?: string[];
     cliOrdIds?: string[];
   }): Promise<APISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>> {

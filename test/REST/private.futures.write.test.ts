@@ -1,10 +1,10 @@
 import { FuturesClient } from '../../src/index.js';
 import { getTestProxy } from '../proxy.util.js';
 
-describe('REST PRIVATE FUTURES READ', () => {
+describe('REST PRIVATE FUTURES WRITE', () => {
   const account = {
-    key: process.env.API_FUTURES_KEY,
-    secret: process.env.API_FUTURES_SECRET,
+    key: process.env.API_FUTURES_WRITE_KEY,
+    secret: process.env.API_FUTURES_WRITE_SECRET,
   };
 
   const rest = new FuturesClient(
@@ -29,113 +29,26 @@ describe('REST PRIVATE FUTURES READ', () => {
   });
 
   describe('private endpoints', () => {
-    describe('GET requests', () => {
-      test('without params', async () => {
-        try {
-          const res = await rest.getAccounts();
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            accounts: expect.any(Object),
-          });
-        } catch (e) {
-          console.error('res GET without params, failed: ', e);
-          expect(e).not.toBeDefined();
-        }
-      });
-
-      test('with params', async () => {
-        try {
-          const res = await rest.getFills({
-            lastFillTime: '2020-07-22T13:45:00.000Z',
-          });
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            fills: expect.any(Array),
-          });
-        } catch (e) {
-          console.error('res GET WITH params, failed: ', e);
-          expect(e).not.toBeDefined();
-        }
-      });
-    });
-
-    describe('POST requests', () => {
-      test('without params', async () => {
-        try {
-          const res = await rest.getOrderStatus();
-
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            orders: expect.any(Array),
-          });
-        } catch (e: any) {
-          console.log(
-            `err "${expect.getState().currentTestName}"`,
-            e?.body || e,
-          );
-          const responseBody = e?.body;
-          expect(responseBody).toBeUndefined();
-        }
-      });
-      test('without empty params as query', async () => {
-        try {
-          const res = await rest.getOrderStatus({});
-
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            orders: expect.any(Array),
-          });
-        } catch (e: any) {
-          // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
-          const responseBody = e?.body;
-          expect(responseBody).toBeUndefined();
-        }
-      });
-
+    describe.skip('POST requests', () => {
       test('with params as query', async () => {
         try {
           const res = await rest.getOrderStatus({
             orderIds: ['a02ed7b1-096f-4629-877c-24749fab6560'],
           });
 
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
+          console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
             orders: expect.any(Array),
           });
         } catch (e: any) {
-          // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
+          console.log(`err "${expect.getState().currentTestName}"`, e?.body);
           const responseBody = e?.body;
           expect(responseBody).toBeUndefined();
         }
       });
 
-      test('with multiple values in list params', async () => {
-        try {
-          const res = await rest.getOrderStatus({
-            orderIds: [
-              'a02ed7b1-096f-4629-877c-24749fab6560',
-              'a030cb03-cbf9-4e56-9a7d-cd072873760a',
-            ],
-          });
-
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            orders: expect.any(Array),
-          });
-        } catch (e: any) {
-          // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
-          const responseBody = e?.body;
-          expect(responseBody).toBeUndefined();
-        }
-      });
-
-      it('should throw exceptions (bad request)', async () => {
+      it.skip('should throw exceptions (bad request)', async () => {
         try {
           const res = await rest.getOrderStatus({
             orderIds: [
@@ -164,6 +77,53 @@ describe('REST PRIVATE FUTURES READ', () => {
 
       // TODO: dummy order request with read-only keys
       // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
+    });
+    describe('PUT requests', () => {
+      test('with params as query', async () => {
+        try {
+          const res = await rest.setPnlPreference({
+            symbol: 'PF_XBTUSD',
+            pnlPreference: 'USD',
+          });
+
+          // console.log(`res "${expect.getState().currentTestName}"`, res);
+          expect(res).toMatchObject({
+            result: 'success',
+            serverTime: expect.any(String),
+          });
+        } catch (e: any) {
+          console.log(
+            `err "${expect.getState().currentTestName}"`,
+            e?.body || e,
+          );
+          const responseBody = e?.body;
+          expect(responseBody).toBeUndefined();
+        }
+      });
+
+      it('should throw exceptions (bad request)', async () => {
+        try {
+          const res = await rest.setPnlPreference({
+            symbol: 'ASDFLAMKDFAF',
+            pnlPreference: 'LKMALDSKFMD',
+          });
+
+          console.log(`res "${expect.getState().currentTestName}"`, res);
+          expect(res).toMatchObject({
+            result: 'success',
+            orders: expect.any(Array),
+          });
+        } catch (e: any) {
+          // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+          const responseBody = e?.body;
+          expect(responseBody).toMatchObject({
+            errors: [{ code: 87, message: 'CONTRACT_DOES_NOT_EXIST' }],
+            result: 'error',
+            status: 'NOT_FOUND',
+            serverTime: expect.any(String),
+          });
+        }
+      });
     });
 
     // describe('DELETE requests', () => {
