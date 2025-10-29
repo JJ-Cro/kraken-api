@@ -313,27 +313,48 @@ export abstract class BaseRestClient {
     // Dispatch request
     return axios(options)
       .then((response) => {
+        const throable = {
+          method,
+          endpoint,
+          params,
+          response,
+        };
+
         if (response.status == 200) {
           // Throw if API returns an error (e.g. insufficient balance)
           if (
             typeof response.data?.code === 'string' &&
             response.data?.code !== '200000'
           ) {
-            throw { response };
+            throw throable;
           }
 
           switch (this.getClientType()) {
             case REST_CLIENT_TYPE_ENUM.main: {
+              // TODO: check if basic auth error is thrown
               if (response.data?.error?.length) {
-                throw { response };
+                throw throable;
               }
+              break;
+            }
+            case REST_CLIENT_TYPE_ENUM.futures: {
+              // const res = {
+              //   result: 'error',
+              //   error: 'authenticationError',
+              //   serverTime: '2025-10-29T15:02:39.341Z',
+              // };
+
+              if (response?.data?.result === 'error') {
+                throw throable;
+              }
+
               break;
             }
           }
 
           return response.data;
         }
-        throw { response };
+        throw throable;
       })
       .catch((e) =>
         this.parseException(e, {
