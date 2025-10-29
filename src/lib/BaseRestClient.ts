@@ -354,6 +354,7 @@ export abstract class BaseRestClient {
 
           return response.data;
         }
+
         throw throable;
       })
       .catch((e) =>
@@ -745,7 +746,7 @@ export abstract class BaseRestClient {
         data: params,
       });
 
-    if (method === 'POST') {
+    if (method !== 'GET') {
       return {
         ...options,
         headers: {

@@ -9,10 +9,7 @@ import {
   RestClientOptions,
   RestClientType,
 } from './lib/requestUtils.js';
-import { AccountFillsRequest } from './types/request/futures.types.js';
-import { AccountBalance } from './types/response/futures.types.js';
 import { SpotAPISuccessResponse } from './types/response/shared.types.js';
-import { WsConnectionInfo } from './types/response/ws.js';
 
 /**
  * The SpotClient provides integration to the Kraken Futures API.

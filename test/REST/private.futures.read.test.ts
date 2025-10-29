@@ -102,7 +102,7 @@ describe('REST PRIVATE FUTURES READ', () => {
             orderIds: ['a02ed7b1-096f-4629-877c-24749fab6560'],
           });
 
-          console.log(`res "${expect.getState().currentTestName}"`, res);
+          // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
             orders: expect.any(Array),
@@ -123,7 +123,7 @@ describe('REST PRIVATE FUTURES READ', () => {
             ],
           });
 
-          console.log(`res "${expect.getState().currentTestName}"`, res);
+          // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
             orders: expect.any(Array),

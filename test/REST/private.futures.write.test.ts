@@ -83,16 +83,19 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         try {
           const res = await rest.setPnlPreference({
             symbol: 'PF_XBTUSD',
-            pnlPreference: 'BTC',
+            pnlPreference: 'USD',
           });
 
-          console.log(`res "${expect.getState().currentTestName}"`, res);
+          // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
-            orders: expect.any(Array),
+            serverTime: expect.any(String),
           });
         } catch (e: any) {
-          console.log(`err "${expect.getState().currentTestName}"`, e?.body);
+          console.log(
+            `err "${expect.getState().currentTestName}"`,
+            e?.body || e,
+          );
           const responseBody = e?.body;
           expect(responseBody).toBeUndefined();
         }
@@ -111,12 +114,12 @@ describe('REST PRIVATE FUTURES WRITE', () => {
             orders: expect.any(Array),
           });
         } catch (e: any) {
-          console.log(`err "${expect.getState().currentTestName}"`, e?.body);
+          // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
           const responseBody = e?.body;
           expect(responseBody).toMatchObject({
-            errors: expect.any(Array),
+            errors: [{ code: 87, message: 'CONTRACT_DOES_NOT_EXIST' }],
             result: 'error',
-            status: 'BAD_REQUEST',
+            status: 'NOT_FOUND',
             serverTime: expect.any(String),
           });
         }
