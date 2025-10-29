@@ -78,6 +78,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
       // TODO: dummy order request with read-only keys
       // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
     });
+
     describe('PUT requests', () => {
       test('with params as query', async () => {
         try {
@@ -127,42 +128,46 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     });
 
     // describe('DELETE requests', () => {
-    //   test('without any parameters', async () => {
+    //   test('with params in path', async () => {
     //     try {
-    //       const res = await rest.cancelHFAllOrders();
+    //       const res = await rest.cancelRFQOffer({
+    //         rfqUid: '12312312',
+    //       });
 
-    //       // console.log(`res "${expect.getState().currentTestName}"`, res);
+    //       console.log(`res "${expect.getState().currentTestName}"`, res);
     //       expect(res).toMatchObject({
-    //         whatever: true,
+    //         result: 'success',
+    //         serverTime: expect.any(String),
     //       });
     //     } catch (e: any) {
-    //       // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
-    //       console.log(`err "${expect.getState().currentTestName}"`, e?.body);
+    //       console.log(
+    //         `err "${expect.getState().currentTestName}"`,
+    //         e?.body || e,
+    //       );
     //       const responseBody = e?.body;
-    //       expect(responseBody).toMatchObject({
-    //         code: '400007',
-    //         msg: expect.stringContaining('more permission'),
-    //       });
+    //       expect(responseBody).toBeUndefined();
     //     }
     //   });
 
-    //   test('with params', async () => {
+    //   it.skip('should throw exceptions (bad request)', async () => {
     //     try {
-    //       const res = await rest.cancelStopOrderById({
-    //         orderId: '1234567',
-    //       });
+    //       const res = await rest.cancelRFQOffer({
+    //         rfqUid: '12312312',
+    //       } as any);
 
-    //       // console.log(`res "${expect.getState().currentTestName}"`, res);
+    //       console.log(`res "${expect.getState().currentTestName}"`, res);
     //       expect(res).toMatchObject({
-    //         whatever: true,
+    //         result: 'success',
+    //         orders: expect.any(Array),
     //       });
     //     } catch (e: any) {
-    //       // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
-    //       console.log(`err "${expect.getState().currentTestName}"`, e?.body);
+    //       // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
     //       const responseBody = e?.body;
     //       expect(responseBody).toMatchObject({
-    //         code: '400007',
-    //         msg: expect.stringContaining('more permission'),
+    //         errors: [{ code: 87, message: 'CONTRACT_DOES_NOT_EXIST' }],
+    //         result: 'error',
+    //         status: 'NOT_FOUND',
+    //         serverTime: expect.any(String),
     //       });
     //     }
     //   });
