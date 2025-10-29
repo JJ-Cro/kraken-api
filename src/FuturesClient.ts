@@ -21,9 +21,9 @@ import {
   FuturesHistoryBaseParams,
   FuturesInitiateSubaccountTransferParams,
   FuturesInitiateWalletTransferParams,
-  FuturesInitiateWithdrawalParams,
   FuturesMarketHistoryBaseParams,
   FuturesSendOrderParams,
+  FuturesSubmitToSpotParams,
   FuturesUpdateSelfTradeStrategyParams,
 } from './types/request/futures.types.js';
 import {
@@ -688,8 +688,8 @@ export class FuturesClient extends BaseRestClient {
    * This endpoint allows you to request to withdraw digital assets to your Kraken Spot wallet.
    * Wallet names can be found in the 'accounts' structure in the Get Wallets /accounts response.
    */
-  submitWithdrawal(
-    params: FuturesInitiateWithdrawalParams,
+  submitTransferToSpot(
+    params: FuturesSubmitToSpotParams,
   ): Promise<APISuccessResponse<{ uid: string }>> {
     return this.postPrivate('derivatives/api/v3/withdrawal', {
       query: params,
@@ -708,7 +708,7 @@ export class FuturesClient extends BaseRestClient {
    * Retrieve all currently open RFQs.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  getOpenRfqs(): Promise<APISuccessResponse<{ rfqs: FuturesRfq[] }>> {
+  getOpenRFQs(): Promise<APISuccessResponse<{ rfqs: FuturesRfq[] }>> {
     return this.get('derivatives/api/v3/rfqs');
   }
 
@@ -718,7 +718,7 @@ export class FuturesClient extends BaseRestClient {
    * Retrieve a specific open RFQ by its unique identifier.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  getOpenRfq(params: {
+  getOpenRFQ(params: {
     rfqUid: string;
   }): Promise<APISuccessResponse<{ rfq: FuturesRfq }>> {
     return this.get(`derivatives/api/v3/rfqs/${params.rfqUid}`);
@@ -730,7 +730,7 @@ export class FuturesClient extends BaseRestClient {
    * Retrieve all open offers for the account on currently open RFQs.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  getOpenOffers(): Promise<
+  getRFQOpenOffers(): Promise<
     APISuccessResponse<{ openOffers: FuturesOpenOffer[] }>
   > {
     return this.getPrivate('derivatives/api/v3/rfqs/open-offers');
@@ -742,7 +742,7 @@ export class FuturesClient extends BaseRestClient {
    * Place a new offer for the given amount in USD on the specified open RFQ, bid and ask are optional but at least one must be provided.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  submitNewOffer(params: {
+  submitRFQNewOffer(params: {
     rfqUid: string;
     bid?: number;
     ask?: number;
@@ -759,7 +759,7 @@ export class FuturesClient extends BaseRestClient {
    * Replace the current open offer on the specified open RFQ, bid and ask are optional but at least one must be provided.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  updateOpenOffer(params: {
+  updateRFQOpenOffer(params: {
     rfqUid: string;
     bid?: number;
     ask?: number;
@@ -776,7 +776,7 @@ export class FuturesClient extends BaseRestClient {
    * Cancel the current open offer on the specified open RFQ.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  cancelOffer(params: {
+  cancelRFQOffer(params: {
     rfqUid: string;
   }): Promise<APISuccessResponse<Record<string, never>>> {
     return this.deletePrivate(

@@ -146,7 +146,7 @@ export interface FuturesInitiateSubaccountTransferParams {
   amount: string;
 }
 
-export interface FuturesInitiateWithdrawalParams {
+export interface FuturesSubmitToSpotParams {
   currency: string;
   amount: string;
   sourceWallet?: string;
