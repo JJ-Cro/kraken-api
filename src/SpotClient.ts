@@ -553,7 +553,7 @@ export class SpotClient extends BaseRestClient {
    *
    * Cancel multiple open orders by txid, userref or cl_ord_id (maximum 50 total unique IDs/references).
    */
-  cancelBatchOrder(params: {
+  cancelBatchOrders(params: {
     orders?: Array<string | number>;
     cl_ord_ids?: string[];
   }): Promise<
