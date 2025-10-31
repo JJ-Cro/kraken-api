@@ -98,7 +98,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getCustodyVaultbyId(params: {
     id: string;
-    nonce: number;
+    nonce?: number;
   }): Promise<GetCustodyVaultResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyVault', {
@@ -236,7 +236,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getCustodyTaskbyId(params: {
     id: string;
-    nonce: number;
+    nonce?: number;
   }): Promise<GetCustodyTaskResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyTask', {
@@ -265,7 +265,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getCustodyActivitybyId(params: {
     id: string;
-    nonce: number;
+    nonce?: number;
   }): Promise<GetCustodyActivityResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyActivity', {
@@ -314,7 +314,7 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves the list of OTC trading pairs.
    * API Key Permissions Required: Funds permissions - Query and Funds permissions - Deposit
    */
-  getOtcPairs(params: { nonce: number }): Promise<GetOtcPairsResponse> {
+  getOtcPairs(params?: { nonce?: number }): Promise<GetOtcPairsResponse> {
     return this.postPrivate('0/private/GetOtcPairs', {
       body: params,
     });
@@ -326,8 +326,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves a list of active OTC quotes.
    * API Key Permissions Required: Orders and trades - Query open orders & trades
    */
-  getOtcActiveQuotes(params: {
-    nonce: number;
+  getOtcActiveQuotes(params?: {
+    nonce?: number;
     vault_id?: string;
   }): Promise<GetOtcActiveQuotesResponse> {
     return this.postPrivate('0/private/GetOtcActiveQuotes', {
@@ -341,8 +341,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves OTC quotes history.
    * API Key Permissions Required: Orders and trades - Query open orders & trades
    */
-  getOtcHistoricalQuotes(params: {
-    nonce: number;
+  getOtcHistoricalQuotes(params?: {
+    nonce?: number;
   }): Promise<GetOtcHistoricalQuotesResponse> {
     return this.postPrivate('0/private/GetOtcHistoricalQuotes', {
       body: params,
@@ -355,7 +355,9 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves the max and used OTC exposures.
    * API Key Permissions Required: Orders and trades - Query open orders & trades
    */
-  getOtcExposures(params: { nonce: number }): Promise<GetOtcExposuresResponse> {
+  getOtcExposures(params?: {
+    nonce?: number;
+  }): Promise<GetOtcExposuresResponse> {
     return this.postPrivate('0/private/GetOtcExposures', {
       body: params,
     });
@@ -367,7 +369,7 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves the client permissions for the OTC Portal.
    * API Key Permissions Required: Funds permissions - Query and Funds permissions - Deposit
    */
-  checkOtcClient(params: { nonce: number }): Promise<CheckOtcClientResponse> {
+  checkOtcClient(params?: { nonce?: number }): Promise<CheckOtcClientResponse> {
     return this.postPrivate('0/private/CheckOtcClient', {
       body: params,
     });

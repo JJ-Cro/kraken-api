@@ -119,7 +119,7 @@ export interface VaultOrdering {
 }
 
 export interface ListCustodyVaultsParams {
-  nonce: number;
+  nonce?: number;
   resolve_policies?: boolean | null;
   filters?: VaultFilters;
   pagination?: VaultPagination;
@@ -137,7 +137,7 @@ export type AssetClass =
 
 export interface DepositMethodsParams {
   'x-vault-id': string;
-  nonce: number;
+  nonce?: number;
   asset?: string;
   category: 'custody';
   aclass?: string;
@@ -146,7 +146,7 @@ export interface DepositMethodsParams {
 // Custody API - Deposit Addresses
 export interface DepositAddressesParams {
   'x-vault-id': string;
-  nonce: number;
+  nonce?: number;
   aclass?: AssetClass;
   asset: string;
   method: string;
@@ -296,7 +296,7 @@ export interface TransactionSorting {
 
 export interface ListCustodyTransactionsParams {
   id: string;
-  nonce: number;
+  nonce?: number;
   page_size?: number;
   quote?: QuoteAsset;
   preferred_asset_name?: string;
@@ -311,7 +311,7 @@ export interface ListCustodyTransactionsParams {
 // Custody API - Get Transaction by ID
 export interface GetCustodyTransactionParams {
   id: string;
-  nonce: number;
+  nonce?: number;
   vault_id: string;
   with_long_timeout?: boolean | null;
   quote?: QuoteAsset;
@@ -320,7 +320,7 @@ export interface GetCustodyTransactionParams {
 // Custody API - Withdraw Methods
 export interface WithdrawMethodsParams {
   'x-vault-id': string;
-  nonce: number;
+  nonce?: number;
   asset?: string | null;
   category: 'custody';
   aclass?: string;
@@ -339,7 +339,7 @@ export type WithdrawAddressAssetClass =
 export interface WithdrawAddressesParams {
   'x-vault-id': string;
   preferred_asset_name?: 'new' | 'alt';
-  nonce: number;
+  nonce?: number;
   aclass?: WithdrawAddressAssetClass;
   asset?: string | null;
   method?: string | null;
@@ -476,7 +476,7 @@ export interface TaskOrdering {
 }
 
 export interface ListCustodyTasksParams {
-  nonce: number;
+  nonce?: number;
   filters?: TaskFilters;
   pagination?: VaultPagination;
   orderings?: TaskOrdering[];
@@ -573,7 +573,7 @@ export interface ActivityOrdering {
 }
 
 export interface ListCustodyActivitiesParams {
-  nonce: number;
+  nonce?: number;
   filters?: ActivityFilters;
   pagination?: VaultPagination;
   orderings?: ActivityOrdering[];
@@ -585,7 +585,7 @@ export type OtcQuoteStatus = 'accepted' | 'rejected';
 export type OtcSettlement = 'automated' | 'flexible';
 
 export interface CreateOtcQuoteRequestParams {
-  nonce: number;
+  nonce?: number;
   base: string;
   quote: string;
   amount?: string;
@@ -594,7 +594,7 @@ export interface CreateOtcQuoteRequestParams {
 }
 
 export interface UpdateOtcQuoteParams {
-  nonce: number;
+  nonce?: number;
   quote_id: string;
   status: OtcQuoteStatus;
 }
