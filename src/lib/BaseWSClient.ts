@@ -219,7 +219,7 @@ export abstract class BaseWebsocketClient<
       recvWindow: 5000,
       // TODO: does this happen with Kraken?
       // Requires a confirmation "response" from the ws connection before assuming it is ready
-      requireConnectionReadyConfirmation: true,
+      requireConnectionReadyConfirmation: false,
       // Automatically auth after opening a connection?
       authPrivateConnectionsOnConnect: false,
       // Automatically include auth/sign with every WS request
@@ -491,7 +491,7 @@ export abstract class BaseWebsocketClient<
     const ws = this.getWs(wsKey);
     ws?.close();
     if (force) {
-      safeTerminateWs(ws);
+      safeTerminateWs(ws, false);
     }
   }
 
@@ -805,7 +805,7 @@ export abstract class BaseWebsocketClient<
 
     if (ws) {
       ws.close();
-      safeTerminateWs(ws, true);
+      safeTerminateWs(ws, false);
     }
 
     if (!wasOpen) {
@@ -1080,6 +1080,17 @@ export abstract class BaseWebsocketClient<
       this.options.pingInterval,
     );
 
+    // TODO: is this correct? unsure about ordering here. Check assertIsConnected mechanics in kucoin
+    if (!this.options.requireConnectionReadyConfirmation) {
+      return await this.onWsReadyForEvents(wsKey);
+    } else {
+      this.resolveConnectionInProgressPromise(wsKey);
+    }
+
+    this.wsStore.removeConnectingInProgressPromise(wsKey);
+  }
+
+  private resolveConnectionInProgressPromise(wsKey: TWSKey) {
     try {
       // Resolve & cleanup deferred "connection attempt in progress" promise
       const connectionInProgressPromise =
@@ -1096,13 +1107,6 @@ export abstract class BaseWebsocketClient<
         'Exception trying to resolve "connectionInProgress" promise',
       );
     }
-
-    // Remove before continuing, in case there's more requests queued
-    this.wsStore.removeConnectingInProgressPromise(wsKey);
-
-    if (!this.options.requireConnectionReadyConfirmation) {
-      return await this.onWsReadyForEvents(wsKey);
-    }
   }
 
   /**
@@ -1113,6 +1117,9 @@ export abstract class BaseWebsocketClient<
    * This method is called to act when the connection is ready. Use `requireConnectionReadyConfirmation` to control how this is called.
    */
   private async onWsReadyForEvents(wsKey: TWSKey) {
+    this.resolveConnectionInProgressPromise(wsKey);
+    this.wsStore.removeConnectingInProgressPromise(wsKey);
+
     // Some websockets require an auth packet to be sent after opening the connection
     if (
       this.isPrivateWsKey(wsKey) &&
@@ -1128,11 +1135,27 @@ export abstract class BaseWebsocketClient<
     );
 
     // Request sub to public topics, if any
-    this.requestSubscribeTopics(wsKey, publicReqs);
+    try {
+      await this.requestSubscribeTopics(wsKey, publicReqs);
+    } catch (e) {
+      this.logger.error(
+        `onWsOpen(): exception in public requestSubscribeTopics(${wsKey}): `,
+        publicReqs,
+        e,
+      );
+    }
 
     // Request sub to private topics, if auth on connect isn't needed
     if (!this.options.authPrivateConnectionsOnConnect) {
-      this.requestSubscribeTopics(wsKey, privateReqs);
+      try {
+        this.requestSubscribeTopics(wsKey, privateReqs);
+      } catch (e) {
+        this.logger.error(
+          `onWsOpen(): exception in private requestSubscribeTopics(${wsKey}: `,
+          privateReqs,
+          e,
+        );
+      }
     }
   }
 
@@ -1248,7 +1271,6 @@ export abstract class BaseWebsocketClient<
             },
           );
 
-          // TODO: on message or update? pref?
           return this.emit('message', { ...event, wsKey });
         }
 
@@ -1262,10 +1284,10 @@ export abstract class BaseWebsocketClient<
             continue;
           }
 
-          // this.logger.trace(
-          //   'getFinalEmittable()->pre(): ',
-          //   JSON.stringify(emittable),
-          // );
+          this.logger.trace(
+            'getFinalEmittable()->pre(): ',
+            JSON.stringify(emittable),
+          );
           const emittableFinalEvent = getFinalEmittable(
             emittable,
             wsKey,
@@ -1320,10 +1342,10 @@ export abstract class BaseWebsocketClient<
           }
 
           // Other event types are automatically emitted here
-          // this.logger.trace(
-          //   `onWsMessage().emit(${emittable.eventType})`,
-          //   emittableFinalEvent,
-          // );
+          this.logger.trace(
+            `onWsMessage().emit(${emittable.eventType})`,
+            emittableFinalEvent,
+          );
           try {
             this.emit(emittable.eventType, emittableFinalEvent);
           } catch (e) {
@@ -1381,6 +1403,8 @@ export abstract class BaseWebsocketClient<
         wsKey,
         'connection lost, reconnecting',
       );
+
+      // this.clearTopicsPendingSubscriptions(wsKey, true, 'WS Closed');
 
       this.setWsState(wsKey, WsConnectionStateEnum.INITIAL);
 
@@ -1469,7 +1493,7 @@ export abstract class BaseWebsocketClient<
 
     const isAuthenticated = this.wsStore.get(wsKey)?.isAuthenticated;
     if (isAuthenticated) {
-      // this.logger.trace('assertIsAuthenticated(): ok');
+      this.logger.trace('assertIsAuthenticated(): ok');
       return;
     }
 
