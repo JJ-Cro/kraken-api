@@ -538,7 +538,7 @@ export class SpotClient extends BaseRestClient {
    * Sends a collection of orders (minimum of 2 and maximum 15). All orders in batch are limited to a single pair.
    * Validation is performed on the whole batch prior to submission. If an order fails validation, the whole batch will be rejected.
    */
-  submitBatchOrder(params: SpotSubmitOrderBatchParams): Promise<
+  submitBatchOrders(params: SpotSubmitOrderBatchParams): Promise<
     SpotAPISuccessResponse<{
       orders: SpotBatchOrderResult[];
     }>
