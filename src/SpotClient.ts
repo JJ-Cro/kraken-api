@@ -408,7 +408,7 @@ export class SpotClient extends BaseRestClient {
    *
    * Get status of requested data exports.
    */
-  getExportStatus(params: {
+  getLedgersExportStatus(params: {
     report: 'trades' | 'ledgers';
   }): Promise<SpotAPISuccessResponse<SpotExportReportStatus[]>> {
     return this.postPrivate('0/private/ExportStatus', { body: params });
