@@ -434,7 +434,6 @@ export interface SpotBatchOrderResult {
   txid?: string;
 }
 
-
 /**
  * Funding
  */
@@ -666,4 +665,46 @@ export interface SpotPostTradeDataResponse {
   last_ts: string;
   count: number;
   trades: SpotPostTrade[];
+}
+
+/**
+ * OAuth
+ */
+
+export interface OauthGetAccessTokenResponse {
+  access_token: string;
+  token_type: 'bearer';
+  expires_in: number;
+  refresh_token: string;
+}
+
+export interface OauthGetUserInfoResponse {
+  result: {
+    email: string;
+    iban: string;
+  };
+}
+
+export interface OauthFastApiKey {
+  api_key?: string; // Only returned on creation
+  api_key_name: string;
+  created_time: string;
+  id: string;
+  ip_allowlist: string[];
+  last_used: number;
+  modified_time: string;
+  nonce: number;
+  nonce_window: number;
+  oauth_client: string;
+  permissions: any; // Simplified
+  purpose: string;
+  query_from: number;
+  query_to: number;
+  valid_until: number;
+}
+
+export interface OauthCreateFastApiKeyResponse {
+  result: OauthFastApiKey & {
+    secret: string; // Only returned on creation
+  };
 }

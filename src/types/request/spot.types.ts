@@ -348,3 +348,57 @@ export interface SpotGetPostTradeDataParams {
   to_ts?: string;
   count?: number;
 }
+
+/**
+ * OAuth
+ */
+
+export interface OauthGetAccessTokenParams {
+  grant_type: 'authorization_code' | 'refresh_token';
+  code?: string; // Required if grant_type = authorization_code
+  redirect_uri?: string; // Required if grant_type = authorization_code
+  refresh_token?: string; // Required if grant_type = refresh_token
+}
+
+export interface OauthCreateFastApiKeyParams {
+  api_key_name: string; // max 32 chars
+  ip_allowlist: string[];
+  nonce_window?: number;
+  permissions: {
+    export_data?: boolean;
+    funds_add?: boolean;
+    funds_earn?: boolean;
+    funds_query?: boolean;
+    funds_withdraw?: boolean;
+    ledger_query?: boolean;
+    trades_close?: boolean;
+    trades_modify?: boolean;
+    trades_query_closed?: boolean;
+    trades_query_open?: boolean;
+  };
+  query_from?: number;
+  query_to?: number;
+  valid_until?: number;
+}
+
+export interface OauthUpdateFastApiKeyParams {
+  new_api_key_name?: string; // max 32 chars
+  api_key_name: string; // max 32 chars
+  ip_allowlist: string[];
+  nonce_window?: number;
+  permissions: {
+    export_data?: boolean;
+    funds_add?: boolean;
+    funds_earn?: boolean;
+    funds_query?: boolean;
+    funds_withdraw?: boolean;
+    ledger_query?: boolean;
+    trades_close?: boolean;
+    trades_modify?: boolean;
+    trades_query_closed?: boolean;
+    trades_query_open?: boolean;
+  };
+  query_from?: number;
+  query_to?: number;
+  valid_until?: number;
+}
