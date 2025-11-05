@@ -1,10 +1,10 @@
 // Custody API - List Vaults
 
-export type OrderDirection = 'asc' | 'desc';
-export type CaseMatching = 'insensitive' | 'sensitive';
+export type CustodyOrderDirection = 'asc' | 'desc';
+export type CustodyCaseMatching = 'insensitive' | 'sensitive';
 
 // Filter types for vault listing
-export type VaultFilterBy =
+export type CustodyVaultFilterBy =
   | 'id'
   | 'name'
   | 'default_approvals'
@@ -12,96 +12,96 @@ export type VaultFilterBy =
   | 'updated_at'
   | 'member';
 
-export type VaultOrderBy = 'id' | 'name' | 'created_at' | 'updated_at';
+export type CustodyVaultOrderBy = 'id' | 'name' | 'created_at' | 'updated_at';
 
 // Individual filter types
-export interface VaultFilterIdEquals {
+export interface CustodyVaultFilterIdEquals {
   type: 'equals';
   values: string[];
   by: 'id';
 }
 
-export interface VaultFilterNameEquals {
+export interface CustodyVaultFilterNameEquals {
   type: 'equals';
   values: string[];
-  case?: CaseMatching;
+  case?: CustodyCaseMatching;
   by: 'name';
 }
 
-export interface VaultFilterNameStartsWith {
+export interface CustodyVaultFilterNameStartsWith {
   type: 'starts_with';
   values: string[];
-  case?: CaseMatching;
+  case?: CustodyCaseMatching;
   by: 'name';
 }
 
-export interface VaultFilterNameContains {
+export interface CustodyVaultFilterNameContains {
   type: 'contains';
   values: string[];
-  case?: CaseMatching;
+  case?: CustodyCaseMatching;
   by: 'name';
 }
 
-export interface VaultFilterDefaultApprovalsEquals {
+export interface CustodyVaultFilterDefaultApprovalsEquals {
   type: 'equals';
   values: number[];
   by: 'default_approvals';
 }
 
-export interface VaultFilterDefaultApprovalsIn {
+export interface CustodyVaultFilterDefaultApprovalsIn {
   type: 'in';
   left?: number;
   right?: number;
   by: 'default_approvals';
 }
 
-export interface VaultFilterCreatedAtEquals {
+export interface CustodyVaultFilterCreatedAtEquals {
   type: 'equals';
   values: string[];
   by: 'created_at';
 }
 
-export interface VaultFilterCreatedAtIn {
+export interface CustodyVaultFilterCreatedAtIn {
   type: 'in';
   left?: string;
   right?: string;
   by: 'created_at';
 }
 
-export interface VaultFilterUpdatedAtEquals {
+export interface CustodyVaultFilterUpdatedAtEquals {
   type: 'equals';
   values: string[];
   by: 'updated_at';
 }
 
-export interface VaultFilterUpdatedAtIn {
+export interface CustodyVaultFilterUpdatedAtIn {
   type: 'in';
   left?: string;
   right?: string;
   by: 'updated_at';
 }
 
-export interface VaultFilterMemberEquals {
+export interface CustodyVaultFilterMemberEquals {
   type: 'equals';
   values: string[];
   by: 'member';
 }
 
-export type VaultFilterCondition =
-  | VaultFilterIdEquals
-  | VaultFilterNameEquals
-  | VaultFilterNameStartsWith
-  | VaultFilterNameContains
-  | VaultFilterDefaultApprovalsEquals
-  | VaultFilterDefaultApprovalsIn
-  | VaultFilterCreatedAtEquals
-  | VaultFilterCreatedAtIn
-  | VaultFilterUpdatedAtEquals
-  | VaultFilterUpdatedAtIn
-  | VaultFilterMemberEquals;
+export type CustodyVaultFilterCondition =
+  | CustodyVaultFilterIdEquals
+  | CustodyVaultFilterNameEquals
+  | CustodyVaultFilterNameStartsWith
+  | CustodyVaultFilterNameContains
+  | CustodyVaultFilterDefaultApprovalsEquals
+  | CustodyVaultFilterDefaultApprovalsIn
+  | CustodyVaultFilterCreatedAtEquals
+  | CustodyVaultFilterCreatedAtIn
+  | CustodyVaultFilterUpdatedAtEquals
+  | CustodyVaultFilterUpdatedAtIn
+  | CustodyVaultFilterMemberEquals;
 
 export interface VaultFilterOr {
-  or: VaultFilterCondition[];
+  or: CustodyVaultFilterCondition[];
 }
 
 export interface VaultFilters {
@@ -114,8 +114,8 @@ export interface VaultPagination {
 }
 
 export interface VaultOrdering {
-  by: VaultOrderBy;
-  direction?: OrderDirection;
+  by: CustodyVaultOrderBy;
+  direction?: CustodyOrderDirection;
 }
 
 export interface ListCustodyVaultsParams {
@@ -127,7 +127,7 @@ export interface ListCustodyVaultsParams {
 }
 
 // Custody API - Deposit Methods
-export type AssetClass =
+export type CustodyAssetClass =
   | 'currency'
   | 'forex'
   | 'equity'
@@ -135,7 +135,7 @@ export type AssetClass =
   | 'nft'
   | 'volume';
 
-export interface DepositMethodsParams {
+export interface CustodyDepositMethodsParams {
   'x-vault-id': string;
   nonce?: number;
   asset?: string;
@@ -144,17 +144,17 @@ export interface DepositMethodsParams {
 }
 
 // Custody API - Deposit Addresses
-export interface DepositAddressesParams {
+export interface CustodyDepositAddressesParams {
   'x-vault-id': string;
   nonce?: number;
-  aclass?: AssetClass;
+  aclass?: CustodyAssetClass;
   asset: string;
   method: string;
   new?: boolean;
 }
 
 // Custody API - List Custody Transactions
-export type TransactionTypeReq =
+export type CustodyTransactionTypeReq =
   | 'unspecified'
   | 'deposit'
   | 'withdrawal'
@@ -248,7 +248,7 @@ export type TransactionTypeReq =
   | 'boost'
   | 'fcm_misc';
 
-export type RefIdType =
+export type CustodyRefIdType =
   | 'funding'
   | 'trade'
   | 'adjustment'
@@ -265,7 +265,7 @@ export type RefIdType =
   | 'simple_order_quote'
   | 'legacy_custody_transaction';
 
-export type TransactionAssetClassReq =
+export type CustodyTransactionAssetClassReq =
   | 'currency'
   | 'forex'
   | 'equity'
@@ -275,22 +275,22 @@ export type TransactionAssetClassReq =
   | 'tokenized_asset'
   | 'futures_contract';
 
-export interface QuoteAsset {
+export interface CustodyQuoteAsset {
   asset: string;
-  class: TransactionAssetClassReq;
+  class: CustodyTransactionAssetClassReq;
 }
 
-export interface TransactionAssetFilter {
+export interface CustodyTransactionAssetFilter {
   asset: string;
-  class: TransactionAssetClassReq;
+  class: CustodyTransactionAssetClassReq;
 }
 
-export interface TransactionRefIdFilter {
-  type: RefIdType;
+export interface CustodyTransactionRefIdFilter {
+  type: CustodyRefIdType;
   ref_id: string;
 }
 
-export interface TransactionSorting {
+export interface CustodyTransactionSorting {
   order?: 'descending' | 'ascending';
 }
 
@@ -298,14 +298,14 @@ export interface ListCustodyTransactionsParams {
   id: string;
   nonce?: number;
   page_size?: number;
-  quote?: QuoteAsset;
+  quote?: CustodyQuoteAsset;
   preferred_asset_name?: string;
-  sorting?: TransactionSorting;
+  sorting?: CustodyTransactionSorting;
   cursor?: string;
-  types?: TransactionTypeReq[];
+  types?: CustodyTransactionTypeReq[];
   ids?: string[];
-  assets?: TransactionAssetFilter[];
-  ref_ids?: TransactionRefIdFilter[];
+  assets?: CustodyTransactionAssetFilter[];
+  ref_ids?: CustodyTransactionRefIdFilter[];
 }
 
 // Custody API - Get Transaction by ID
@@ -314,11 +314,11 @@ export interface GetCustodyTransactionParams {
   nonce?: number;
   vault_id: string;
   with_long_timeout?: boolean | null;
-  quote?: QuoteAsset;
+  quote?: CustodyQuoteAsset;
 }
 
 // Custody API - Withdraw Methods
-export interface WithdrawMethodsParams {
+export interface CustodyWithdrawMethodsParams {
   'x-vault-id': string;
   nonce?: number;
   asset?: string | null;
@@ -328,7 +328,7 @@ export interface WithdrawMethodsParams {
 }
 
 // Custody API - Withdraw Addresses
-export type WithdrawAddressAssetClass =
+export type CustodyWithdrawAddressAssetClass =
   | 'currency'
   | 'equity'
   | 'equity-pair'
@@ -336,11 +336,11 @@ export type WithdrawAddressAssetClass =
   | 'nft'
   | 'volume';
 
-export interface WithdrawAddressesParams {
+export interface CustodyWithdrawAddressesParams {
   'x-vault-id': string;
   preferred_asset_name?: 'new' | 'alt';
   nonce?: number;
-  aclass?: WithdrawAddressAssetClass;
+  aclass?: CustodyWithdrawAddressAssetClass;
   asset?: string | null;
   method?: string | null;
   key?: string | null;
@@ -348,9 +348,9 @@ export interface WithdrawAddressesParams {
 }
 
 // Custody API - List Tasks
-export type TaskScope = 'domain' | 'vault';
+export type CustodyTaskScope = 'domain' | 'vault';
 
-export type TaskStateReq =
+export type CustodyTaskStateReq =
   | 'pending'
   | 'approved'
   | 'denied'
@@ -359,7 +359,7 @@ export type TaskStateReq =
   | 'executed'
   | 'failed';
 
-export type TaskAction =
+export type CustodyTaskAction =
   | 'update_withdrawal_addresses'
   | 'request_withdrawal'
   | 'create_vault'
@@ -380,9 +380,9 @@ export type TaskAction =
   | 'request_allocation'
   | 'request_deallocation';
 
-export type TaskUserDecisionReq = 'approved' | 'denied' | 'undecided';
+export type CustodyTaskUserDecisionReq = 'approved' | 'denied' | 'undecided';
 
-export type TaskOrderBy =
+export type CustodyTaskOrderBy =
   | 'id'
   | 'vault_id'
   | 'state'
@@ -390,67 +390,67 @@ export type TaskOrderBy =
   | 'updated_at'
   | 'expires_at';
 
-export interface TaskFilterIdEquals {
+interface TaskFilterIdEquals {
   type: 'equals';
   values: string[];
   by: 'id';
 }
 
-export interface TaskFilterApprovalIdEquals {
+interface TaskFilterApprovalIdEquals {
   type: 'equals';
   values: string[];
   by: 'approval_id';
 }
 
-export interface TaskFilterVaultIdEquals {
+interface TaskFilterVaultIdEquals {
   type: 'equals';
   values: string[];
   by: 'vault_id';
 }
 
-export interface TaskFilterScopeEquals {
+interface TaskFilterScopeEquals {
   type: 'equals';
-  values: TaskScope[];
+  values: CustodyTaskScope[];
   by: 'scope';
 }
 
-export interface TaskFilterStateEquals {
+interface TaskFilterStateEquals {
   type: 'equals';
-  values: TaskStateReq[];
+  values: CustodyTaskStateReq[];
   by: 'state';
 }
 
-export interface TaskFilterActionEquals {
+interface TaskFilterActionEquals {
   type: 'equals';
-  values: TaskAction[];
+  values: CustodyTaskAction[];
   by: 'action';
 }
 
-export interface TaskFilterCreatedAtEquals {
+interface TaskFilterCreatedAtEquals {
   type: 'equals';
   values: string[];
   by: 'created_at';
 }
 
-export interface TaskFilterUpdatedAtEquals {
+interface TaskFilterUpdatedAtEquals {
   type: 'equals';
   values: string[];
   by: 'updated_at';
 }
 
-export interface TaskFilterExpiresAtEquals {
+interface TaskFilterExpiresAtEquals {
   type: 'equals';
   values: string[];
   by: 'expires_at';
 }
 
-export interface TaskFilterCurrentUserDecisionEquals {
+interface TaskFilterCurrentUserDecisionEquals {
   type: 'equals';
-  values: TaskUserDecisionReq[];
+  values: CustodyTaskUserDecisionReq[];
   by: 'current_user_decision';
 }
 
-export type TaskFilterCondition =
+export type CustodyTaskFilterCondition =
   | TaskFilterIdEquals
   | TaskFilterApprovalIdEquals
   | TaskFilterVaultIdEquals
@@ -462,28 +462,28 @@ export type TaskFilterCondition =
   | TaskFilterExpiresAtEquals
   | TaskFilterCurrentUserDecisionEquals;
 
-export interface TaskFilterOr {
-  or: TaskFilterCondition[];
+export interface CustodyTaskFilterOr {
+  or: CustodyTaskFilterCondition[];
 }
 
-export interface TaskFilters {
-  and?: TaskFilterOr[];
+export interface CustodyTaskFilters {
+  and?: CustodyTaskFilterOr[];
 }
 
-export interface TaskOrdering {
-  by: TaskOrderBy;
-  direction?: OrderDirection;
+export interface CustodyTaskOrdering {
+  by: CustodyTaskOrderBy;
+  direction?: CustodyOrderDirection;
 }
 
 export interface ListCustodyTasksParams {
   nonce?: number;
-  filters?: TaskFilters;
+  filters?: CustodyTaskFilters;
   pagination?: VaultPagination;
-  orderings?: TaskOrdering[];
+  orderings?: CustodyTaskOrdering[];
 }
 
 // Custody API - List Activities
-export type ActivityActionReq =
+type ActivityActionReq =
   | 'created'
   | 'review_approved'
   | 'review_denied'
@@ -492,63 +492,63 @@ export type ActivityActionReq =
   | 'failed'
   | 'expired';
 
-export type ActivityOrderBy = 'activity_created_at';
+type ActivityOrderBy = 'activity_created_at';
 
-export interface ActivityFilterIdEquals {
+interface ActivityFilterIdEquals {
   type: 'equals';
   values: string[];
   by: 'id';
 }
 
-export interface ActivityFilterScopeEquals {
+interface ActivityFilterScopeEquals {
   type: 'equals';
-  values: TaskScope[];
+  values: CustodyTaskScope[];
   by: 'scope';
 }
 
-export interface ActivityFilterVaultIdEquals {
+interface ActivityFilterVaultIdEquals {
   type: 'equals';
   values: string[];
   by: 'vault_id';
 }
 
-export interface ActivityFilterTaskIdEquals {
+interface ActivityFilterTaskIdEquals {
   type: 'equals';
   values: string[];
   by: 'task_id';
 }
 
-export interface ActivityFilterApprovalIdEquals {
+interface ActivityFilterApprovalIdEquals {
   type: 'equals';
   values: string[];
   by: 'approval_id';
 }
 
-export interface ActivityFilterTaskActionEquals {
+interface ActivityFilterTaskActionEquals {
   type: 'equals';
-  values: TaskAction[];
+  values: CustodyTaskAction[];
   by: 'task_action';
 }
 
-export interface ActivityFilterActivityActionEquals {
+interface ActivityFilterActivityActionEquals {
   type: 'equals';
   values: ActivityActionReq[];
   by: 'activity_action';
 }
 
-export interface ActivityFilterCreatedAtEquals {
+interface ActivityFilterCreatedAtEquals {
   type: 'equals';
   values: string[];
   by: 'created_at';
 }
 
-export interface ActivityFilterUserEquals {
+interface ActivityFilterUserEquals {
   type: 'equals';
   values: string[];
   by: 'user';
 }
 
-export type ActivityFilterCondition =
+type ActivityFilterCondition =
   | ActivityFilterIdEquals
   | ActivityFilterScopeEquals
   | ActivityFilterVaultIdEquals
@@ -559,17 +559,17 @@ export type ActivityFilterCondition =
   | ActivityFilterCreatedAtEquals
   | ActivityFilterUserEquals;
 
-export interface ActivityFilterOr {
+interface ActivityFilterOr {
   or: ActivityFilterCondition[];
 }
 
-export interface ActivityFilters {
+interface ActivityFilters {
   and?: ActivityFilterOr[];
 }
 
-export interface ActivityOrdering {
+interface ActivityOrdering {
   by: ActivityOrderBy;
-  direction?: OrderDirection;
+  direction?: CustodyOrderDirection;
 }
 
 export interface ListCustodyActivitiesParams {
