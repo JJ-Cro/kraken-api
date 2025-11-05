@@ -65,7 +65,7 @@ export interface CustodyDepositMethod {
   minimum?: string | null;
 }
 
-export interface DepositMethodsResponse {
+export interface CustodyDepositMethodsResponse {
   result?: CustodyDepositMethod[] | null;
   error: CustodyApiError[];
 }
@@ -79,7 +79,7 @@ export interface CustodyDepositAddress {
   tag?: string | null;
 }
 
-export interface DepositAddressesResponse {
+export interface CustodyDepositAddressesResponse {
   error: CustodyApiError[];
   result?: CustodyDepositAddress[] | null;
 }

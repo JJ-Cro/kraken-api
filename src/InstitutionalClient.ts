@@ -23,10 +23,10 @@ import {
 import {
   CheckOtcClientResponse,
   CreateOtcQuoteResponse,
+  CustodyDepositAddressesResponse,
+  CustodyDepositMethodsResponse,
   CustodyWithdrawAddressesResponse,
   CustodyWithdrawMethodsResponse,
-  DepositAddressesResponse,
-  DepositMethodsResponse,
   GetCustodyActivityResponse,
   GetCustodyTaskResponse,
   GetCustodyTransactionResponse,
@@ -115,7 +115,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getCustodyDepositMethods(
     params: CustodyDepositMethodsParams,
-  ): Promise<DepositMethodsResponse> {
+  ): Promise<CustodyDepositMethodsResponse> {
     const { 'x-vault-id': vaultId, ...bodyParams } = params;
     return this.postPrivate('0/private/DepositMethods', {
       headers: { 'x-vault-id': vaultId },
@@ -131,7 +131,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getCustodyDepositAddresses(
     params: CustodyDepositAddressesParams,
-  ): Promise<DepositAddressesResponse> {
+  ): Promise<CustodyDepositAddressesResponse> {
     const { 'x-vault-id': vaultId, ...bodyParams } = params;
     return this.postPrivate('0/private/DepositAddresses', {
       headers: { 'x-vault-id': vaultId },
