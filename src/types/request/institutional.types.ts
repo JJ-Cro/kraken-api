@@ -118,7 +118,7 @@ export interface VaultOrdering {
   direction?: CustodyOrderDirection;
 }
 
-export interface ListCustodyVaultsParams {
+export interface CustodyListVaultsParams {
   nonce?: number;
   resolve_policies?: boolean | null;
   filters?: VaultFilters;
@@ -294,7 +294,7 @@ export interface CustodyTransactionSorting {
   order?: 'descending' | 'ascending';
 }
 
-export interface ListCustodyTransactionsParams {
+export interface CustodyListTransactionsParams {
   id: string;
   nonce?: number;
   page_size?: number;
@@ -309,7 +309,7 @@ export interface ListCustodyTransactionsParams {
 }
 
 // Custody API - Get Transaction by ID
-export interface GetCustodyTransactionParams {
+export interface CustodyGetTransactionParams {
   id: string;
   nonce?: number;
   vault_id: string;
@@ -475,7 +475,7 @@ export interface CustodyTaskOrdering {
   direction?: CustodyOrderDirection;
 }
 
-export interface ListCustodyTasksParams {
+export interface CustodyListTasksParams {
   nonce?: number;
   filters?: CustodyTaskFilters;
   pagination?: VaultPagination;
@@ -572,7 +572,7 @@ interface ActivityOrdering {
   direction?: CustodyOrderDirection;
 }
 
-export interface ListCustodyActivitiesParams {
+export interface CustodyListActivitiesParams {
   nonce?: number;
   filters?: ActivityFilters;
   pagination?: VaultPagination;
@@ -584,7 +584,7 @@ export type OtcQuoteType = 'buy' | 'sell';
 export type OtcQuoteStatus = 'accepted' | 'rejected';
 export type OtcSettlement = 'automated' | 'flexible';
 
-export interface CreateOtcQuoteRequestParams {
+export interface OTCCreateQuoteRequestParams {
   nonce?: number;
   base: string;
   quote: string;
@@ -593,7 +593,7 @@ export interface CreateOtcQuoteRequestParams {
   type: OtcQuoteType;
 }
 
-export interface UpdateOtcQuoteParams {
+export interface OTCUpdateQuoteParams {
   nonce?: number;
   quote_id: string;
   status: OtcQuoteStatus;
