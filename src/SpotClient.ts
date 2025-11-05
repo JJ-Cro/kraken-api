@@ -8,6 +8,9 @@ import {
   RestClientType,
 } from './lib/requestUtils.js';
 import {
+  OauthCreateFastApiKeyParams,
+  OauthGetAccessTokenParams,
+  OauthUpdateFastApiKeyParams,
   SpotAccountTransferParams,
   SpotAmendOrderParams,
   SpotGetAssetPairsParams,
@@ -41,6 +44,10 @@ import {
 } from './types/request/spot.types.js';
 import { SpotAPISuccessResponse } from './types/response/shared.types.js';
 import {
+  OauthCreateFastApiKeyResponse,
+  OauthFastApiKey,
+  OauthGetAccessTokenResponse,
+  OauthGetUserInfoResponse,
   SpotAccountBalance,
   SpotAccountTransferResponse,
   SpotAssetInfo,
@@ -834,5 +841,83 @@ export class SpotClient extends BaseRestClient {
     params?: SpotGetPostTradeDataParams,
   ): Promise<SpotAPISuccessResponse<SpotPostTradeDataResponse>> {
     return this.get('0/public/PostTrade', params);
+  }
+
+  /**
+   *
+   * Spot REST API - OAuth
+   *
+   */
+
+  /**
+   * Get Access Token
+   *
+   * Retrieve the access token.
+   * Note: This endpoint uses Basic authentication (Authorization header with base64-encoded client credentials).
+   */
+  getOAuthAccessToken(
+    params: OauthGetAccessTokenParams,
+  ): Promise<OauthGetAccessTokenResponse> {
+    return this.post('oauth/token', { body: params });
+  }
+
+  /**
+   * Get User Info
+   *
+   * Returns the email address and IIBAN of the user.
+   * Note: Requires OAuth2 Bearer token. Scopes required: account.info:basic
+   */
+  getOAuthUserInfo(): Promise<OauthGetUserInfoResponse> {
+    return this.getPrivate('oauth/userinfo');
+  }
+
+  /**
+   * Create Fast API Key
+   *
+   * Creates a Fast API key.
+   * Note: Requires OAuth2 Bearer token. Scopes required: account.fast-api-key:write
+   */
+  createOAuthFastApiKey(
+    params: OauthCreateFastApiKeyParams,
+  ): Promise<OauthCreateFastApiKeyResponse> {
+    return this.postPrivate('oauth/fast-api-key', { body: params });
+  }
+
+  /**
+   * Delete Fast API Key
+   *
+   * Deletes a Fast API key.
+   * Note: Requires OAuth2 Bearer token. Scopes required: account.fast-api-key:write
+   */
+  deleteOAuthFastApiKey(params: {
+    api_key_name: string; // max 32 chars
+  }): Promise<{
+    result: boolean;
+  }> {
+    return this.deletePrivate('oauth/fast-api-key', { body: params });
+  }
+
+  /**
+   * Update Fast API Key
+   *
+   * Updates a Fast API key.
+   * Note: Requires OAuth2 Bearer token. Scopes required: account.fast-api-key:write
+   */
+  updateOAuthFastApiKey(params: OauthUpdateFastApiKeyParams): Promise<{
+    result: boolean;
+  }> {
+    return this.putPrivate('oauth/fast-api-key', { body: params });
+  }
+
+  /**
+   * List Fast API Keys
+   *
+   * List all Fast API keys.
+   * Note: Requires OAuth2 Bearer token. Scopes required: account.fast-api-key:read
+   */
+  listOAuthFastApiKeys(): Promise<{
+    result: OauthFastApiKey[];
+  }> {
+    return this.getPrivate('oauth/fast-api-keys');
   }
 }

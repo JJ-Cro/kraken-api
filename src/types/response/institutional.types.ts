@@ -1,13 +1,13 @@
 // Custody API - Response Types
 
-export type VaultStatus = 'pending' | 'created' | 'failed' | 'disabled';
+export type CustodyVaultStatus = 'pending' | 'created' | 'failed' | 'disabled';
 
 export interface CustodyVault {
   id: string;
   created_at: string;
   updated_at: string;
   count_assets: number;
-  status: VaultStatus;
+  status: CustodyVaultStatus;
   iiban: string;
   deposit_lock_rekeying_only?: boolean | null;
   name: string;
@@ -33,20 +33,20 @@ export interface ListCustodyVaultsResponse {
 }
 
 // Custody API - Get Vault Information by ID
-export interface AssetBalance {
+export interface CustodyAssetBalance {
   current_usd_value?: string | null;
   quantity: string;
 }
 
-export interface VaultAssetDetail {
+export interface CustodyVaultAssetDetail {
   asset: string;
   current_usd_price?: string | null;
-  available_balance: AssetBalance;
-  total_balance: AssetBalance;
+  available_balance: CustodyAssetBalance;
+  total_balance: CustodyAssetBalance;
 }
 
 export interface CustodyVaultWithAssets extends CustodyVault {
-  asset_details: VaultAssetDetail[];
+  asset_details: CustodyVaultAssetDetail[];
 }
 
 export interface GetCustodyVaultResponse {
@@ -55,7 +55,7 @@ export interface GetCustodyVaultResponse {
 }
 
 // Custody API - Deposit Methods
-export interface DepositMethod {
+export interface CustodyDepositMethod {
   method?: string;
   limit?: string | boolean;
   fee?: string;
@@ -65,13 +65,13 @@ export interface DepositMethod {
   minimum?: string | null;
 }
 
-export interface DepositMethodsResponse {
-  result?: DepositMethod[] | null;
+export interface CustodyDepositMethodsResponse {
+  result?: CustodyDepositMethod[] | null;
   error: CustodyApiError[];
 }
 
 // Custody API - Deposit Addresses
-export interface DepositAddress {
+export interface CustodyDepositAddress {
   address: string;
   expiretm?: string;
   memo?: string | null;
@@ -79,13 +79,13 @@ export interface DepositAddress {
   tag?: string | null;
 }
 
-export interface DepositAddressesResponse {
+export interface CustodyDepositAddressesResponse {
   error: CustodyApiError[];
-  result?: DepositAddress[] | null;
+  result?: CustodyDepositAddress[] | null;
 }
 
 // Custody API - Transaction Types (Shared)
-export type TransactionType =
+export type CustodyTransactionType =
   | 'unspecified'
   | 'deposit'
   | 'withdrawal'
@@ -179,7 +179,7 @@ export type TransactionType =
   | 'boost'
   | 'fcm_misc';
 
-export type TransactionCategory =
+export type CustodyTransactionCategory =
   | 'unspecified'
   | 'deposit'
   | 'withdrawal'
@@ -211,7 +211,7 @@ export type TransactionCategory =
   | 'subscription'
   | 'other';
 
-export type TransactionArea =
+export type CustodyTransactionArea =
   | 'unspecified'
   | 'funding'
   | 'transfer'
@@ -225,13 +225,13 @@ export type TransactionArea =
   | 'nft'
   | 'other';
 
-export type TransactionStatus =
+export type CustodyTransactionStatus =
   | 'unspecified'
   | 'in_progress'
   | 'successful'
   | 'failed';
 
-export type TransactionAssetClass =
+export type CustodyTransactionAssetClass =
   | 'currency'
   | 'forex'
   | 'equity'
@@ -241,55 +241,55 @@ export type TransactionAssetClass =
   | 'tokenized_asset'
   | 'futures_contract';
 
-export interface TransactionAmount {
+export interface CustodyTransactionAmount {
   amount: string;
   asset: string;
-  class: TransactionAssetClass;
+  class: CustodyTransactionAssetClass;
 }
 
-export interface TransactionSide {
+export interface CustodyTransactionSide {
   ledger_id?: string | null;
   time?: string | null;
   subtype?: string | null;
-  amount: TransactionAmount;
-  quoted_amount?: TransactionAmount | null;
-  fee?: TransactionAmount | null;
-  quoted_fee?: TransactionAmount | null;
-  total?: TransactionAmount | null;
-  quoted_total?: TransactionAmount | null;
-  balance?: TransactionAmount | null;
+  amount: CustodyTransactionAmount;
+  quoted_amount?: CustodyTransactionAmount | null;
+  fee?: CustodyTransactionAmount | null;
+  quoted_fee?: CustodyTransactionAmount | null;
+  total?: CustodyTransactionAmount | null;
+  quoted_total?: CustodyTransactionAmount | null;
+  balance?: CustodyTransactionAmount | null;
   wallet?: Record<string, any> | null;
 }
 
 export interface CustodyTransaction {
   id: string;
   time: string;
-  type: TransactionType;
-  category: TransactionCategory;
-  area: TransactionArea;
-  status?: TransactionStatus | null;
+  type: CustodyTransactionType;
+  category: CustodyTransactionCategory;
+  area: CustodyTransactionArea;
+  status?: CustodyTransactionStatus | null;
   ref_id: string;
   ref_id2?: string | null;
-  spend?: TransactionSide | null;
-  receive?: TransactionSide | null;
+  spend?: CustodyTransactionSide | null;
+  receive?: CustodyTransactionSide | null;
   details?: Record<string, any> | null;
 }
 
-export interface TransactionStats {
+export interface CustodyTransactionStats {
   transactions_seen?: number;
 }
 
 export interface ListCustodyTransactionsResponse {
   result?: {
     transactions: CustodyTransaction[];
-    stats?: TransactionStats | null;
+    stats?: CustodyTransactionStats | null;
     next_cursor?: string | null;
   } | null;
   errors: CustodyApiError[];
 }
 
 // Custody API - Get Transaction by ID
-export type TransactionResultType =
+export type CustodyTransactionResultType =
   | 'complete'
   | 'incomplete_requires_long_timeout'
   | 'incomplete';
@@ -298,47 +298,47 @@ export interface GetCustodyTransactionResponse {
   error: CustodyApiError[];
   result?: {
     transaction: CustodyTransaction;
-    result_type: TransactionResultType;
+    result_type: CustodyTransactionResultType;
   } | null;
 }
 
 // Custody API - Withdraw Methods
-export interface WithdrawMethodLimit {
+export interface CustodyWithdrawMethodLimit {
   remaining: string | number;
   maximum: string | number;
 }
 
-export interface WithdrawMethodLimitInfo {
+export interface CustodyWithdrawMethodLimitInfo {
   limit_type: string;
   description?: string | null;
-  limits: Record<string, WithdrawMethodLimit>;
+  limits: Record<string, CustodyWithdrawMethodLimit>;
 }
 
-export interface WithdrawMethodFee {
+export interface CustodyWithdrawMethodFee {
   aclass: string;
   asset: string;
   fee: string;
   fee_percentage?: string | null;
 }
 
-export interface WithdrawMethod {
+export interface CustodyWithdrawMethod {
   asset: string;
   method_id?: string | null;
   method?: string | null;
   network_id?: string | null;
   network?: string | null;
   minimum?: string | null;
-  limits?: WithdrawMethodLimitInfo[] | null;
-  fee?: WithdrawMethodFee | null;
+  limits?: CustodyWithdrawMethodLimitInfo[] | null;
+  fee?: CustodyWithdrawMethodFee | null;
 }
 
-export interface WithdrawMethodsResponse {
+export interface CustodyWithdrawMethodsResponse {
   error: CustodyApiError[];
-  result?: WithdrawMethod[] | null;
+  result?: CustodyWithdrawMethod[] | null;
 }
 
 // Custody API - Withdraw Addresses
-export interface WithdrawAddress {
+export interface CustodyWithdrawAddress {
   address?: string | null;
   asset?: string | null;
   method?: string | null;
@@ -349,29 +349,29 @@ export interface WithdrawAddress {
   networks?: string[] | null;
 }
 
-export interface WithdrawAddressesResponse {
+export interface CustodyWithdrawAddressesResponse {
   error: CustodyApiError[];
-  result?: WithdrawAddress[] | null;
+  result?: CustodyWithdrawAddress[] | null;
 }
 
 // Custody API - Tasks
-export type UserRole = 'admin' | 'initiator' | 'reviewer' | 'auditor';
+export type CustodyUserRole = 'admin' | 'initiator' | 'reviewer' | 'auditor';
 
-export interface TaskUser {
+export interface CustodyTaskUser {
   full_name?: string | null;
-  role?: UserRole | null;
+  role?: CustodyUserRole | null;
   ip_address?: string | null;
   iiban?: string | null;
 }
 
-export interface TaskReviewerStatistics {
+export interface CustodyTaskReviewerStatistics {
   current_count: number;
   approved: number;
   denied: number;
   undecided: number;
 }
 
-export type TaskState =
+export type CustodyTaskState =
   | 'pending'
   | 'approved'
   | 'denied'
@@ -380,18 +380,18 @@ export type TaskState =
   | 'executed'
   | 'failed';
 
-export type TaskUserDecision = 'approved' | 'denied' | 'undecided';
+export type CustodyTaskUserDecision = 'approved' | 'denied' | 'undecided';
 
 export interface CustodyTask {
   can_review: boolean;
-  reviewer_statistics: TaskReviewerStatistics;
-  current_user_decision: TaskUserDecision;
+  reviewer_statistics: CustodyTaskReviewerStatistics;
+  current_user_decision: CustodyTaskUserDecision;
   id: string;
   approval_id: string;
   created_at: string;
   updated_at: string;
   expires_at: string;
-  initiator: TaskUser;
+  initiator: CustodyTaskUser;
 }
 
 export interface ListCustodyTasksResponse {
@@ -402,18 +402,18 @@ export interface ListCustodyTasksResponse {
 }
 
 // Custody API - Get Task by ID
-export interface TaskDetails {
-  state: TaskState;
+export interface CustodyTaskDetails {
+  state: CustodyTaskState;
   [key: string]: any; // Task details vary based on action type
 }
 
 export interface GetCustodyTaskResponse {
-  result?: TaskDetails | null;
+  result?: CustodyTaskDetails | null;
   errors: CustodyApiError[];
 }
 
 // Custody API - Activities
-export type ActivityAction =
+export type CustodyActivityAction =
   | 'created'
   | 'review_approved'
   | 'review_denied'
@@ -423,7 +423,7 @@ export type ActivityAction =
   | 'expired';
 
 export interface CustodyActivity {
-  task: TaskDetails;
+  task: CustodyTaskDetails;
   id: string;
   created_at: string;
 }
@@ -436,15 +436,15 @@ export interface ListCustodyActivitiesResponse {
 }
 
 // Custody API - Get Activity by ID
-export interface ActivityDetails {
-  type: ActivityAction;
+export interface CustodyActivityDetails {
+  type: CustodyActivityAction;
   comment?: string | null;
-  user: TaskUser;
+  user: CustodyTaskUser;
   [key: string]: any; // Activity details vary based on type
 }
 
 export interface GetCustodyActivityResponse {
-  result?: ActivityDetails | null;
+  result?: CustodyActivityDetails | null;
   errors: CustodyApiError[];
 }
 
@@ -453,7 +453,7 @@ export interface OtcQuote {
   [key: string]: any; // Quote details vary
 }
 
-export interface CreateOtcQuoteRequestResponse {
+export interface CreateOtcQuoteResponse {
   result?: {
     quote: OtcQuote;
   };

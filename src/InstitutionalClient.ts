@@ -9,22 +9,24 @@ import {
 } from './lib/requestUtils.js';
 import {
   CreateOtcQuoteRequestParams,
-  DepositAddressesParams,
-  DepositMethodsParams,
+  CustodyDepositAddressesParams,
+  CustodyDepositMethodsParams,
+  CustodyWithdrawAddressesParams,
+  CustodyWithdrawMethodsParams,
   GetCustodyTransactionParams,
   ListCustodyActivitiesParams,
   ListCustodyTasksParams,
   ListCustodyTransactionsParams,
   ListCustodyVaultsParams,
   UpdateOtcQuoteParams,
-  WithdrawAddressesParams,
-  WithdrawMethodsParams,
 } from './types/request/institutional.types.js';
 import {
   CheckOtcClientResponse,
-  CreateOtcQuoteRequestResponse,
-  DepositAddressesResponse,
-  DepositMethodsResponse,
+  CreateOtcQuoteResponse,
+  CustodyDepositAddressesResponse,
+  CustodyDepositMethodsResponse,
+  CustodyWithdrawAddressesResponse,
+  CustodyWithdrawMethodsResponse,
   GetCustodyActivityResponse,
   GetCustodyTaskResponse,
   GetCustodyTransactionResponse,
@@ -38,8 +40,6 @@ import {
   ListCustodyTransactionsResponse,
   ListCustodyVaultsResponse,
   UpdateOtcQuoteResponse,
-  WithdrawAddressesResponse,
-  WithdrawMethodsResponse,
 } from './types/response/institutional.types.js';
 
 /**
@@ -114,8 +114,8 @@ export class InstitutionalClient extends BaseRestClient {
    * The deposit method is required to retrieve deposit addresses using the Get Deposit Addresses API.
    */
   getCustodyDepositMethods(
-    params: DepositMethodsParams,
-  ): Promise<DepositMethodsResponse> {
+    params: CustodyDepositMethodsParams,
+  ): Promise<CustodyDepositMethodsResponse> {
     const { 'x-vault-id': vaultId, ...bodyParams } = params;
     return this.postPrivate('0/private/DepositMethods', {
       headers: { 'x-vault-id': vaultId },
@@ -130,8 +130,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Use the Get Deposit Methods API to identify the appropriate deposit method.
    */
   getCustodyDepositAddresses(
-    params: DepositAddressesParams,
-  ): Promise<DepositAddressesResponse> {
+    params: CustodyDepositAddressesParams,
+  ): Promise<CustodyDepositAddressesResponse> {
     const { 'x-vault-id': vaultId, ...bodyParams } = params;
     return this.postPrivate('0/private/DepositAddresses', {
       headers: { 'x-vault-id': vaultId },
@@ -181,8 +181,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieve a list of withdrawal methods available for a specified vault.
    */
   getCustodyWithdrawMethods(
-    params: WithdrawMethodsParams,
-  ): Promise<WithdrawMethodsResponse> {
+    params: CustodyWithdrawMethodsParams,
+  ): Promise<CustodyWithdrawMethodsResponse> {
     const { 'x-vault-id': vaultId, ...bodyParams } = params;
     return this.postPrivate('0/private/WithdrawMethods', {
       headers: { 'x-vault-id': vaultId },
@@ -196,8 +196,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieve a list of withdrawal addresses for a specified vault.
    */
   getCustodyWithdrawAddresses(
-    params: WithdrawAddressesParams,
-  ): Promise<WithdrawAddressesResponse> {
+    params: CustodyWithdrawAddressesParams,
+  ): Promise<CustodyWithdrawAddressesResponse> {
     const {
       'x-vault-id': vaultId,
       preferred_asset_name,
@@ -288,7 +288,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   createOtcQuoteRequest(
     params: CreateOtcQuoteRequestParams,
-  ): Promise<CreateOtcQuoteRequestResponse> {
+  ): Promise<CreateOtcQuoteResponse> {
     return this.postPrivate('0/private/CreateOtcQuoteRequest', {
       body: params,
     });
