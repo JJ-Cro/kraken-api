@@ -8,38 +8,38 @@ import {
   RestClientType,
 } from './lib/requestUtils.js';
 import {
-  CreateOtcQuoteRequestParams,
   CustodyDepositAddressesParams,
   CustodyDepositMethodsParams,
+  CustodyGetTransactionParams,
+  CustodyListActivitiesParams,
+  CustodyListTasksParams,
+  CustodyListTransactionsParams,
+  CustodyListVaultsParams,
   CustodyWithdrawAddressesParams,
   CustodyWithdrawMethodsParams,
-  GetCustodyTransactionParams,
-  ListCustodyActivitiesParams,
-  ListCustodyTasksParams,
-  ListCustodyTransactionsParams,
-  ListCustodyVaultsParams,
-  UpdateOtcQuoteParams,
+  OTCCreateQuoteRequestParams,
+  OTCUpdateQuoteParams,
 } from './types/request/institutional.types.js';
 import {
-  CheckOtcClientResponse,
-  CreateOtcQuoteResponse,
   CustodyDepositAddressesResponse,
   CustodyDepositMethodsResponse,
+  CustodyGetActivityResponse,
+  CustodyGetTaskResponse,
+  CustodyGetTransactionResponse,
+  CustodyGetVaultResponse,
+  CustodyListActivitiesResponse,
+  CustodyListTasksResponse,
+  CustodyListTransactionsResponse,
+  CustodyListVaultsResponse,
   CustodyWithdrawAddressesResponse,
   CustodyWithdrawMethodsResponse,
-  GetCustodyActivityResponse,
-  GetCustodyTaskResponse,
-  GetCustodyTransactionResponse,
-  GetCustodyVaultResponse,
-  GetOtcActiveQuotesResponse,
-  GetOtcExposuresResponse,
-  GetOtcHistoricalQuotesResponse,
-  GetOtcPairsResponse,
-  ListCustodyActivitiesResponse,
-  ListCustodyTasksResponse,
-  ListCustodyTransactionsResponse,
-  ListCustodyVaultsResponse,
-  UpdateOtcQuoteResponse,
+  OTCCheckClientResponse,
+  OTCCreateQuoteResponse,
+  OTCGetActiveQuotesResponse,
+  OTCGetExposuresResponse,
+  OTCGetHistoricalQuotesResponse,
+  OTCGetPairsResponse,
+  OTCUpdateQuoteResponse,
 } from './types/response/institutional.types.js';
 
 /**
@@ -84,8 +84,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieve all vaults within the custody domain.
    */
   listCustodyVaults(
-    params: ListCustodyVaultsParams,
-  ): Promise<ListCustodyVaultsResponse> {
+    params: CustodyListVaultsParams,
+  ): Promise<CustodyListVaultsResponse> {
     return this.postPrivate('0/private/ListCustodyVaults', {
       body: params,
     });
@@ -99,7 +99,7 @@ export class InstitutionalClient extends BaseRestClient {
   getCustodyVaultbyId(params: {
     id: string;
     nonce?: number;
-  }): Promise<GetCustodyVaultResponse> {
+  }): Promise<CustodyGetVaultResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyVault', {
       query: { id: id },
@@ -145,8 +145,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieve the transaction history for a specified vault.
    */
   listCustodyTransactions(
-    params: ListCustodyTransactionsParams,
-  ): Promise<ListCustodyTransactionsResponse> {
+    params: CustodyListTransactionsParams,
+  ): Promise<CustodyListTransactionsResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/ListCustodyTransactions', {
       query: { id: id },
@@ -160,8 +160,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Get transaction by id
    */
   getCustodyTransactionbyId(
-    params: GetCustodyTransactionParams,
-  ): Promise<GetCustodyTransactionResponse> {
+    params: CustodyGetTransactionParams,
+  ): Promise<CustodyGetTransactionResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyTransaction', {
       query: { id: id },
@@ -222,8 +222,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieve review tasks that match the specified filter criteria.
    */
   listCustodyTasks(
-    params: ListCustodyTasksParams,
-  ): Promise<ListCustodyTasksResponse> {
+    params: CustodyListTasksParams,
+  ): Promise<CustodyListTasksResponse> {
     return this.postPrivate('0/private/ListCustodyTasks', {
       body: params,
     });
@@ -237,7 +237,7 @@ export class InstitutionalClient extends BaseRestClient {
   getCustodyTaskbyId(params: {
     id: string;
     nonce?: number;
-  }): Promise<GetCustodyTaskResponse> {
+  }): Promise<CustodyGetTaskResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyTask', {
       query: { id: id },
@@ -251,8 +251,8 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieve all activities that match the specified filter criteria.
    */
   listCustodyActivities(
-    params: ListCustodyActivitiesParams,
-  ): Promise<ListCustodyActivitiesResponse> {
+    params: CustodyListActivitiesParams,
+  ): Promise<CustodyListActivitiesResponse> {
     return this.postPrivate('0/private/ListCustodyActivities', {
       body: params,
     });
@@ -266,7 +266,7 @@ export class InstitutionalClient extends BaseRestClient {
   getCustodyActivitybyId(params: {
     id: string;
     nonce?: number;
-  }): Promise<GetCustodyActivityResponse> {
+  }): Promise<CustodyGetActivityResponse> {
     const { id, ...bodyParams } = params;
     return this.postPrivate('0/private/GetCustodyActivity', {
       query: { id: id },
@@ -287,8 +287,8 @@ export class InstitutionalClient extends BaseRestClient {
    * API Key Permissions Required: Orders and trades - Create & modify orders
    */
   createOtcQuoteRequest(
-    params: CreateOtcQuoteRequestParams,
-  ): Promise<CreateOtcQuoteResponse> {
+    params: OTCCreateQuoteRequestParams,
+  ): Promise<OTCCreateQuoteResponse> {
     return this.postPrivate('0/private/CreateOtcQuoteRequest', {
       body: params,
     });
@@ -301,8 +301,8 @@ export class InstitutionalClient extends BaseRestClient {
    * API Key Permissions Required: Orders and trades - Create & modify orders
    */
   updateOtcQuote(
-    params: UpdateOtcQuoteParams,
-  ): Promise<UpdateOtcQuoteResponse> {
+    params: OTCUpdateQuoteParams,
+  ): Promise<OTCUpdateQuoteResponse> {
     return this.postPrivate('0/private/UpdateOtcQuote', {
       body: params,
     });
@@ -314,7 +314,7 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves the list of OTC trading pairs.
    * API Key Permissions Required: Funds permissions - Query and Funds permissions - Deposit
    */
-  getOtcPairs(params?: { nonce?: number }): Promise<GetOtcPairsResponse> {
+  getOtcPairs(params?: { nonce?: number }): Promise<OTCGetPairsResponse> {
     return this.postPrivate('0/private/GetOtcPairs', {
       body: params,
     });
@@ -329,7 +329,7 @@ export class InstitutionalClient extends BaseRestClient {
   getOtcActiveQuotes(params?: {
     nonce?: number;
     vault_id?: string;
-  }): Promise<GetOtcActiveQuotesResponse> {
+  }): Promise<OTCGetActiveQuotesResponse> {
     return this.postPrivate('0/private/GetOtcActiveQuotes', {
       body: params,
     });
@@ -343,7 +343,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getOtcHistoricalQuotes(params?: {
     nonce?: number;
-  }): Promise<GetOtcHistoricalQuotesResponse> {
+  }): Promise<OTCGetHistoricalQuotesResponse> {
     return this.postPrivate('0/private/GetOtcHistoricalQuotes', {
       body: params,
     });
@@ -357,7 +357,7 @@ export class InstitutionalClient extends BaseRestClient {
    */
   getOtcExposures(params?: {
     nonce?: number;
-  }): Promise<GetOtcExposuresResponse> {
+  }): Promise<OTCGetExposuresResponse> {
     return this.postPrivate('0/private/GetOtcExposures', {
       body: params,
     });
@@ -369,7 +369,7 @@ export class InstitutionalClient extends BaseRestClient {
    * Retrieves the client permissions for the OTC Portal.
    * API Key Permissions Required: Funds permissions - Query and Funds permissions - Deposit
    */
-  checkOtcClient(params?: { nonce?: number }): Promise<CheckOtcClientResponse> {
+  checkOtcClient(params?: { nonce?: number }): Promise<OTCCheckClientResponse> {
     return this.postPrivate('0/private/CheckOtcClient', {
       body: params,
     });

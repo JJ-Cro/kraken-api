@@ -25,7 +25,7 @@ export interface CustodyApiError {
   errorMessage?: string | null;
 }
 
-export interface ListCustodyVaultsResponse {
+export interface CustodyListVaultsResponse {
   result?: CustodyVault[] | null;
   errors?: CustodyApiError[];
   start?: number;
@@ -49,7 +49,7 @@ export interface CustodyVaultWithAssets extends CustodyVault {
   asset_details: CustodyVaultAssetDetail[];
 }
 
-export interface GetCustodyVaultResponse {
+export interface CustodyGetVaultResponse {
   result?: CustodyVaultWithAssets | null;
   errors: CustodyApiError[];
 }
@@ -279,7 +279,7 @@ export interface CustodyTransactionStats {
   transactions_seen?: number;
 }
 
-export interface ListCustodyTransactionsResponse {
+export interface CustodyListTransactionsResponse {
   result?: {
     transactions: CustodyTransaction[];
     stats?: CustodyTransactionStats | null;
@@ -294,7 +294,7 @@ export type CustodyTransactionResultType =
   | 'incomplete_requires_long_timeout'
   | 'incomplete';
 
-export interface GetCustodyTransactionResponse {
+export interface CustodyGetTransactionResponse {
   error: CustodyApiError[];
   result?: {
     transaction: CustodyTransaction;
@@ -394,7 +394,7 @@ export interface CustodyTask {
   initiator: CustodyTaskUser;
 }
 
-export interface ListCustodyTasksResponse {
+export interface CustodyListTasksResponse {
   result?: CustodyTask[] | null;
   errors: CustodyApiError[];
   start: number;
@@ -407,7 +407,7 @@ export interface CustodyTaskDetails {
   [key: string]: any; // Task details vary based on action type
 }
 
-export interface GetCustodyTaskResponse {
+export interface CustodyGetTaskResponse {
   result?: CustodyTaskDetails | null;
   errors: CustodyApiError[];
 }
@@ -428,7 +428,7 @@ export interface CustodyActivity {
   created_at: string;
 }
 
-export interface ListCustodyActivitiesResponse {
+export interface CustodyListActivitiesResponse {
   result?: CustodyActivity[] | null;
   errors: CustodyApiError[];
   start: number;
@@ -443,7 +443,7 @@ export interface CustodyActivityDetails {
   [key: string]: any; // Activity details vary based on type
 }
 
-export interface GetCustodyActivityResponse {
+export interface CustodyGetActivityResponse {
   result?: CustodyActivityDetails | null;
   errors: CustodyApiError[];
 }
@@ -453,14 +453,14 @@ export interface OtcQuote {
   [key: string]: any; // Quote details vary
 }
 
-export interface CreateOtcQuoteResponse {
+export interface OTCCreateQuoteResponse {
   result?: {
     quote: OtcQuote;
   };
   error: string[];
 }
 
-export interface UpdateOtcQuoteResponse {
+export interface OTCUpdateQuoteResponse {
   result?: {
     quote_id?: string;
   };
@@ -480,7 +480,7 @@ export interface OtcPair {
   min_notional?: string;
 }
 
-export interface GetOtcPairsResponse {
+export interface OTCGetPairsResponse {
   result: {
     spot_pairs: OtcPair[];
   };
@@ -502,7 +502,7 @@ export interface OtcActiveQuote {
   settlement: string;
 }
 
-export interface GetOtcActiveQuotesResponse {
+export interface OTCGetActiveQuotesResponse {
   result?: OtcActiveQuote[];
   error: string[];
 }
@@ -526,7 +526,7 @@ export interface OtcHistoricalQuote {
   settlement: string;
 }
 
-export interface GetOtcHistoricalQuotesResponse {
+export interface OTCGetHistoricalQuotesResponse {
   result?: OtcHistoricalQuote[];
   error: string[];
 }
@@ -538,12 +538,12 @@ export interface OtcExposures {
   used_rfq: string;
 }
 
-export interface GetOtcExposuresResponse {
+export interface OTCGetExposuresResponse {
   result?: OtcExposures;
   error: string[];
 }
 
-export interface CheckOtcClientResponse {
+export interface OTCCheckClientResponse {
   result?: {
     permissions: string[];
   };
