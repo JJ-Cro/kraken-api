@@ -218,7 +218,7 @@ export abstract class BaseRestClient {
 
   private getNextRequestNonce(): string {
     switch (this.getClientType()) {
-      case REST_CLIENT_TYPE_ENUM.futures: {
+      case REST_CLIENT_TYPE_ENUM.derivatives: {
         return String(this.apiRequestNonce++);
       }
       case REST_CLIENT_TYPE_ENUM.main: {
@@ -337,7 +337,7 @@ export abstract class BaseRestClient {
               }
               break;
             }
-            case REST_CLIENT_TYPE_ENUM.futures: {
+            case REST_CLIENT_TYPE_ENUM.derivatives: {
               // const res = {
               //   result: 'error',
               //   error: 'authenticationError',
@@ -506,51 +506,73 @@ export abstract class BaseRestClient {
 
           // Only sign when no access token is provided
           if (!this.hasAccessToken()) {
-            const signMessageInput =
-              signEndpoint +
-              (await hashMessage(signInput, 'binary', 'SHA-256'));
+            try {
+              const signMessageInput =
+                signEndpoint +
+                (await hashMessage(signInput, 'binary', 'SHA-256'));
 
-            // node:crypto equivalent
-            // const sign = createHmac(
-            //   'sha512',
-            //   Buffer.from(this.apiSecret!, 'base64'),
-            // )
-            //   .update(signMessage, 'binary')
-            //   .digest('base64');
+              // node:crypto equivalent
+              // const sign = createHmac(
+              //   'sha512',
+              //   Buffer.from(this.apiSecret!, 'base64'),
+              // )
+              //   .update(signMessage, 'binary')
+              //   .digest('base64');
 
-            const sign = await signMessage(
-              signMessageInput,
-              this.apiSecret!,
-              'base64',
-              'SHA-512',
-              {
-                isSecretB64Encoded: true,
-                isInputBinaryString: true,
-              },
-            );
-
-            if (rawTrace) {
-              // console.clear();
-              console.log('getSignature: ', {
-                data,
+              const sign = await signMessage(
                 signMessageInput,
-                signInput,
-                privateKey: this.apiSecret,
-                method,
-                path: endpoint,
-                query: method === 'POST' ? res.requestData : requestBody,
-                body: method === 'POST' ? res.requestData : requestBody,
-              });
-            }
+                this.apiSecret!,
+                'base64',
+                'SHA-512',
+                {
+                  isSecretB64Encoded: true,
+                  isInputBinaryString: true,
+                },
+              );
 
-            res.sign = sign;
+              if (rawTrace) {
+                // console.clear();
+                console.log('getSignature: ', {
+                  data,
+                  signMessageInput,
+                  signInput,
+                  privateKey: this.apiSecret,
+                  method,
+                  path: endpoint,
+                  query: method === 'POST' ? res.requestData : requestBody,
+                  body: method === 'POST' ? res.requestData : requestBody,
+                });
+              }
+
+              res.sign = sign;
+            } catch (error) {
+              // Check if this is a base64 decoding error (invalid API credentials)
+              if (
+                error instanceof Error &&
+                (error.name === 'InvalidCharacterError' ||
+                  error.message?.includes('Invalid character'))
+              ) {
+                const credentialError = new Error(
+                  `Failed to sign request: Invalid API credentials detected.\n\n` +
+                    `⚠️  PLEASE CHECK YOUR API KEY AND SECRET:\n` +
+                    `   - Ensure your API Secret is a valid base64-encoded string\n` +
+                    `   - Kraken provides API secrets in base64 format\n\n` +
+                    `Original error: ${error.message}\n` +
+                    `Stack trace: ${error.stack}`,
+                );
+                credentialError.name = 'InvalidCredentialsError';
+                throw credentialError;
+              }
+              // Re-throw other errors as-is
+              throw error;
+            }
           }
 
           res.queryParamsWithSign = serialisedParams;
 
           break;
         }
-        case REST_CLIENT_TYPE_ENUM.futures: {
+        case REST_CLIENT_TYPE_ENUM.derivatives: {
           // for futures, serialise GET & POST values as query
           const signRequestParams = serializeParams(
             method === 'POST' ? res.requestData : requestBody,
@@ -709,7 +731,7 @@ export abstract class BaseRestClient {
         };
         break;
       }
-      case REST_CLIENT_TYPE_ENUM.futures: {
+      case REST_CLIENT_TYPE_ENUM.derivatives: {
         // Support for Authorization header, if provided:
         // https://github.com/tiagosiebler/kucoin-api/issues/2
         // Use restClient.setAccessToken(newToken), if you need to store a new access token
