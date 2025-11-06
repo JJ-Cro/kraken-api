@@ -1,7 +1,7 @@
 import { SpotClient } from '../../../src/index.js';
 
 // This example shows how to call Kraken API endpoint with either node.js,
-// javascript (js) or typescript (ts) with the npm module "kraken-api" for Kraken exchange
+// javascript (js) or typescript (ts) with the npm module "@siebly/kraken-api" for Kraken exchange
 // for ACCOUNT INFORMATION
 
 /**
@@ -25,8 +25,8 @@ import { SpotClient } from '../../../src/index.js';
  *
  */
 const client = new SpotClient({
-  apiKey: process.env.API_KEY_NAME || 'insert_api_key_here',
-  apiSecret: process.env.API_PRIVATE_KEY || 'insert_api_secret_here',
+  apiKey: process.env.API_KEY_NAME || 'insertApiKeyHere',
+  apiSecret: process.env.API_PRIVATE_KEY || 'insertApiSecretHere',
 });
 
 async function getAccountBalance() {

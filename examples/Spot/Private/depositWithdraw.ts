@@ -1,7 +1,7 @@
 import { SpotClient } from '../../../src/index.js';
 
 // This example shows how to call Kraken API endpoint with either node.js,
-// javascript (js) or typescript (ts) with the npm module "kraken-api" for Kraken exchange
+// javascript (js) or typescript (ts) with the npm module "@siebly/kraken-api" for Kraken exchange
 // for DEPOSIT AND WITHDRAWAL 
 
 /**
@@ -27,8 +27,8 @@ import { SpotClient } from '../../../src/index.js';
  *
  */
 const client = new SpotClient({
-  apiKey: process.env.API_KEY_NAME || 'Qp/3BI3c4rVvUW6h6S6usdIeF3sX5lc8mDI+zTAAJhCTovCOShsKxU9r',
-  apiSecret: process.env.API_PRIVATE_KEY || 'iei+m1MOY6L7R18ALmZSrXm/DQ33nGyGbSpACcpg3y6iUmLGYUIRnXV1xLKs0aLeMkKhVQf9T/8BWPCXIzgq4Q==',
+  apiKey: process.env.API_KEY_NAME || 'insertApiKeyHere',
+  apiSecret: process.env.API_PRIVATE_KEY || 'insertApiSecretHere',
 });
 
 async function withdrawFunds() {
