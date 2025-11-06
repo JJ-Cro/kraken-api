@@ -5,7 +5,7 @@ import { SpotClient } from '../../../src/index.js';
 // for ORDER MANAGEMENT
 
 /**
- * import { SpotClient } from 'kraken-api';
+ * import { SpotClient } from '@siebly/kraken-api';
  */
 
 // initialise the client

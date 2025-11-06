@@ -5,8 +5,7 @@ import { SpotClient } from '../../../src/index.js';
 // for PUBLIC MARKET DATA that requires no authentication
 
 /**
- * import { SpotClient } from 'kraken-api';
- * const { SpotClient } = require('kraken-api');
+ * import { SpotClient } from '@siebly/kraken-api';
  */
 
 // you can initialise public client without api keys as public calls do not require auth
