@@ -1,5 +1,9 @@
 import { SpotClient } from '../../../src/index.js';
 
+// This example shows how to call Kraken API endpoint with either node.js,
+// javascript (js) or typescript (ts) with the npm module "kraken-api" for Kraken exchange
+// for ACCOUNT INFORMATION
+
 /**
  * import { SpotClient } from 'kraken-api';
  */
