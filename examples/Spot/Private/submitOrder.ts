@@ -23,8 +23,8 @@ import { SpotClient } from '../../../src/index.js';
  *
  */
 const client = new SpotClient({
-  apiKey: process.env.API_KEY_NAME || 'insert_api_key_here',
-  apiSecret: process.env.API_PRIVATE_KEY || 'insert_api_secret_here',
+  apiKey: process.env.API_KEY_NAME || 'insertApiKeyHere',
+  apiSecret: process.env.API_PRIVATE_KEY || 'insertApiSecretHere',
 });
 
 async function submitMarketOrder() {
@@ -33,7 +33,7 @@ async function submitMarketOrder() {
     const newOrder = await client.submitOrder({
       ordertype: 'market',
       type: 'buy',
-      volume: '0.001',
+      volume: '0.01',
       pair: 'XBTUSD',
       cl_ord_id: client.generateNewOrderID(),
     });
@@ -152,7 +152,7 @@ async function submitBatchOrdersValidateOnly() {
 
 // Uncomment the function you want to test:
 
-// submitMarketOrder();
+submitMarketOrder();
 // submitLimitOrder();
 // submitLimitOrderWithFlags();
 // submitBatchOrders();
