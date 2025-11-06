@@ -1,4 +1,4 @@
-export type WsOperation = 'subscribe' | 'unsubscribe';
+import { WsOperation } from '../../lib/websocket/websocket-util';
 
 export interface WsRequestOperation<TWSTopic extends string> {
   id: number;
@@ -30,13 +30,4 @@ export interface WsAPITopicRequestParamMap {
 
 export interface WsAPITopicResponseMap {
   [k: string]: never;
-}
-
-export interface WsRequestOperationKraken<
-  TWSTopic extends string,
-  TWSParams extends object = any,
-> {
-  method: WsOperation;
-  params?: (TWSTopic | string | number)[] | TWSParams;
-  id: string;
 }

@@ -1,7 +1,6 @@
 import EventEmitter from 'events';
 import WebSocket from 'isomorphic-ws';
 
-import { WsOperation } from '../types/websockets/ws-api.js';
 import {
   isMessageEvent,
   MessageEventLike,
@@ -15,6 +14,7 @@ import { checkWebCryptoAPISupported } from './webCryptoAPI.js';
 import { DefaultLogger } from './websocket/logger.js';
 import {
   safeTerminateWs,
+  WsOperation,
   WsTopicRequest,
   WsTopicRequestOrStringTopic,
 } from './websocket/websocket-util.js';
@@ -74,6 +74,7 @@ export interface EmittableEvent<
 > {
   eventType:
     | TEventType
+    | 'pong'
     | 'connectionReady' // tied to "requireConnectionReadyConfirmation";
     | 'connectionReadyForAuth'; // tied to specific events we need to wait for, before we can begin post-connect auth
   event: Parameters<WSClientEventMap<string>[TEventType]>[0];
@@ -315,8 +316,8 @@ export abstract class BaseWebsocketClient<
   }
 
   /** Returns auto-incrementing request ID, used to track promise references for async requests */
-  protected getNewRequestId(): string {
-    return `${++this.wsApiRequestId}`;
+  protected getNewRequestId(): number {
+    return ++this.wsApiRequestId;
   }
 
   protected abstract sendWSAPIRequest(
@@ -1240,7 +1241,7 @@ export abstract class BaseWebsocketClient<
 
   private onWsMessage(event: unknown, wsKey: TWSKey, ws: WebSocket) {
     try {
-      console.log('onMessageRaw: ', (event as any).data);
+      // console.log('onMessageRaw: ', (event as any).data);
       // any message can clear the pong timer - wouldn't get a message if the ws wasn't working
       this.clearPongTimer(wsKey);
 
@@ -1275,7 +1276,7 @@ export abstract class BaseWebsocketClient<
         }
 
         for (const emittable of emittableEvents) {
-          if (this.isWsPong(emittable)) {
+          if (this.isWsPong(emittable) || emittable.eventType === 'pong') {
             this.logger.trace('Received pong2', {
               ...this.WS_LOGGER_CATEGORY,
               wsKey,

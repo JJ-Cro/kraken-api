@@ -2,33 +2,33 @@ import {
   BaseWebsocketClient,
   EmittableEvent,
   MidflightWsRequestEvent,
-} from './lib/BaseWSClient';
-import { neverGuard } from './lib/misc-util';
+} from './lib/BaseWSClient.js';
+import { neverGuard } from './lib/misc-util.js';
 import {
   SignAlgorithm,
   SignEncodeMethod,
   signMessage,
-} from './lib/webCryptoAPI';
-import { DefaultLogger } from './lib/websocket/logger';
+} from './lib/webCryptoAPI.js';
+import { DefaultLogger } from './lib/websocket/logger.js';
 import {
-  WsKey,
   WS_KEY_MAP,
+  WsKey,
+  WsOperation,
+  WsRequestOperationKraken,
   WsTopicRequest,
-} from './lib/websocket/websocket-util';
-import { WSConnectedResult } from './lib/websocket/WsStore.types';
+} from './lib/websocket/websocket-util.js';
+import { WSConnectedResult } from './lib/websocket/WsStore.types.js';
 import {
   WSAPIAuthenticationRequestFromServer,
-  WsOperation,
-  WsAPIWsKeyTopicMap,
   WsAPITopicRequestParamMap,
   WsAPITopicResponseMap,
-  WsRequestOperationKraken,
-} from './types/websockets/ws-api';
-import { MessageEventLike } from './types/websockets/ws-events';
+  WsAPIWsKeyTopicMap,
+} from './types/websockets/ws-api.js';
+import { MessageEventLike } from './types/websockets/ws-events.js';
 import {
   WSClientConfigurableOptions,
   WsMarket,
-} from './types/websockets/ws-general';
+} from './types/websockets/ws-general.js';
 
 const WS_LOGGER_CATEGORY_ID = 'kraken-ws';
 const WS_LOGGER_CATEGORY = {
@@ -52,13 +52,14 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger) {
     super({ ...options, wsLoggerCategory: WS_LOGGER_CATEGORY_ID }, logger);
   }
+
   /**
    * Request connection of all dependent (public & private) websockets, instead of waiting for automatic connection by library.
    *
    * Returns array of promises that individually resolve when each connection is successfully opened.
    */
   public connectAll(): Promise<WSConnectedResult | undefined>[] {
-    return [this.connect(WS_KEY_MAP.futuresPrivateV1)];
+    return [this.connect(WS_KEY_MAP.spotPrivateV2)];
   }
 
   /**
@@ -291,7 +292,32 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       return this.options.wsUrl;
     }
 
-    return '';
+    switch (wsKey) {
+      /**
+       * https://docs.kraken.com/api/docs/guides/spot-ws-intro/
+       *
+       * Note: Kraken's v2 WebSockets clean up a number idiosyncrasies and ambiguities from v1 with the overall aim to enable easier integration with applications. It is intended that v1 will be maintained but future enhancements will be developed in v2.
+       *
+       * Given the above, we are only integrating with V2 for now.
+       *
+       * V2 SpotWebSocket Reference: https://docs.kraken.com/api/docs/websocket-v2/add_order/
+       */
+      case WS_KEY_MAP.spotPublicV2: {
+        return 'wss://ws.kraken.com/v2';
+      }
+      case WS_KEY_MAP.spotPrivateV2: {
+        return 'wss://ws-auth.kraken.com/v2';
+      }
+      case WS_KEY_MAP.spotBetaPublicV2: {
+        return 'wss://beta-ws.kraken.com/v2';
+      }
+      case WS_KEY_MAP.spotBetaPrivateV2: {
+        return 'wss://beta-ws-auth.kraken.com/v2';
+      }
+      default: {
+        throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+      }
+    }
   }
 
   protected sendPingEvent(wsKey: WsKey) {
@@ -322,9 +348,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     //   }
     // }
 
-    const signTimestamp = Date.now() + this.options.recvWindow;
-    const timeInS = (signTimestamp / 1000).toFixed(0);
-    return this.tryWsSend(wsKey, `{ "time": ${timeInS}, "channel": "adsf" }`);
+    // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
+    return this.tryWsSend(
+      wsKey,
+      `{ "method": "ping", "req_id": ${this.getNewRequestId()} }`,
+    );
   }
 
   protected sendPongEvent(wsKey: WsKey) {
@@ -361,8 +389,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   }
 
   protected isWsPong(msg: any): boolean {
-    if (typeof msg?.data === 'string' && msg.data.includes('.pong"')) {
-      return true;
+    // Pre-parsed in resolveEmittableEvents into "pong" eventType:
+    if (msg?.eventType) {
+      if (msg?.eventType === 'pong') {
+        return true;
+      }
     }
 
     return false;
@@ -392,76 +423,77 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       const promiseRef = [eventChannel, requestId].join('_');
 
       const eventAction =
-        parsed.event || parsed.action || parsed?.header?.data || parsed.channel;
+        parsed.method || parsed.type || parsed?.header?.data || parsed.channel;
 
-      if (eventType === 'api') {
-        const isError = eventStatusCode !== '200';
+      // WS API
+      // if (eventType === 'api') {
+      //   const isError = eventStatusCode !== '200';
 
-        // WS API Exception
-        if (isError) {
-          try {
-            this.getWsStore().rejectDeferredPromise(
-              wsKey,
-              promiseRef,
-              {
-                wsKey,
-                ...parsed,
-              },
-              true,
-            );
-          } catch (e) {
-            this.logger.error('Exception trying to reject WSAPI promise', {
-              wsKey,
-              promiseRef,
-              parsedEvent: parsed,
-              error: e,
-            });
-          }
+      //   // WS API Exception
+      //   if (isError) {
+      //     try {
+      //       this.getWsStore().rejectDeferredPromise(
+      //         wsKey,
+      //         promiseRef,
+      //         {
+      //           wsKey,
+      //           ...parsed,
+      //         },
+      //         true,
+      //       );
+      //     } catch (e) {
+      //       this.logger.error('Exception trying to reject WSAPI promise', {
+      //         wsKey,
+      //         promiseRef,
+      //         parsedEvent: parsed,
+      //         error: e,
+      //       });
+      //     }
 
-          results.push({
-            eventType: 'exception',
-            event: parsed,
-          });
-          return results;
-        }
+      //     results.push({
+      //       eventType: 'exception',
+      //       event: parsed,
+      //     });
+      //     return results;
+      //   }
 
-        // WS API Success
-        try {
-          this.getWsStore().resolveDeferredPromise(
-            wsKey,
-            promiseRef,
-            {
-              wsKey,
-              ...parsed,
-            },
-            true,
-          );
-        } catch (e) {
-          this.logger.error('Exception trying to resolve WSAPI promise', {
-            wsKey,
-            promiseRef,
-            parsedEvent: parsed,
-            error: e,
-          });
-        }
+      //   // WS API Success
+      //   try {
+      //     this.getWsStore().resolveDeferredPromise(
+      //       wsKey,
+      //       promiseRef,
+      //       {
+      //         wsKey,
+      //         ...parsed,
+      //       },
+      //       true,
+      //     );
+      //   } catch (e) {
+      //     this.logger.error('Exception trying to resolve WSAPI promise', {
+      //       wsKey,
+      //       promiseRef,
+      //       parsedEvent: parsed,
+      //       error: e,
+      //     });
+      //   }
 
-        if (eventChannel.includes('.login')) {
-          results.push({
-            eventType: 'authenticated',
-            event: {
-              ...parsed,
-              isWSAPI: true,
-              WSAPIAuthChannel: eventChannel,
-            },
-          });
-        }
+      //   if (eventChannel.includes('.login')) {
+      //     results.push({
+      //       eventType: 'authenticated',
+      //       event: {
+      //         ...parsed,
+      //         isWSAPI: true,
+      //         WSAPIAuthChannel: eventChannel,
+      //       },
+      //     });
+      //   }
 
-        results.push({
-          eventType: 'response',
-          event: parsed,
-        });
-        return results;
-      }
+      //   results.push({
+      //     eventType: 'response',
+      //     event: parsed,
+      //   });
+      //   return results;
+      // }
 
       if (typeof eventAction === 'string') {
         if (parsed.success === false) {
@@ -472,10 +504,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           return results;
         }
 
-        // Most events use "event: 'update'" for topic updates
-        // The legacy "futures.order_book" topic uses "all" for this field
-        // 'futures.obu' is used for the orderbook v2 event. Oddly in a different structure than the other topics.
-        if (['update', 'all', 'futures.obu'].includes(eventAction)) {
+        // Most events use event: "update" or "snapshot" for topic updates
+        if (['update', 'snapshot'].includes(eventAction)) {
           results.push({
             eventType: 'message',
             event: parsed,
@@ -484,6 +514,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         // These are request/reply pattern events (e.g. after subscribing to topics or authenticating)
+        // e.g. "method":"subscribe"
         if (responseEvents.includes(eventAction)) {
           results.push({
             eventType: 'response',
@@ -501,13 +532,21 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           return results;
         }
 
+        if (eventAction === 'heartbeat' || eventAction === 'pong') {
+          results.push({
+            eventType: 'pong',
+            event: parsed,
+          });
+          return results;
+        }
+
         this.logger.error(
-          `!! Unhandled string event type "${eventAction}". Defaulting to "update" channel...`,
+          `!! Unhandled string "eventAction" "${eventAction}". Defaulting to "message" channel...`,
           parsed,
         );
       } else {
         this.logger.error(
-          `!! Unhandled non-string event type "${eventAction}". Defaulting to "update" channel...`,
+          `!! Unhandled non-string "eventAction" "${eventAction}". Defaulting to "message" channel...`,
           parsed,
         );
       }
@@ -611,31 +650,33 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
     switch (wsKey) {
       default: {
-        const topics = requests.map((r) => r.topic);
-
         // Previously used to track topics in a request. Keeping this for subscribe/unsubscribe requests, no need for incremental values
-        const req_id = this.getNewRequestId();
 
-        const wsEvent: WsRequestOperationKraken<WsTopic> = {
-          method: operation,
-          params: topics,
-          id: req_id,
-        };
+        for (const topicRequest of requests) {
+          const req_id = this.getNewRequestId();
+          const wsEvent: WsRequestOperationKraken<WsTopic> = {
+            method: operation,
+            params: {
+              channel: topicRequest.topic,
+              ...topicRequest.payload,
+            },
+            req_id: req_id,
+          };
 
-        // Cache midflight subs on the req ID
-        // Enrich response with subs for that req ID
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
 
-        const midflightWsEvent: MidflightWsRequestEvent<
-          WsRequestOperationKraken<WsTopic>
-        > = {
-          requestKey: wsEvent.id,
-          requestEvent: wsEvent,
-        };
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WsTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
 
-        wsRequestEvents.push({
-          ...midflightWsEvent,
-        });
-        break;
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+        }
       }
     }
 

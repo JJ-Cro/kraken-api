@@ -1,44 +1,43 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   DefaultLogger,
+  LogParams,
   WebsocketClient,
+  WS_KEY_MAP,
   WsTopicRequest,
 } from '../src/index.js';
-// import { DefaultLogger, WebsocketClient, WsTopicRequest } from 'kraken-api';
-// normally you should install this module via npm: `npm install kraken-api`
+// import { LogParams, WebsocketClient, WsTopicRequest } from 'gateio-api'; // normally you should install this module via npm: `npm install gateio-api`
+
+const customLogger: DefaultLogger = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  trace: (...params: LogParams): void => {
+    // console.log('trace', ...params);
+  },
+  info: (...params: LogParams): void => {
+    console.log('info', ...params);
+  },
+  error: (...params: LogParams): void => {
+    console.error('error', ...params);
+  },
+};
 
 async function start() {
-  // Optional: fully customise the logging experience by injecting a custom logger
-  // const logger: typeof DefaultLogger = {
-  //   ...DefaultLogger,
-  //   trace: (...params) => {
-  //     if (
-  //       [
-  //         'Sending ping',
-  //         'Sending upstream ws message: ',
-  //         'Received pong',
-  //       ].includes(params[0])
-  //     ) {
-  //       return;
-  //     }
-  //     console.log('trace', params);
-  //   },
-  // };
+  const client = new WebsocketClient({}, customLogger);
 
-  // const client = new WebsocketClient({}, logger);
-  const client = new WebsocketClient();
+  // Optional, inject a custom logger
+  // const client = new WebsocketClient({}, customLogger);
 
   client.on('open', (data) => {
-    console.log('open: ', data?.wsKey);
+    console.log('connected ', data?.wsKey);
   });
 
   // Data received
-  client.on('update', (data) => {
+  client.on('message', (data) => {
     console.info('data received: ', JSON.stringify(data));
   });
 
-  // Something happened, attempting to reconenct
-  client.on('reconnect', (data) => {
+  // Something happened, attempting to reconnect
+  client.on('reconnecting', (data) => {
     console.log('reconnect: ', data);
   });
 
@@ -54,95 +53,61 @@ async function start() {
 
   // Reply to a request, e.g. "subscribe"/"unsubscribe"/"authenticate"
   client.on('response', (data) => {
-    console.info('response: ', data);
-    // throw new Error('res?');
+    console.info('server reply: ', JSON.stringify(data), '\n');
   });
 
   client.on('exception', (data) => {
-    console.error('exception: ', {
-      msg: data.msg,
-      errno: data.errno,
-      code: data.code,
-      syscall: data.syscall,
-      hostname: data.hostname,
-    });
+    console.error('exception: ', data);
+  });
+
+  client.on('authenticated', (data) => {
+    console.error('authenticated: ', data);
   });
 
   try {
-    // Optional: await a connection to be ready before subscribing (this is not necessary)
-    // await client.connect('spotPublicV1');
-
-    /**
-     * Use the client subscribe(topic, market) pattern to subscribe to any websocket topic.
-     *
-     * You can subscribe to topics one at a time or many one one request. Topics can be sent as simple strings:
-     *
-     */
-    client.subscribe('/market/ticker:BTC-USDT,ETH-USDT', 'spotPublicV1');
-    client.subscribe('/market/snapshot:KCS-BTC', 'spotPublicV1');
-
-    /**
-     * Or, as an array of simple strings
-     *
-     */
-    client.subscribe(
-      ['/market/ticker:BTC-USDT,ETH-USDT', '/market/snapshot:KCS-BTC'],
-      'spotPublicV1',
-    );
-
-    /**
-     * Or send a more structured object with parameters
-     *
-     */
-    const subRequest: WsTopicRequest = {
-      topic: '/market/ticker:BTC-USDT',
-      /** Anything in the payload will be merged into the subscribe "request", allowing you to send misc parameters supported by the exchange.
-       *    For more info on parameters, see: https://www.kraken.com/docs/websocket/basic-info/subscribe/introduction
-       */
+    // Spot ticker level 1: https://docs.kraken.com/api/docs/websocket-v2/ticker
+    const tickersRequestWithParams: WsTopicRequest = {
+      topic: 'ticker',
       payload: {
-        id: 123456,
-        response: false,
+        symbol: ['ALGO/USD', 'BTC/USD'],
+        // below params are optional:
+        // event_trigger: 'bbo', // bbo: on a change in the best-bid-offer price levels.
+        // event_trigger: 'trades', // trades: on every trade.
+        // snapshot: true, // default: true
       },
     };
-    client.subscribe(subRequest, 'spotPublicV1');
+
+    client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // const topicWithoutParamsAsString = 'spot.balances';
+
+    // This has the same effect as above, it's just a different way of messaging which topic this is for
+    // const topicWithoutParamsAsObject: WsTopicRequest = {
+    //   topic: 'spot.balances',
+    // };
 
     /**
-     * Or, send an array of structured objects with parameters, if you wanted to send multiple in one request
-     *
+     * Either send one topic (with optional params) at a time
      */
-    // client.subscribe([subRequest1, subRequest2, etc], 'spotPublicV1');
+    // client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
     /**
-     * Other spot websocket topics:
+     * Or send multiple topics in a batch (grouped by ws connection (WsKey))
      */
-    client.subscribe(
-      [
-        '/market/ticker:BTC-USDT,ETH-USDT',
-        '/market/ticker:all',
-        '/market/snapshot:KCS-BTC',
-        '/market/snapshot:BTC',
-        '/spotMarket/level1:BTC-USDT,ETH-USDT',
-        '/market/level2:BTC-USDT,ETH-USDT',
-        '/spotMarket/level2Depth5:BTC-USDT,ETH-USDT',
-        '/spotMarket/level2Depth50:BTC-USDT,ETH-USDT',
-        '/market/candles:BTC-USDT_1hour',
-        '/market/match:BTC-USDT,ETH-USDT',
-      ],
-      'spotPublicV1',
-    );
+    // client.subscribe(
+    //   [tickersRequestWithParams, rawTradesRequestWithParams],
+    //   'spotV4',
+    // );
 
-    /**
-     * Other margin websocket topics, which also use the "spotPublicV1" WsKey:
-     */
-    client.subscribe(
-      [
-        '/indicator/index:USDT-BTC,ETH-USDT',
-        '/indicator/markPrice:USDT-BTC,ETH-USDT',
-      ],
-      'spotPublicV1',
-    );
+    // /**
+    //  * You can also use strings for topics that don't have any parameters, even if you mix multiple requests into one function call:
+    //  */
+    // client.subscribe(
+    //   [tickersRequestWithParams, rawTradesRequestWithParams, topicWithoutParamsAsString],
+    //   'spotV4',
+    // );
   } catch (e) {
-    console.error(`Subscribe exception: `, e);
+    console.error('Req error: ', e);
   }
 }
 
