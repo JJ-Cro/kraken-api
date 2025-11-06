@@ -5,8 +5,8 @@ import {
   WebsocketClient,
   WS_KEY_MAP,
   WsTopicRequest,
-} from '../src/index.js';
-import { WSSpotTopic } from '../src/types/websockets/ws-subscriptions.js';
+} from '../../src/index.js';
+import { WSSpotTopic } from '../../src/types/websockets/ws-subscriptions.js';
 // normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
 // import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
 

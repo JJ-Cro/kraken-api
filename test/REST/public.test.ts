@@ -1,7 +1,7 @@
-import { FuturesClient } from '../../src/index.js';
+import { DerivativesClient } from '../../src/index.js';
 
 describe('REST PUBLIC', () => {
-  const rest = new FuturesClient();
+  const rest = new DerivativesClient();
 
   describe('public endpoints - FuturesClient', () => {
     it('should succeed making a GET request', async () => {

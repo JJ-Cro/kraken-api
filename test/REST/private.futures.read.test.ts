@@ -1,4 +1,4 @@
-import { FuturesClient } from '../../src/index.js';
+import { DerivativesClient } from '../../src/index.js';
 import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE FUTURES READ', () => {
@@ -7,7 +7,7 @@ describe('REST PRIVATE FUTURES READ', () => {
     secret: process.env.API_FUTURES_SECRET,
   };
 
-  const rest = new FuturesClient(
+  const rest = new DerivativesClient(
     {
       apiKey: account.key,
       apiSecret: account.secret,
