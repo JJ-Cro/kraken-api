@@ -5,7 +5,7 @@ export const REST_CLIENT_TYPE_ENUM = {
   /** Spot */
   main: 'main',
   /** Futures */
-  futures: 'futures',
+  derivatives: 'derivatives',
   /** Institutional */
   institutional: 'institutional',
   /** Partner */
@@ -17,7 +17,7 @@ export type RestClientType =
 
 const krakenURLMap = {
   [REST_CLIENT_TYPE_ENUM.main]: 'https://api.kraken.com',
-  [REST_CLIENT_TYPE_ENUM.futures]: 'https://futures.kraken.com',
+  [REST_CLIENT_TYPE_ENUM.derivatives]: 'https://futures.kraken.com',
   [REST_CLIENT_TYPE_ENUM.institutional]: 'https://api.kraken.com',
   [REST_CLIENT_TYPE_ENUM.partner]: 'https://embed.kraken.com',
 } as const;

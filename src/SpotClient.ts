@@ -1,5 +1,4 @@
 import { AxiosRequestConfig } from 'axios';
-import { nanoid } from 'nanoid';
 
 import { BaseRestClient } from './lib/BaseRestClient.js';
 import {
@@ -118,7 +117,14 @@ export class SpotClient extends BaseRestClient {
    */
 
   generateNewOrderID(): string {
-    return nanoid(32);
+    // Generate a short UUID format (32 hex characters without dashes)
+    // Compatible with Kraken's cl_ord_id parameter
+    const hexChars = '0123456789abcdef';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+      result += hexChars[Math.floor(Math.random() * 16)];
+    }
+    return result;
   }
 
   /**

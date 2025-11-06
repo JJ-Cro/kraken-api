@@ -25,7 +25,7 @@ import {
   FuturesSendOrderParams,
   FuturesSubmitToSpotParams,
   FuturesUpdateSelfTradeStrategyParams,
-} from './types/request/futures.types.js';
+} from './types/request/derivatives.types.js';
 import {
   FuturesAccountLog,
   FuturesAccounts,
@@ -73,18 +73,18 @@ import {
   FuturesTickType,
   FuturesTradeHistoryItem,
   FuturesUnwindQueuePosition,
-} from './types/response/futures.types.js';
+} from './types/response/derivatives.types.js';
 import { APISuccessResponse } from './types/response/shared.types.js';
 
 /**
- * The FuturesClient provides integration to the Kraken Futures API.
+ * The DerivativesClient provides integration to the Kraken Derivatives API.
  *
  * Docs:
  * - https://docs.kraken.com/api/docs/guides/futures-introduction
  * - https://docs.kraken.com/api/docs/guides/futures-rest
  * - https://docs.kraken.com/api/docs/futures-api/trading/get-history
  */
-export class FuturesClient extends BaseRestClient {
+export class DerivativesClient extends BaseRestClient {
   constructor(
     restClientOptions: RestClientOptions = {},
     requestOptions: AxiosRequestConfig = {},
@@ -94,7 +94,7 @@ export class FuturesClient extends BaseRestClient {
   }
 
   getClientType(): RestClientType {
-    return REST_CLIENT_TYPE_ENUM.futures;
+    return REST_CLIENT_TYPE_ENUM.derivatives;
   }
 
   /**
