@@ -6,7 +6,8 @@ import {
   WS_KEY_MAP,
   WsTopicRequest,
 } from '../src/index.js';
-// import { LogParams, WebsocketClient, WsTopicRequest } from 'gateio-api'; // normally you should install this module via npm: `npm install gateio-api`
+// normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
+// import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
 
 const customLogger: DefaultLogger = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -66,19 +67,134 @@ async function start() {
 
   try {
     // Spot ticker level 1: https://docs.kraken.com/api/docs/websocket-v2/ticker
-    const tickersRequestWithParams: WsTopicRequest = {
-      topic: 'ticker',
+    // const tickersRequestWithParams: WsTopicRequest = {
+    //   topic: 'ticker',
+    //   payload: {
+    //     symbol: ['ALGO/USD', 'BTC/USD'],
+    //     // below params are optional:
+    //     // event_trigger: 'bbo', // bbo: on a change in the best-bid-offer price levels.
+    //     // event_trigger: 'trades', // trades: on every trade.
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Book level 2: https://docs.kraken.com/api/docs/websocket-v2/book
+    // const bookRequestWithParams: WsTopicRequest = {
+    //   topic: 'book',
+    //   payload: {
+    //     symbol: ['BTC/USD', 'BTC/GBP'],
+    //     // below params are optional:
+    //     // depth: 10, // default: 10, Possible values: [10, 25, 100, 500, 1000]
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(bookRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Candles (OHLC): https://docs.kraken.com/api/docs/websocket-v2/ohlc
+    // const candleOhlcRequestWithParams: WsTopicRequest = {
+    //   topic: 'ohlc',
+    //   payload: {
+    //     symbol: ['BTC/USD', 'BTC/GBP'],
+    //     interval: 1, // Possible values: [1, 5, 15, 30, 60, 240, 1440, 10080, 21600]
+
+    //     // below params are optional:
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(candleOhlcRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Trades: https://docs.kraken.com/api/docs/websocket-v2/trade
+    // const tradesRequestWithParams: WsTopicRequest = {
+    //   topic: 'trade',
+    //   payload: {
+    //     symbol: ['BTC/USD', 'BTC/GBP'],
+    //     // below params are optional:
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(tradesRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Instruments: https://docs.kraken.com/api/docs/websocket-v2/instrument
+    const instrumentsRequestWithParams: WsTopicRequest = {
+      topic: 'instrument',
       payload: {
-        symbol: ['ALGO/USD', 'BTC/USD'],
+        symbol: ['BTC/USD', 'BTC/GBP'],
         // below params are optional:
-        // event_trigger: 'bbo', // bbo: on a change in the best-bid-offer price levels.
-        // event_trigger: 'trades', // trades: on every trade.
+        // If true, include xStocks in the response, otherwise include crypto spot pairs only:
+        include_tokenized_assets: true, // default: false
         // snapshot: true, // default: true
       },
     };
 
-    client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
+    client.subscribe(instrumentsRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
     // const topicWithoutParamsAsString = 'spot.balances';
 
     // This has the same effect as above, it's just a different way of messaging which topic this is for

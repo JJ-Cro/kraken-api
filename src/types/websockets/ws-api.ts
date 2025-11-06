@@ -1,4 +1,4 @@
-import { WsOperation } from '../../lib/websocket/websocket-util';
+import { WsOperation } from '../../lib/websocket/websocket-util.js';
 
 export interface WsRequestOperation<TWSTopic extends string> {
   id: number;

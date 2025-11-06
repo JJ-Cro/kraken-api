@@ -1,5 +1,7 @@
 import WebSocket from 'isomorphic-ws';
 
+import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
+
 /** Should be one WS key per unique URL */
 export const WS_KEY_MAP = {
   spotPublicV2: 'spotPublicV2',
@@ -20,7 +22,7 @@ export type WsOperation = 'subscribe' | 'unsubscribe';
  * - Payload: the parameters to include, optional. E.g. auth requires key + sign. Some topics allow configurable parameters.
  */
 export interface WsTopicRequest<
-  TWSTopic extends string = string,
+  TWSTopic extends WSTopic = WSTopic,
   TWSPayload = any,
 > {
   topic: TWSTopic;
@@ -31,7 +33,7 @@ export interface WsTopicRequest<
  * Conveniently allow users to request a topic either as string topics or objects (containing string topic + params)
  */
 export type WsTopicRequestOrStringTopic<
-  TWSTopic extends string,
+  TWSTopic extends WSTopic,
   TWSPayload = any,
 > = WsTopicRequest<TWSTopic, TWSPayload> | string;
 

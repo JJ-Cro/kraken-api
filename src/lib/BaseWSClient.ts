@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import WebSocket from 'isomorphic-ws';
 
 import {
@@ -10,6 +10,7 @@ import {
   WSClientConfigurableOptions,
   WsEventInternalSrc,
 } from '../types/websockets/ws-general.js';
+import { WSTopic } from '../types/websockets/ws-subscriptions.js';
 import { checkWebCryptoAPISupported } from './webCryptoAPI.js';
 import { DefaultLogger } from './websocket/logger.js';
 import {
@@ -160,15 +161,15 @@ function getFinalEmittable(
  * This method normalises topics into objects (object has topic name + optional params).
  */
 function getNormalisedTopicRequests(
-  wsTopicRequests: WsTopicRequestOrStringTopic<string>[],
-): WsTopicRequest<string>[] {
-  const normalisedTopicRequests: WsTopicRequest<string>[] = [];
+  wsTopicRequests: WsTopicRequestOrStringTopic<WSTopic>[],
+): WsTopicRequest<WSTopic>[] {
+  const normalisedTopicRequests: WsTopicRequest<WSTopic>[] = [];
 
   for (const wsTopicRequest of wsTopicRequests) {
     // passed as string, convert to object
     if (typeof wsTopicRequest === 'string') {
-      const topicRequest: WsTopicRequest<string> = {
-        topic: wsTopicRequest,
+      const topicRequest: WsTopicRequest<WSTopic> = {
+        topic: wsTopicRequest as WSTopic,
         payload: undefined,
       };
       normalisedTopicRequests.push(topicRequest);
@@ -180,8 +181,6 @@ function getNormalisedTopicRequests(
   }
   return normalisedTopicRequests;
 }
-
-type WSTopic = string;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export abstract class BaseWebsocketClient<
@@ -295,7 +294,7 @@ export abstract class BaseWebsocketClient<
   protected abstract getWsRequestEvents(
     wsKey: TWSKey,
     operation: WsOperation,
-    requests: WsTopicRequest<string>[],
+    requests: WsTopicRequest<WSTopic>[],
   ): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]>;
 
   /**
@@ -413,7 +412,7 @@ export abstract class BaseWebsocketClient<
   }
 
   protected async unsubscribeTopicsForWsKey(
-    wsTopicRequests: WsTopicRequestOrStringTopic<string>[],
+    wsTopicRequests: WsTopicRequestOrStringTopic<WSTopic>[],
     wsKey: TWSKey,
   ): Promise<unknown> {
     const normalisedTopicRequests = getNormalisedTopicRequests(wsTopicRequests);
@@ -453,14 +452,14 @@ export abstract class BaseWebsocketClient<
    * Splits topic requests into two groups, public & private topic requests
    */
   private sortTopicRequestsIntoPublicPrivate(
-    wsTopicRequests: WsTopicRequest<string>[],
+    wsTopicRequests: WsTopicRequest<WSTopic>[],
     wsKey: TWSKey,
   ): {
-    publicReqs: WsTopicRequest<string>[];
-    privateReqs: WsTopicRequest<string>[];
+    publicReqs: WsTopicRequest<WSTopic>[];
+    privateReqs: WsTopicRequest<WSTopic>[];
   } {
-    const publicTopicRequests: WsTopicRequest<string>[] = [];
-    const privateTopicRequests: WsTopicRequest<string>[] = [];
+    const publicTopicRequests: WsTopicRequest<WSTopic>[] = [];
+    const privateTopicRequests: WsTopicRequest<WSTopic>[] = [];
 
     for (const topic of wsTopicRequests) {
       if (this.isPrivateTopicRequest(topic, wsKey)) {
@@ -477,7 +476,7 @@ export abstract class BaseWebsocketClient<
   }
 
   /** Get the WsStore that tracks websockets & topics */
-  public getWsStore(): WsStore<TWSKey, WsTopicRequest<string>> {
+  public getWsStore(): WsStore<TWSKey, WsTopicRequest<WSTopic>> {
     return this.wsStore;
   }
 
@@ -866,7 +865,7 @@ export abstract class BaseWebsocketClient<
    * Events are automatically split into smaller batches, by this method, if needed.
    */
   protected async getWsOperationEventsForTopics(
-    topics: WsTopicRequest<string>[],
+    topics: WsTopicRequest<WSTopic>[],
     wsKey: TWSKey,
     operation: WsOperation,
   ): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]> {
@@ -913,7 +912,7 @@ export abstract class BaseWebsocketClient<
    */
   private async requestSubscribeTopics(
     wsKey: TWSKey,
-    wsTopicRequests: WsTopicRequest<string>[],
+    wsTopicRequests: WsTopicRequest<WSTopic>[],
   ) {
     if (!wsTopicRequests.length) {
       return;
@@ -958,7 +957,7 @@ export abstract class BaseWebsocketClient<
    */
   private async requestUnsubscribeTopics(
     wsKey: TWSKey,
-    wsTopicRequests: WsTopicRequest<string>[],
+    wsTopicRequests: WsTopicRequest<WSTopic>[],
   ) {
     if (!wsTopicRequests.length) {
       return;

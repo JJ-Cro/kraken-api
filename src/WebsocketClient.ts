@@ -29,6 +29,7 @@ import {
   WSClientConfigurableOptions,
   WsMarket,
 } from './types/websockets/ws-general.js';
+import { WSSpotTopic, WSTopic } from './types/websockets/ws-subscriptions.js';
 
 const WS_LOGGER_CATEGORY_ID = 'kraken-ws';
 const WS_LOGGER_CATEGORY = {
@@ -42,11 +43,6 @@ export interface WSAPIRequestFlags {
   /** If true, will skip auth requirement for WS API connection */
   authIsOptional?: boolean | undefined;
 }
-
-/**
- * WS topics are always a string for gate. Some exchanges use complex objects
- */
-export type WsTopic = string;
 
 export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger) {
@@ -87,10 +83,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    *
    * Call `unsubscribe(topics)` to remove topics
    */
+  // TODO: auto resolve public vs private wsKey based on topic name!
   public subscribe(
     requests:
-      | (WsTopicRequest<WsTopic> | WsTopic)
-      | (WsTopicRequest<WsTopic> | WsTopic)[],
+      | (WsTopicRequest<WSTopic> | WSTopic)
+      | (WsTopicRequest<WSTopic> | WSTopic)[],
     wsKey: WsKey,
   ) {
     if (!Array.isArray(requests)) {
@@ -111,8 +108,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    */
   public unsubscribe(
     requests:
-      | (WsTopicRequest<WsTopic> | WsTopic)
-      | (WsTopicRequest<WsTopic> | WsTopic)[],
+      | (WsTopicRequest<WSTopic> | WSTopic)
+      | (WsTopicRequest<WSTopic> | WSTopic)[],
     wsKey: WsKey,
   ) {
     if (!Array.isArray(requests)) {
@@ -382,7 +379,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     }
   }
 
-  // NOT IN USE for gate.io, pings for gate are protocol layer pings
+  // NOT IN USE for kraken
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected isWsPing(_msg: any): boolean {
     return false;
@@ -578,7 +575,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    * Determines if a topic is for a private channel, using a hardcoded list of strings
    */
   protected isPrivateTopicRequest(
-    request: WsTopicRequest<string>,
+    request: WsTopicRequest<WSTopic>,
     wsKey: WsKey,
   ): boolean {
     const topicName = request?.topic?.toLowerCase();
@@ -610,7 +607,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   }
 
   /**
-   * Not in use for gate.io
+   * Not in use for Kraken
    */
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -619,7 +616,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   }
 
   /**
-   * Not in use for gate.io
+   * Not in use for Kraken
    */
   protected getPrivateWSKeys(): WsKey[] {
     return [];
@@ -641,10 +638,10 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   protected async getWsRequestEvents(
     wsKey: WsKey,
     operation: WsOperation,
-    requests: WsTopicRequest<string>[],
+    requests: WsTopicRequest<WSTopic>[],
   ): Promise<MidflightWsRequestEvent<WsRequestOperationKraken<string>>[]> {
     const wsRequestEvents: MidflightWsRequestEvent<
-      WsRequestOperationKraken<WsTopic>
+      WsRequestOperationKraken<WSTopic>
     >[] = [];
     const wsRequestBuildingErrors: unknown[] = [];
 
@@ -654,7 +651,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
         for (const topicRequest of requests) {
           const req_id = this.getNewRequestId();
-          const wsEvent: WsRequestOperationKraken<WsTopic> = {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
             method: operation,
             params: {
               channel: topicRequest.topic,
@@ -667,7 +664,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           // Enrich response with subs for that req ID
 
           const midflightWsEvent: MidflightWsRequestEvent<
-            WsRequestOperationKraken<WsTopic>
+            WsRequestOperationKraken<WSTopic>
           > = {
             requestKey: wsEvent.req_id,
             requestEvent: wsEvent,
