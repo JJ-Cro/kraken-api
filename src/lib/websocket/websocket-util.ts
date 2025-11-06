@@ -1,15 +1,19 @@
 import WebSocket from 'isomorphic-ws';
 
+import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
+
 /** Should be one WS key per unique URL */
 export const WS_KEY_MAP = {
-  spotPublicV1: 'spotPublicV1',
-  spotPrivateV1: 'spotPrivateV1',
-  futuresPublicV1: 'futuresPublicV1',
-  futuresPrivateV1: 'futuresPrivateV1',
+  spotPublicV2: 'spotPublicV2',
+  spotPrivateV2: 'spotPrivateV2',
+  spotBetaPublicV2: 'spotBetaPublicV2',
+  spotBetaPrivateV2: 'spotBetaPrivateV2',
 } as const;
 
 /** This is used to differentiate between each of the available websocket streams */
 export type WsKey = (typeof WS_KEY_MAP)[keyof typeof WS_KEY_MAP];
+
+export type WsOperation = 'subscribe' | 'unsubscribe';
 
 /**
  * Normalised internal format for a request (subscribe/unsubscribe/etc) on a topic, with optional parameters.
@@ -18,7 +22,7 @@ export type WsKey = (typeof WS_KEY_MAP)[keyof typeof WS_KEY_MAP];
  * - Payload: the parameters to include, optional. E.g. auth requires key + sign. Some topics allow configurable parameters.
  */
 export interface WsTopicRequest<
-  TWSTopic extends string = string,
+  TWSTopic extends WSTopic = WSTopic,
   TWSPayload = any,
 > {
   topic: TWSTopic;
@@ -29,9 +33,25 @@ export interface WsTopicRequest<
  * Conveniently allow users to request a topic either as string topics or objects (containing string topic + params)
  */
 export type WsTopicRequestOrStringTopic<
-  TWSTopic extends string,
+  TWSTopic extends WSTopic,
   TWSPayload = any,
 > = WsTopicRequest<TWSTopic, TWSPayload> | string;
+
+export interface WsRequestOperationKraken<
+  TWSTopic extends string,
+  TWSParams extends object = any,
+> {
+  method: WsOperation;
+  params:
+    | {
+        channel: (TWSTopic | string | number)[];
+        symbol?: string[];
+        event_trigger?: string;
+        snapshot?: boolean;
+      }
+    | TWSParams;
+  req_id: number;
+}
 
 /**
  * #305: ws.terminate() is undefined in browsers.

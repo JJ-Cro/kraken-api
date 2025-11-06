@@ -553,10 +553,10 @@ export abstract class BaseRestClient {
                   error.message?.includes('Invalid character'))
               ) {
                 const credentialError = new Error(
-                  `Failed to sign request: Invalid API credentials detected.\n\n` +
-                    `⚠️  PLEASE CHECK YOUR API KEY AND SECRET:\n` +
-                    `   - Ensure your API Secret is a valid base64-encoded string\n` +
-                    `   - Kraken provides API secrets in base64 format\n\n` +
+                  'Failed to sign request: Invalid API credentials detected.\n\n' +
+                    '⚠️  PLEASE CHECK YOUR API KEY AND SECRET:\n' +
+                    '   - Ensure your API Secret is a valid base64-encoded string\n' +
+                    '   - Kraken provides API secrets in base64 format\n\n' +
                     `Original error: ${error.message}\n` +
                     `Stack trace: ${error.stack}`,
                 );

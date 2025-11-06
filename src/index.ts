@@ -16,3 +16,4 @@ export * from './types/response/spot.types.js';
 export * from './types/websockets/ws-api.js';
 export * from './types/websockets/ws-events.js';
 export * from './types/websockets/ws-general.js';
+export * from './WebsocketClient.js';

@@ -1,47 +1,44 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
-  // DefaultLogger,
+  DefaultLogger,
+  LogParams,
   WebsocketClient,
+  WS_KEY_MAP,
   WsTopicRequest,
-} from '../../../src/index.js';
+} from '../../src/index.js';
+// normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
+// import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
 
-/**
- * import { WebsocketClient } from 'coinbase-api';
- * const { WebsocketClient } = require('coinbase-api');
- */
+const customLogger: DefaultLogger = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  trace: (...params: LogParams): void => {
+    // console.log('trace', ...params);
+  },
+  info: (...params: LogParams): void => {
+    console.log('info', ...params);
+  },
+  error: (...params: LogParams): void => {
+    console.error('error', ...params);
+  },
+};
 
 async function start() {
-  // Optional: fully customise the logging experience by injecting a custom logger
-  // const logger: typeof DefaultLogger = {
-  //   ...DefaultLogger,
-  //   trace: (...params) => {
-  //     if (
-  //       [
-  //         'Sending ping',
-  //         'Sending upstream ws message: ',
-  //         'Received pong, clearing pong timer',
-  //         'Received ping, sending pong frame',
-  //       ].includes(params[0])
-  //     ) {
-  //       return;
-  //     }
-  //     console.log('trace', params);
-  //   },
-  // };
-  // const client = new WebsocketClient({}, logger);
+  const client = new WebsocketClient({}, customLogger);
 
-  const client = new WebsocketClient();
+  // Optional, inject a custom logger
+  // const client = new WebsocketClient({}, customLogger);
 
   client.on('open', (data) => {
-    console.log('open: ', data?.wsKey);
+    console.log('connected ', data?.wsKey);
   });
 
   // Data received
-  client.on('update', (data) => {
-    console.info(new Date(), 'data received: ', JSON.stringify(data));
+  client.on('message', (data) => {
+    console.info('data received: ', JSON.stringify(data));
   });
 
-  // Something happened, attempting to reconenct
-  client.on('reconnect', (data) => {
+  // Something happened, attempting to reconnect
+  client.on('reconnecting', (data) => {
     console.log('reconnect: ', data);
   });
 
@@ -57,132 +54,176 @@ async function start() {
 
   // Reply to a request, e.g. "subscribe"/"unsubscribe"/"authenticate"
   client.on('response', (data) => {
-    console.info('response: ', JSON.stringify(data, null, 2));
-    // throw new Error('res?');
+    console.info('server reply: ', JSON.stringify(data), '\n');
   });
 
   client.on('exception', (data) => {
     console.error('exception: ', data);
   });
 
+  client.on('authenticated', (data) => {
+    console.error('authenticated: ', data);
+  });
+
   try {
-    /**
-     * Use the client subscribe(topic, market) pattern to subscribe to any websocket topic.
-     *
-     * You can subscribe to topics one at a time or many one one request.
-     *
-     * Topics can be sent as simple strings, if no parameters are required:
-     */
-    // client.subscribe('heartbeats', 'advTradeMarketData');
-    // client.subscribe('futures_balance_summary', 'advTradeUserData');
+    // Spot ticker level 1: https://docs.kraken.com/api/docs/websocket-v2/ticker
+    // const tickersRequestWithParams: WsTopicRequest = {
+    //   topic: 'ticker',
+    //   payload: {
+    //     symbol: ['ALGO/USD', 'BTC/USD'],
+    //     // below params are optional:
+    //     // event_trigger: 'bbo', // bbo: on a change in the best-bid-offer price levels.
+    //     // event_trigger: 'trades', // trades: on every trade.
+    //     // snapshot: true, // default: true
+    //   },
+    // };
 
-    // /**
-    //  * Or, as an array of simple strings.
-    //  *
-    //  * Any requests sent to the "advTradeUserData" wsKey are
-    //  * automatically authenticated, if API keys are avaiable:
-    //  */
-    // client.subscribe(
-    //   ['heartbeats', 'futures_balance_summary'],
-    //   'advTradeUserData',
-    // );
+    // client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
-    /**
-     * Or send a more structured object with parameters, e.g. if parameters are required
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const tickerSubscribeRequest: WsTopicRequest = {
-      topic: 'ticker',
-      /**
-       * Anything in the payload will be merged into the subscribe "request",
-       * allowing you to send misc parameters supported by the exchange (such as `product_ids: string[]`)
-       */
+    // Book level 2: https://docs.kraken.com/api/docs/websocket-v2/book
+    // const bookRequestWithParams: WsTopicRequest = {
+    //   topic: 'book',
+    //   payload: {
+    //     symbol: ['BTC/USD', 'BTC/GBP'],
+    //     // below params are optional:
+    //     // depth: 10, // default: 10, Possible values: [10, 25, 100, 500, 1000]
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(bookRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Candles (OHLC): https://docs.kraken.com/api/docs/websocket-v2/ohlc
+    // const candleOhlcRequestWithParams: WsTopicRequest = {
+    //   topic: 'ohlc',
+    //   payload: {
+    //     symbol: ['BTC/USD', 'BTC/GBP'],
+    //     interval: 1, // Possible values: [1, 5, 15, 30, 60, 240, 1440, 10080, 21600]
+
+    //     // below params are optional:
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(candleOhlcRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Trades: https://docs.kraken.com/api/docs/websocket-v2/trade
+    // const tradesRequestWithParams: WsTopicRequest = {
+    //   topic: 'trade',
+    //   payload: {
+    //     symbol: ['BTC/USD', 'BTC/GBP'],
+    //     // below params are optional:
+    //     // snapshot: true, // default: true
+    //   },
+    // };
+
+    // client.subscribe(tradesRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    // Instruments: https://docs.kraken.com/api/docs/websocket-v2/instrument
+    const instrumentsRequestWithParams: WsTopicRequest = {
+      topic: 'instrument',
       payload: {
-        product_ids: ['ETH-USD', 'BTC-USD'],
+        symbol: ['BTC/USD', 'BTC/GBP'],
+        // below params are optional:
+        // If true, include xStocks in the response, otherwise include crypto spot pairs only:
+        include_tokenized_assets: true, // default: false
+        // snapshot: true, // default: true
       },
     };
-    client.subscribe(tickerSubscribeRequest, 'advTradeMarketData');
+
+    client.subscribe(instrumentsRequestWithParams, WS_KEY_MAP.spotPublicV2);
+
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    // const topicWithoutParamsAsString = 'spot.balances';
+
+    // This has the same effect as above, it's just a different way of messaging which topic this is for
+    // const topicWithoutParamsAsObject: WsTopicRequest = {
+    //   topic: 'spot.balances',
+    // };
 
     /**
-     * Subscribe to the "status" topic for a few symbols
+     * Either send one topic (with optional params) at a time
      */
-    client.subscribe(
-      {
-        topic: 'status',
-        payload: {
-          product_ids: ['ETH-USD', 'BTC-USD'],
-        },
-      },
-      'advTradeMarketData',
-    );
+    // client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
     /**
-     * To subscribe to more product IDs for the same topic, just send an additional request:
+     * Or send multiple topics in a batch (grouped by ws connection (WsKey))
      */
-    client.subscribe(
-      {
-        topic: 'status',
-        payload: {
-          product_ids: ['XRP-USD'],
-        },
-      },
-      'advTradeMarketData',
-    );
+    // client.subscribe(
+    //   [tickersRequestWithParams, rawTradesRequestWithParams],
+    //   'spotV4',
+    // );
 
     // /**
-    //  * Or, send an array of structured objects with parameters, if you wanted to send multiple in one request
+    //  * You can also use strings for topics that don't have any parameters, even if you mix multiple requests into one function call:
     //  */
-    // // client.subscribe([level2SubscribeRequest, anotherRequest, etc], 'advTradeMarketData');
-
-    /**
-     * Other adv trade public websocket topics:
-     */
-    client.subscribe(
-      [
-        {
-          topic: 'heartbeats',
-        },
-        {
-          topic: 'candles',
-          payload: {
-            product_ids: ['ETH-USD'],
-          },
-        },
-        {
-          topic: 'market_trades',
-          payload: {
-            product_ids: ['ETH-USD', 'BTC-USD'],
-          },
-        },
-        {
-          topic: 'status',
-          payload: {
-            product_ids: ['ETH-USD', 'BTC-USD'],
-          },
-        },
-        {
-          topic: 'ticker',
-          payload: {
-            product_ids: ['ETH-USD', 'BTC-USD'],
-          },
-        },
-        {
-          topic: 'ticker_batch',
-          payload: {
-            product_ids: ['ETH-USD', 'BTC-USD'],
-          },
-        },
-        {
-          topic: 'level2',
-          payload: {
-            product_ids: ['ETH-USD', 'BTC-USD'],
-          },
-        },
-      ],
-      'advTradeMarketData',
-    );
+    // client.subscribe(
+    //   [tickersRequestWithParams, rawTradesRequestWithParams, topicWithoutParamsAsString],
+    //   'spotV4',
+    // );
   } catch (e) {
-    console.error(`Subscribe exception: `, e);
+    console.error('Req error: ', e);
   }
 }
 
