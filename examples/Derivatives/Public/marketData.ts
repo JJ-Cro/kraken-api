@@ -125,6 +125,107 @@ async function getFeeSchedules() {
   }
 }
 
+async function getPublicExecutionEvents() {
+  try {
+    const publicExecutionEvents = await client.getPublicExecutionEvents({
+      tradeable: 'PF_ETHUSD',
+    });
+    console.log(
+      'Public Execution Events: ',
+      JSON.stringify(publicExecutionEvents, null, 2),
+    );
+  } catch (e) {
+    console.error('Get public execution events error: ', e);
+  }
+}
+
+async function getPublicOrderEvents() {
+  try {
+    const publicOrderEvents = await client.getPublicOrderEvents({
+      tradeable: 'PF_ETHUSD',
+    });
+    console.log(
+      'Public Order Events: ',
+      JSON.stringify(publicOrderEvents, null, 2),
+    );
+  } catch (e) {
+    console.error('Get public order events error: ', e);
+  }
+}
+
+async function getPublicMarkPriceEvents() {
+  try {
+    const publicMarkPriceEvents = await client.getPublicMarkPriceEvents({
+      tradeable: 'PF_ETHUSD',
+    });
+    console.log(
+      'Public Mark Price Events: ',
+      JSON.stringify(publicMarkPriceEvents, null, 2),
+    );
+  } catch (e) {
+    console.error('Get public mark price events error: ', e);
+  }
+}
+
+async function getCandles() {
+  try {
+    // Get OHLC candles for Futures
+    const candles = await client.getCandles({
+      tickType: 'trade', // spot, mark, or trade
+      symbol: 'PF_ETHUSD',
+      resolution: '1h', // 1m, 5m, 15m, 30m, 1h, 4h, 12h, 1d, 1w
+    });
+    console.log('Candles: ', JSON.stringify(candles, null, 2));
+
+    // Response includes:
+    // - candles: Array of OHLC candles
+    //   - time: Timestamp in ms
+    //   - open, high, low, close: Prices
+    //   - volume: Volume
+    // - more_candles: True if more candles available
+  } catch (e) {
+    console.error('Get candles error: ', e);
+  }
+}
+
+async function getCandlesWithTimeRange() {
+  try {
+    // Get candles for specific time range
+    const candlesTimeRange = await client.getCandles({
+      tickType: 'trade',
+      symbol: 'PF_ETHUSD',
+      resolution: '1h',
+      from: Math.floor((Date.now() - 86400000 * 7) / 1000), // 7 days ago (epoch seconds)
+      to: Math.floor(Date.now() / 1000), // now (epoch seconds)
+    });
+    console.log(
+      'Candles (7 days): ',
+      JSON.stringify(candlesTimeRange, null, 2),
+    );
+  } catch (e) {
+    console.error('Get candles with time range error: ', e);
+  }
+}
+
+async function getCandlesWithCount() {
+  try {
+    // Get specific number of most recent candles
+    const candlesCount = await client.getCandles({
+      tickType: 'mark', // Use mark price candles
+      symbol: 'PF_ETHUSD',
+      resolution: '5m',
+    });
+    console.log('Candles (last 100): ', JSON.stringify(candlesCount, null, 2));
+
+    // Tick types:
+    // - trade: Trade price candles
+    // - mark: Mark price candles
+    // - spot: Spot price candles
+  } catch (e) {
+    console.error('Get candles with count error: ', e);
+  }
+}
+
 // Uncomment the function you want to test:
 
 // getAllTickers();
@@ -134,3 +235,9 @@ async function getFeeSchedules() {
 // getTradeHistoryWithTime();
 // getInstruments();
 // getFeeSchedules();
+// getPublicExecutionEvents();
+// getPublicOrderEvents();
+// getPublicMarkPriceEvents();
+// getCandles();
+// getCandlesWithTimeRange();
+// getCandlesWithCount();
