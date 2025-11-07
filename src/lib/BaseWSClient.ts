@@ -1319,7 +1319,7 @@ export abstract class BaseWebsocketClient<
             continue;
           }
 
-          // Not used for kraken
+          // Not used for kraken. At least for spot, auth is included per req during subscribe
           if (emittable.eventType === 'connectionReadyForAuth') {
             this.logger.trace(
               'Ready for auth - requesting auth submission...',
@@ -1349,6 +1349,7 @@ export abstract class BaseWebsocketClient<
             `onWsMessage().emit(${emittable.eventType})`,
             emittableFinalEvent,
           );
+
           try {
             this.emit(emittable.eventType, emittableFinalEvent);
           } catch (e) {

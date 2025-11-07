@@ -5,7 +5,7 @@ export type WSSpotPublicTopic =
   | 'trade'
   | 'instrument'; // Note: Adin topics (Status, Heartbeat & Ping are automatically used internally and can't be subscribed to manually).
 
-export type WSSpotPrivateTopic = 'level3';
+export type WSSpotPrivateTopic = 'executions' | 'balances' | 'level3';
 
 export type WSSpotTopic = WSSpotPublicTopic | WSSpotPrivateTopic;
 

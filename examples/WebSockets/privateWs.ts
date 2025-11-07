@@ -37,9 +37,6 @@ async function start() {
     customLogger,
   );
 
-  // Optional, inject a custom logger
-  // const client = new WebsocketClient({}, customLogger);
-
   client.on('open', (data) => {
     console.log('connected ', data?.wsKey);
   });
@@ -77,7 +74,49 @@ async function start() {
     console.error('authenticated: ', data);
   });
 
+  /**
+   * The below examples demonstrate how you can subscribe to private topics.
+   *
+   * Note: while the documentation specifies "token" as a required parameter, the SDK will automatically:
+   * - fetch the token using your API key/secret,
+   * - manage token caching/refreshing,
+   * - include the token in the request for you.
+   *
+   * So you do NOT need to manually fetch or provide the token when subscribing to private topics.
+   *
+   * Do note that all of these include the "spotPrivateV2" WsKey reference. This tells the WebsocketClient to use the private "wss://ws-auth.kraken.com/v2" endpoint for these private subscription requests.
+   */
+
   try {
+    // Balances, requires auth: https://docs.kraken.com/api/docs/websocket-v2/executions
+    const executionsRequestWithParams: WsTopicRequest<WSSpotTopic> = {
+      topic: 'executions',
+      payload: {
+        // below params are optional:
+        snap_trades: true, // default: false
+        snap_orders: true, // default: true
+        order_status: true, // default: true
+        // rebased: false, // default: true
+        ratecounter: true, // default: false
+        // users: 'all', // default: undefined
+        // snapshot: true, // default: false, deprecated, use 'snap_orders' or 'snap_trades' instead
+      },
+    };
+    client.subscribe(executionsRequestWithParams, WS_KEY_MAP.spotPrivateV2);
+
+    // Balances, requires auth: https://docs.kraken.com/api/docs/websocket-v2/balances
+    const balancesRequestWithParams: WsTopicRequest<WSSpotTopic> = {
+      topic: 'balances',
+      payload: {
+        // below params are optional:
+        // snapshot: true, // default: true
+        // TODO: are these correct? because in the docs these are higher level objects...but only for this topic?
+        // rebased: false, // default: true
+        // users: 'all',
+      },
+    };
+    client.subscribe(balancesRequestWithParams, WS_KEY_MAP.spotPrivateV2);
+
     // Orders Level 3, requires auth: https://docs.kraken.com/api/docs/websocket-v2/level3
     const ordersRequestWithParams: WsTopicRequest<WSSpotTopic> = {
       // topic: 'level3',

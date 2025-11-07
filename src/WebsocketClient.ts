@@ -795,27 +795,12 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       switch (wsKey) {
         case WS_KEY_MAP.spotPrivateV2:
         case WS_KEY_MAP.spotBetaPrivateV2: {
+          // Not needed here, handled automatically with request during subscribe
           this.logger.trace(
-            `getWsAuthRequestEvent(${wsKey}): preparing spot private WS auth request...`,
+            `getWsAuthRequestEvent(${wsKey}): no auth request required for private WS...`,
           );
 
-          const tokenResult =
-            await this.restClientCache.fetchSpotWebSocketToken(
-              this.getRestClientOptions(),
-              this.options.requestOptions,
-            );
-
-          console.log('tokenResult', tokenResult);
-
-          // const subscribeEvent = {
-          //   event: 'subscribe',
-          //   subscription: {
-          //     name: 'ownTrades',
-          //     token: 'WW91ciBhdXRoZW50aWNhdGlvbiB0b2tlbiBnb2VzIGhlcmUu',
-          //   },
-          // };
-
-          break;
+          return;
         }
 
         case WS_KEY_MAP.spotPublicV2:
@@ -845,8 +830,6 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
       throw e;
     }
-    // Don't send anything for all other WS connections, since they auth as part of the connection (not after connect). Returning an empty value here will short-circuit the assertIsAuthenticated workflow.
-    return;
   }
 
   /**
