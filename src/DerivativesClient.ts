@@ -74,7 +74,7 @@ import {
   FuturesTradeHistoryItem,
   FuturesUnwindQueuePosition,
 } from './types/response/derivatives.types.js';
-import { APISuccessResponse } from './types/response/shared.types.js';
+import { DerivativesAPISuccessResponse } from './types/response/shared.types.js';
 
 /**
  * The DerivativesClient provides integration to the Kraken Derivatives API.
@@ -122,7 +122,9 @@ export class DerivativesClient extends BaseRestClient {
   getTradeHistory(params: {
     symbol: string;
     lastTime?: string;
-  }): Promise<APISuccessResponse<{ history: FuturesTradeHistoryItem[] }>> {
+  }): Promise<
+    DerivativesAPISuccessResponse<{ history: FuturesTradeHistoryItem[] }>
+  > {
     return this.get('derivatives/api/v3/history', params);
   }
 
@@ -133,7 +135,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getOrderbook(params: {
     symbol: string;
-  }): Promise<APISuccessResponse<{ orderBook: FuturesOrderBook }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ orderBook: FuturesOrderBook }>> {
     return this.get('derivatives/api/v3/orderbook', params);
   }
 
@@ -142,7 +144,9 @@ export class DerivativesClient extends BaseRestClient {
    *
    * This endpoint returns current market data for all currently listed Futures contracts and indices.
    */
-  getTickers(): Promise<APISuccessResponse<{ tickers: FuturesTicker[] }>> {
+  getTickers(): Promise<
+    DerivativesAPISuccessResponse<{ tickers: FuturesTicker[] }>
+  > {
     return this.get('derivatives/api/v3/tickers');
   }
 
@@ -153,7 +157,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getTicker(params: {
     symbol: string;
-  }): Promise<APISuccessResponse<{ ticker: FuturesTicker }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ ticker: FuturesTicker }>> {
     return this.get(`derivatives/api/v3/tickers/${params.symbol}`);
   }
 
@@ -169,7 +173,7 @@ export class DerivativesClient extends BaseRestClient {
    * Returns specifications for all currently listed markets and indices.
    */
   getInstruments(): Promise<
-    APISuccessResponse<{ instruments: FuturesInstrument[] }>
+    DerivativesAPISuccessResponse<{ instruments: FuturesInstrument[] }>
   > {
     return this.get('derivatives/api/v3/instruments');
   }
@@ -180,7 +184,9 @@ export class DerivativesClient extends BaseRestClient {
    * Returns price dislocation and volatility details for all markets.
    */
   getInstrumentStatusList(): Promise<
-    APISuccessResponse<{ instrumentStatus: FuturesInstrumentStatus[] }>
+    DerivativesAPISuccessResponse<{
+      instrumentStatus: FuturesInstrumentStatus[];
+    }>
   > {
     return this.get('derivatives/api/v3/instruments/status');
   }
@@ -192,7 +198,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getInstrumentStatus(params: {
     symbol: string;
-  }): Promise<APISuccessResponse<FuturesInstrumentStatus>> {
+  }): Promise<DerivativesAPISuccessResponse<FuturesInstrumentStatus>> {
     return this.get(`derivatives/api/v3/instruments/${params.symbol}/status`);
   }
 
@@ -212,9 +218,15 @@ export class DerivativesClient extends BaseRestClient {
    */
   batchOrderManagement(
     params: FuturesBatchOrderParams,
-  ): Promise<APISuccessResponse<{ batchStatus: FuturesBatchOrderStatus[] }>> {
+  ): Promise<
+    DerivativesAPISuccessResponse<{ batchStatus: FuturesBatchOrderStatus[] }>
+  > {
+    const { ProcessBefore, json } = params;
     return this.postPrivate('derivatives/api/v3/batchorder', {
-      body: params,
+      body: {
+        ProcessBefore: ProcessBefore,
+        json: JSON.stringify(json),
+      },
     });
   }
 
@@ -226,7 +238,9 @@ export class DerivativesClient extends BaseRestClient {
   cancelAllOrders(params?: {
     symbol?: string;
   }): Promise<
-    APISuccessResponse<{ cancelStatus: FuturesCancelAllOrdersStatus }>
+    DerivativesAPISuccessResponse<{
+      cancelStatus: FuturesCancelAllOrdersStatus;
+    }>
   > {
     return this.postPrivate('derivatives/api/v3/cancelallorders', {
       query: params,
@@ -241,7 +255,9 @@ export class DerivativesClient extends BaseRestClient {
    */
   cancelAllOrdersAfter(params: {
     timeout: number;
-  }): Promise<APISuccessResponse<{ status: FuturesDeadMansSwitchStatus }>> {
+  }): Promise<
+    DerivativesAPISuccessResponse<{ status: FuturesDeadMansSwitchStatus }>
+  > {
     return this.postPrivate('derivatives/api/v3/cancelallordersafter', {
       query: params,
     });
@@ -254,7 +270,9 @@ export class DerivativesClient extends BaseRestClient {
    */
   cancelOrder(
     params: FuturesCancelOrderParams,
-  ): Promise<APISuccessResponse<{ cancelStatus: FuturesCancelOrderStatus }>> {
+  ): Promise<
+    DerivativesAPISuccessResponse<{ cancelStatus: FuturesCancelOrderStatus }>
+  > {
     return this.postPrivate('derivatives/api/v3/cancelorder', {
       query: params,
     });
@@ -268,7 +286,9 @@ export class DerivativesClient extends BaseRestClient {
    */
   editOrder(
     params: FuturesEditOrderParams,
-  ): Promise<APISuccessResponse<{ editStatus: FuturesEditOrderStatus }>> {
+  ): Promise<
+    DerivativesAPISuccessResponse<{ editStatus: FuturesEditOrderStatus }>
+  > {
     return this.postPrivate('derivatives/api/v3/editorder', {
       query: params,
     });
@@ -280,7 +300,7 @@ export class DerivativesClient extends BaseRestClient {
    * This endpoint returns information on all open orders for all Futures contracts.
    */
   getOpenOrders(): Promise<
-    APISuccessResponse<{ openOrders: FuturesOpenOrder[] }>
+    DerivativesAPISuccessResponse<{ openOrders: FuturesOpenOrder[] }>
   > {
     return this.getPrivate('derivatives/api/v3/openorders');
   }
@@ -292,7 +312,9 @@ export class DerivativesClient extends BaseRestClient {
    */
   submitOrder(
     params: FuturesSendOrderParams,
-  ): Promise<APISuccessResponse<{ sendStatus: FuturesSendOrderStatus }>> {
+  ): Promise<
+    DerivativesAPISuccessResponse<{ sendStatus: FuturesSendOrderStatus }>
+  > {
     return this.postPrivate('derivatives/api/v3/sendorder', {
       query: params,
     });
@@ -306,7 +328,9 @@ export class DerivativesClient extends BaseRestClient {
   getOrderStatus(params?: {
     orderIds?: string[];
     cliOrdIds?: string[];
-  }): Promise<APISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>> {
+  }): Promise<
+    DerivativesAPISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>
+  > {
     return this.postPrivate('derivatives/api/v3/orders/status', {
       query: params,
     });
@@ -324,7 +348,7 @@ export class DerivativesClient extends BaseRestClient {
    * The PNL currency preference is used to determine which currency to pay out when realizing PNL gains.
    */
   getPnlPreferences(): Promise<
-    APISuccessResponse<{ preferences: FuturesPnlPreference[] }>
+    DerivativesAPISuccessResponse<{ preferences: FuturesPnlPreference[] }>
   > {
     return this.getPrivate('derivatives/api/v3/pnlpreferences');
   }
@@ -338,7 +362,7 @@ export class DerivativesClient extends BaseRestClient {
   setPnlPreference(params: {
     symbol: string;
     pnlPreference: string;
-  }): Promise<APISuccessResponse<Record<string, never>>> {
+  }): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.putPrivate('derivatives/api/v3/pnlpreferences', {
       query: params,
     });
@@ -350,7 +374,9 @@ export class DerivativesClient extends BaseRestClient {
    * Returns list of configured leverage preferences.
    */
   getLeverageSettings(): Promise<
-    APISuccessResponse<{ leveragePreferences: FuturesLeveragePreference[] }>
+    DerivativesAPISuccessResponse<{
+      leveragePreferences: FuturesLeveragePreference[];
+    }>
   > {
     return this.getPrivate('derivatives/api/v3/leveragepreferences');
   }
@@ -364,7 +390,7 @@ export class DerivativesClient extends BaseRestClient {
   setLeverageSettings(params: {
     symbol: string;
     maxLeverage?: number;
-  }): Promise<APISuccessResponse<Record<string, never>>> {
+  }): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.putPrivate('derivatives/api/v3/leveragepreferences', {
       query: params,
     });
@@ -383,7 +409,9 @@ export class DerivativesClient extends BaseRestClient {
    * This includes digital asset balances, instrument balances, margin requirements, margin trigger estimates and
    * auxiliary information such as available funds, PnL of open positions and portfolio value.
    */
-  getAccounts(): Promise<APISuccessResponse<{ accounts: FuturesAccounts }>> {
+  getAccounts(): Promise<
+    DerivativesAPISuccessResponse<{ accounts: FuturesAccounts }>
+  > {
     return this.getPrivate('derivatives/api/v3/accounts');
   }
 
@@ -394,7 +422,7 @@ export class DerivativesClient extends BaseRestClient {
    * This includes Futures contracts that have matured but have not yet been settled.
    */
   getOpenPositions(): Promise<
-    APISuccessResponse<{ openPositions: FuturesOpenPosition[] }>
+    DerivativesAPISuccessResponse<{ openPositions: FuturesOpenPosition[] }>
   > {
     return this.getPrivate('derivatives/api/v3/openpositions');
   }
@@ -405,7 +433,7 @@ export class DerivativesClient extends BaseRestClient {
    * This endpoint returns the percentile of the open position in case of unwinding.
    */
   getPositionPercentile(): Promise<
-    APISuccessResponse<{ queue: FuturesUnwindQueuePosition[] }>
+    DerivativesAPISuccessResponse<{ queue: FuturesUnwindQueuePosition[] }>
   > {
     return this.getPrivate('derivatives/api/v3/unwindqueue');
   }
@@ -418,7 +446,7 @@ export class DerivativesClient extends BaseRestClient {
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
   getPortfolioMarginParameters(): Promise<
-    APISuccessResponse<FuturesPortfolioMarginParameters>
+    DerivativesAPISuccessResponse<FuturesPortfolioMarginParameters>
   > {
     return this.getPrivate('derivatives/api/v3/portfolio-margining/parameters');
   }
@@ -431,7 +459,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   simulateMarginRequirements(params: {
     json: any; // Complex structure for portfolio simulation
-  }): Promise<APISuccessResponse<FuturesPortfolioSimulation>> {
+  }): Promise<DerivativesAPISuccessResponse<FuturesPortfolioSimulation>> {
     return this.postPrivate('derivatives/api/v3/portfolio-margining/simulate', {
       query: params,
     });
@@ -449,7 +477,7 @@ export class DerivativesClient extends BaseRestClient {
    * This endpoint returns information on currently active assignment programs.
    */
   getAssignmentPrograms(): Promise<
-    APISuccessResponse<{ participants: FuturesAssignmentProgram[] }>
+    DerivativesAPISuccessResponse<{ participants: FuturesAssignmentProgram[] }>
   > {
     return this.getPrivate('derivatives/api/v3/assignmentprogram/current');
   }
@@ -461,7 +489,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   addAssignmentPreference(
     params: FuturesAddAssignmentPreferenceParams,
-  ): Promise<APISuccessResponse<FuturesAssignmentProgram>> {
+  ): Promise<DerivativesAPISuccessResponse<FuturesAssignmentProgram>> {
     return this.postPrivate('derivatives/api/v3/assignmentprogram/add', {
       query: params,
     });
@@ -474,7 +502,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   deleteAssignmentPreference(params: {
     id: number;
-  }): Promise<APISuccessResponse<FuturesAssignmentProgram>> {
+  }): Promise<DerivativesAPISuccessResponse<FuturesAssignmentProgram>> {
     return this.postPrivate('derivatives/api/v3/assignmentprogram/delete', {
       query: params,
     });
@@ -486,7 +514,9 @@ export class DerivativesClient extends BaseRestClient {
    * This endpoint returns information on assignment program preferences change history.
    */
   getAssignmentPreferencesHistory(): Promise<
-    APISuccessResponse<{ participants: FuturesAssignmentProgramHistory[] }>
+    DerivativesAPISuccessResponse<{
+      participants: FuturesAssignmentProgramHistory[];
+    }>
   > {
     return this.getPrivate('derivatives/api/v3/assignmentprogram/history');
   }
@@ -503,7 +533,7 @@ export class DerivativesClient extends BaseRestClient {
    * This endpoint lists all fee schedules.
    */
   getFeeSchedules(): Promise<
-    APISuccessResponse<{ feeSchedules: FuturesFeeSchedule[] }>
+    DerivativesAPISuccessResponse<{ feeSchedules: FuturesFeeSchedule[] }>
   > {
     return this.get('derivatives/api/v3/feeschedules');
   }
@@ -514,7 +544,9 @@ export class DerivativesClient extends BaseRestClient {
    * Returns your fee schedule volumes for each fee schedule.
    */
   getFeeScheduleVolumes(): Promise<
-    APISuccessResponse<{ volumesByFeeSchedule: Record<string, number> }>
+    DerivativesAPISuccessResponse<{
+      volumesByFeeSchedule: Record<string, number>;
+    }>
   > {
     return this.getPrivate('derivatives/api/v3/feeschedules/volumes');
   }
@@ -531,7 +563,7 @@ export class DerivativesClient extends BaseRestClient {
    * This endpoint provides the platform's notifications.
    */
   getNotifications(): Promise<
-    APISuccessResponse<{ notifications: FuturesNotification[] }>
+    DerivativesAPISuccessResponse<{ notifications: FuturesNotification[] }>
   > {
     return this.getPrivate('derivatives/api/v3/notifications');
   }
@@ -549,7 +581,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getFills(params?: {
     lastFillTime?: string;
-  }): Promise<APISuccessResponse<{ fills: FuturesFill[] }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ fills: FuturesFill[] }>> {
     return this.getPrivate('derivatives/api/v3/fills', params);
   }
 
@@ -566,7 +598,9 @@ export class DerivativesClient extends BaseRestClient {
    */
   getHistoricalFundingRates(params: {
     symbol: string;
-  }): Promise<APISuccessResponse<{ rates: FuturesHistoricalFundingRate[] }>> {
+  }): Promise<
+    DerivativesAPISuccessResponse<{ rates: FuturesHistoricalFundingRate[] }>
+  > {
     return this.get('derivatives/api/v3/historical-funding-rates', params);
   }
 
@@ -582,7 +616,7 @@ export class DerivativesClient extends BaseRestClient {
    * Returns account-wide self-trade matching strategy.
    */
   getSelfTradeStrategy(): Promise<
-    APISuccessResponse<{
+    DerivativesAPISuccessResponse<{
       strategy: FuturesSelfTradeStrategy;
     }>
   > {
@@ -597,7 +631,7 @@ export class DerivativesClient extends BaseRestClient {
   updateSelfTradeStrategy(
     params: FuturesUpdateSelfTradeStrategyParams,
   ): Promise<
-    APISuccessResponse<{
+    DerivativesAPISuccessResponse<{
       strategy: FuturesSelfTradeStrategy;
     }>
   > {
@@ -619,7 +653,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getSubaccountTradingStatus(params: {
     subaccountUid: string;
-  }): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ tradingEnabled: boolean }>> {
     return this.getPrivate(
       `derivatives/api/v3/subaccount/${params.subaccountUid}/trading-enabled`,
     );
@@ -633,7 +667,7 @@ export class DerivativesClient extends BaseRestClient {
   updateSubaccountTradingStatus(params: {
     subaccountUid: string;
     tradingEnabled: boolean;
-  }): Promise<APISuccessResponse<{ tradingEnabled: boolean }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ tradingEnabled: boolean }>> {
     const { subaccountUid, ...otherParams } = params;
     return this.putPrivate(
       `derivatives/api/v3/subaccount/${subaccountUid}/trading-enabled`,
@@ -646,7 +680,9 @@ export class DerivativesClient extends BaseRestClient {
    *
    * Return information about subaccounts, including balances and UIDs.
    */
-  getSubaccounts(): Promise<APISuccessResponse<FuturesSubaccountsInfo>> {
+  getSubaccounts(): Promise<
+    DerivativesAPISuccessResponse<FuturesSubaccountsInfo>
+  > {
     return this.getPrivate('derivatives/api/v3/subaccounts');
   }
 
@@ -663,7 +699,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   submitWalletTransfer(
     params: FuturesInitiateWalletTransferParams,
-  ): Promise<APISuccessResponse<Record<string, never>>> {
+  ): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.postPrivate('derivatives/api/v3/transfer', {
       query: params,
     });
@@ -676,7 +712,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   submitSubaccountTransfer(
     params: FuturesInitiateSubaccountTransferParams,
-  ): Promise<APISuccessResponse<Record<string, never>>> {
+  ): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.postPrivate('derivatives/api/v3/transfer/subaccount', {
       query: params,
     });
@@ -690,7 +726,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   submitTransferToSpot(
     params: FuturesSubmitToSpotParams,
-  ): Promise<APISuccessResponse<{ uid: string }>> {
+  ): Promise<DerivativesAPISuccessResponse<{ uid: string }>> {
     return this.postPrivate('derivatives/api/v3/withdrawal', {
       query: params,
     });
@@ -708,7 +744,9 @@ export class DerivativesClient extends BaseRestClient {
    * Retrieve all currently open RFQs.
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
-  getOpenRFQs(): Promise<APISuccessResponse<{ rfqs: FuturesRfq[] }>> {
+  getOpenRFQs(): Promise<
+    DerivativesAPISuccessResponse<{ rfqs: FuturesRfq[] }>
+  > {
     return this.get('derivatives/api/v3/rfqs');
   }
 
@@ -720,7 +758,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getOpenRFQ(params: {
     rfqUid: string;
-  }): Promise<APISuccessResponse<{ rfq: FuturesRfq }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ rfq: FuturesRfq }>> {
     return this.get(`derivatives/api/v3/rfqs/${params.rfqUid}`);
   }
 
@@ -731,7 +769,7 @@ export class DerivativesClient extends BaseRestClient {
    * Note: This is currently available exclusively in the Kraken Futures DEMO environment.
    */
   getRFQOpenOffers(): Promise<
-    APISuccessResponse<{ openOffers: FuturesOpenOffer[] }>
+    DerivativesAPISuccessResponse<{ openOffers: FuturesOpenOffer[] }>
   > {
     return this.getPrivate('derivatives/api/v3/rfqs/open-offers');
   }
@@ -746,7 +784,7 @@ export class DerivativesClient extends BaseRestClient {
     rfqUid: string;
     bid?: number;
     ask?: number;
-  }): Promise<APISuccessResponse<{ offerUid: string }>> {
+  }): Promise<DerivativesAPISuccessResponse<{ offerUid: string }>> {
     const { rfqUid, ...bodyParams } = params;
     return this.postPrivate(`derivatives/api/v3/rfqs/${rfqUid}/place-offer`, {
       body: bodyParams,
@@ -763,7 +801,7 @@ export class DerivativesClient extends BaseRestClient {
     rfqUid: string;
     bid?: number;
     ask?: number;
-  }): Promise<APISuccessResponse<Record<string, never>>> {
+  }): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     const { rfqUid, ...bodyParams } = params;
     return this.putPrivate(`derivatives/api/v3/rfqs/${rfqUid}/replace-offer`, {
       body: bodyParams,
@@ -778,7 +816,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   cancelRFQOffer(params: {
     rfqUid: string;
-  }): Promise<APISuccessResponse<Record<string, never>>> {
+  }): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.deletePrivate(
       `derivatives/api/v3/rfqs/${params.rfqUid}/cancel-offer`,
     );
@@ -798,7 +836,9 @@ export class DerivativesClient extends BaseRestClient {
   getExecutionEvents(
     params?: FuturesHistoryBaseParams,
   ): Promise<
-    APISuccessResponse<FuturesHistoryResponse<FuturesHistoryExecutionEvent>>
+    DerivativesAPISuccessResponse<
+      FuturesHistoryResponse<FuturesHistoryExecutionEvent>
+    >
   > {
     return this.getPrivate('api/history/v3/executions', { params });
   }
@@ -811,7 +851,9 @@ export class DerivativesClient extends BaseRestClient {
   getOrderEvents(
     params?: FuturesGetOrderEventsParams,
   ): Promise<
-    APISuccessResponse<FuturesHistoryResponse<FuturesHistoryOrderEvent>>
+    DerivativesAPISuccessResponse<
+      FuturesHistoryResponse<FuturesHistoryOrderEvent>
+    >
   > {
     return this.getPrivate('api/history/v3/orders', { params });
   }
@@ -824,7 +866,9 @@ export class DerivativesClient extends BaseRestClient {
   getTriggerEvents(
     params?: FuturesGetTriggerEventsParams,
   ): Promise<
-    APISuccessResponse<FuturesHistoryResponse<FuturesHistoryTriggerEvent>>
+    DerivativesAPISuccessResponse<
+      FuturesHistoryResponse<FuturesHistoryTriggerEvent>
+    >
   > {
     return this.getPrivate('api/history/v3/triggers', { params });
   }
@@ -837,7 +881,9 @@ export class DerivativesClient extends BaseRestClient {
   getPositionEvents(
     params?: FuturesGetPositionEventsParams,
   ): Promise<
-    APISuccessResponse<FuturesHistoryResponse<FuturesPositionUpdateEvent>>
+    DerivativesAPISuccessResponse<
+      FuturesHistoryResponse<FuturesPositionUpdateEvent>
+    >
   > {
     return this.getPrivate('api/history/v3/positions', { params });
   }
@@ -850,7 +896,7 @@ export class DerivativesClient extends BaseRestClient {
    */
   getAccountLog(
     params?: FuturesGetAccountLogParams,
-  ): Promise<APISuccessResponse<FuturesAccountLog>> {
+  ): Promise<DerivativesAPISuccessResponse<FuturesAccountLog>> {
     return this.getPrivate('api/history/v3/account-log', { params });
   }
 
