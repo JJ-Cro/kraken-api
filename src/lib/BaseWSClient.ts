@@ -206,6 +206,7 @@ export abstract class BaseWebsocketClient<
     super();
 
     this.logger = logger || DefaultLogger;
+
     this.WS_LOGGER_CATEGORY = {
       category: options?.wsLoggerCategory || 'WsClient',
     };
@@ -217,13 +218,13 @@ export abstract class BaseWebsocketClient<
       pingInterval: 10000,
       reconnectTimeout: 500,
       recvWindow: 5000,
-      // TODO: does this happen with Kraken?
       // Requires a confirmation "response" from the ws connection before assuming it is ready
       requireConnectionReadyConfirmation: false,
       // Automatically auth after opening a connection?
       authPrivateConnectionsOnConnect: false,
-      // Automatically include auth/sign with every WS request
-      authPrivateRequests: false,
+      // Automatically include auth/sign/token with every WS request.
+      // Automatically handled during getWsRequestEvents.
+      authPrivateRequests: true,
       // Automatically re-auth WS API, if we were auth'd before and get reconnected
       reauthWSAPIOnReconnect: true,
       // Whether to use native heartbeats (depends on the exchange)
@@ -1318,6 +1319,7 @@ export abstract class BaseWebsocketClient<
             continue;
           }
 
+          // Not used for kraken. At least for spot, auth is included per req during subscribe
           if (emittable.eventType === 'connectionReadyForAuth') {
             this.logger.trace(
               'Ready for auth - requesting auth submission...',
@@ -1330,6 +1332,7 @@ export abstract class BaseWebsocketClient<
             continue;
           }
 
+          // Not used for kraken. At least for spot, auth is included per req during subscribe
           if (emittable.eventType === 'authenticated') {
             this.logger.trace('Successfully authenticated', {
               ...this.WS_LOGGER_CATEGORY,
@@ -1346,6 +1349,7 @@ export abstract class BaseWebsocketClient<
             `onWsMessage().emit(${emittable.eventType})`,
             emittableFinalEvent,
           );
+
           try {
             this.emit(emittable.eventType, emittableFinalEvent);
           } catch (e) {
