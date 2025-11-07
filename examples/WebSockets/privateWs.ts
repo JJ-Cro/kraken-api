@@ -25,8 +25,8 @@ const customLogger: DefaultLogger = {
 
 async function start() {
   const account = {
-    key: process.env.API_KEY || 'keyHere',
-    secret: process.env.API_SECRET || 'secretHere',
+    key: process.env.API_SPOT_KEY || 'keyHere',
+    secret: process.env.API_SPOT_SECRET || 'secretHere',
   };
 
   const client = new WebsocketClient(

@@ -4,12 +4,14 @@ import {
   MidflightWsRequestEvent,
 } from './lib/BaseWSClient.js';
 import { neverGuard } from './lib/misc-util.js';
+import { RestClientOptions } from './lib/requestUtils.js';
 import {
   SignAlgorithm,
   SignEncodeMethod,
   signMessage,
 } from './lib/webCryptoAPI.js';
 import { DefaultLogger } from './lib/websocket/logger.js';
+import { RestClientCache } from './lib/websocket/rest-client-cache.js';
 import {
   WS_KEY_MAP,
   WsKey,
@@ -45,8 +47,12 @@ export interface WSAPIRequestFlags {
 }
 
 export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
+  private restClientCache: RestClientCache = new RestClientCache();
+
   constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger) {
     super({ ...options, wsLoggerCategory: WS_LOGGER_CATEGORY_ID }, logger);
+
+    this.restClientCache.setLogger(this.logger, WS_LOGGER_CATEGORY);
   }
 
   /**
@@ -175,7 +181,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     params: TWSParams & { signRequest?: boolean },
     requestFlags?: WSAPIRequestFlags,
   ): Promise<any> {
-    this.logger.trace(`sendWSAPIRequest(): assert "${wsKey}" is connected`);
+    this.logger.trace(`sendWSAPIRequest(): assert "${wsKey}" is connected`, {
+      ...WS_LOGGER_CATEGORY,
+    });
 
     // await this.assertIsConnected(wsKey);
 
@@ -275,6 +283,15 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    * Internal methods - not intended for public use
    *
    */
+
+  private getRestClientOptions(): RestClientOptions {
+    return {
+      ...this.options,
+      ...this.options.restOptions,
+      apiKey: this.options.apiKey,
+      apiSecret: this.options.apiSecret,
+    };
+  }
 
   protected isCustomReconnectionNeeded(): boolean {
     return false;
@@ -578,6 +595,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     request: WsTopicRequest<WSTopic>,
     wsKey: WsKey,
   ): boolean {
+    // TODO: configure this to auto-route requests for private topcis to priate websockets
     const topicName = request?.topic?.toLowerCase();
     if (!topicName) {
       return false;
@@ -616,10 +634,10 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   }
 
   /**
-   * Not in use for Kraken
+   * Whether key represents a private connection. Feeds into automatic auth on connect.
    */
   protected getPrivateWSKeys(): WsKey[] {
-    return [];
+    return [WS_KEY_MAP.spotPrivateV2, WS_KEY_MAP.spotBetaPrivateV2];
   }
 
   protected isAuthOnConnectWsKey(wsKey: WsKey): boolean {
@@ -645,36 +663,68 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     >[] = [];
     const wsRequestBuildingErrors: unknown[] = [];
 
-    switch (wsKey) {
-      default: {
-        // Previously used to track topics in a request. Keeping this for subscribe/unsubscribe requests, no need for incremental values
+    // Previously used to track topics in a request. Keeping this for subscribe/unsubscribe requests, no need for incremental values
 
-        for (const topicRequest of requests) {
-          const req_id = this.getNewRequestId();
-          const wsEvent: WsRequestOperationKraken<WSTopic> = {
-            method: operation,
-            params: {
-              channel: topicRequest.topic,
-              ...topicRequest.payload,
-            },
-            req_id: req_id,
-          };
+    for (const topicRequest of requests) {
+      const req_id = this.getNewRequestId();
+      const wsEvent: WsRequestOperationKraken<WSTopic> = {
+        method: operation,
+        params: {
+          channel: topicRequest.topic,
+          ...topicRequest.payload,
+        },
+        req_id: req_id,
+      };
 
-          // Cache midflight subs on the req ID
-          // Enrich response with subs for that req ID
+      if (this.options.authPrivateRequests) {
+        switch (wsKey) {
+          case WS_KEY_MAP.spotPrivateV2:
+          case WS_KEY_MAP.spotBetaPrivateV2: {
+            // Get token from REST client cache
+            const tokenResult =
+              await this.restClientCache.fetchSpotWebSocketToken(
+                this.getRestClientOptions(),
+                this.options.requestOptions,
+              );
 
-          const midflightWsEvent: MidflightWsRequestEvent<
-            WsRequestOperationKraken<WSTopic>
-          > = {
-            requestKey: wsEvent.req_id,
-            requestEvent: wsEvent,
-          };
+            if (!tokenResult?.token) {
+              wsRequestBuildingErrors.push(
+                new Error(
+                  `No WS auth token could be retrieved for private spot WS request for topic "${topicRequest.topic}"`,
+                ),
+              );
+              continue;
+            }
 
-          wsRequestEvents.push({
-            ...midflightWsEvent,
-          });
+            wsEvent.params.token = tokenResult.token;
+
+            break;
+          }
+          case WS_KEY_MAP.spotPublicV2:
+          case WS_KEY_MAP.spotBetaPublicV2: {
+            // Public WS - no auth
+            break;
+          }
+
+          default: {
+            throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+          }
         }
       }
+
+      // Cache midflight subs on the req ID
+      // Enrich response with subs for that req ID
+
+      const midflightWsEvent: MidflightWsRequestEvent<
+        WsRequestOperationKraken<WSTopic>
+      > = {
+        requestKey: wsEvent.req_id,
+        requestEvent: wsEvent,
+      };
+
+      wsRequestEvents.push({
+        ...midflightWsEvent,
+      });
     }
 
     if (wsRequestBuildingErrors.length) {
@@ -741,6 +791,60 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       return 'waitForEvent';
     }
 
+    try {
+      switch (wsKey) {
+        case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotBetaPrivateV2: {
+          this.logger.trace(
+            `getWsAuthRequestEvent(${wsKey}): preparing spot private WS auth request...`,
+          );
+
+          const tokenResult =
+            await this.restClientCache.fetchSpotWebSocketToken(
+              this.getRestClientOptions(),
+              this.options.requestOptions,
+            );
+
+          console.log('tokenResult', tokenResult);
+
+          // const subscribeEvent = {
+          //   event: 'subscribe',
+          //   subscription: {
+          //     name: 'ownTrades',
+          //     token: 'WW91ciBhdXRoZW50aWNhdGlvbiB0b2tlbiBnb2VzIGhlcmUu',
+          //   },
+          // };
+
+          break;
+        }
+
+        case WS_KEY_MAP.spotPublicV2:
+        case WS_KEY_MAP.spotBetaPublicV2: {
+          // Public WS - no auth
+          this.logger.trace(
+            `getWsAuthRequestEvent(${wsKey}): no auth required for public WS...`,
+          );
+          return;
+        }
+
+        default: {
+          throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+        }
+      }
+    } catch (e: any) {
+      this.logger.error(
+        `getWsAuthRequestEvent(${wsKey}): Exception preparing auth request: `,
+        {
+          wsKey,
+          eventToAuth,
+          exception: e,
+          exceptionBody: e?.body,
+          stack: e?.stack,
+        },
+      );
+
+      throw e;
+    }
     // Don't send anything for all other WS connections, since they auth as part of the connection (not after connect). Returning an empty value here will short-circuit the assertIsAuthenticated workflow.
     return;
   }
