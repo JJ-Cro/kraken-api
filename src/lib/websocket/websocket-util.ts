@@ -4,6 +4,7 @@ import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
 
 /** Should be one WS key per unique URL */
 export const WS_KEY_MAP = {
+  /** Public WebSocket topics for Spot, via the V2 API: https://docs.kraken.com/api/docs/guides/spot-ws-intro */
   spotPublicV2: 'spotPublicV2',
   spotPrivateV2: 'spotPrivateV2',
   spotBetaPublicV2: 'spotBetaPublicV2',
