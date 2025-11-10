@@ -97,7 +97,7 @@ export function serializeParams<T extends Record<string, any> | undefined = {}>(
       }
 
       if (repeatArrayValuesAsKVPairs && Array.isArray(value)) {
-        let values = value.map((subValue) => {
+        const values = value.map((subValue) => {
           const encodedValue = encodeValues
             ? encodeURIComponent(subValue)
             : subValue;
@@ -122,7 +122,7 @@ export function isEmptyObject(obj: any) {
   if (!obj || typeof obj !== 'object') {
     return true;
   }
-  for (var i in obj) {
+  for (const _i in obj) {
     return false;
   }
   return true;
