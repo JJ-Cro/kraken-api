@@ -1,19 +1,19 @@
 import { RestClientOptions } from '../../lib/requestUtils';
 
-export type APISuccessResponse<TData> = {
+export type DerivativesAPISuccessResponse<TData> = {
   result: 'success';
   serverTime: string;
 } & TData;
 
-export interface APIErrorResponse {
-  // e.g. [{ code: 11; message: 'UUID string too large' }]
-  errors: { code: number; message: string }[];
+export interface DerivativesAPIErrorResponse {
   result: 'error';
+  error: string;
   serverTime: string;
-  status: 'BAD_REQUEST' | string;
 }
 
-export type APIResponse<TData> = APISuccessResponse<TData> | APIErrorResponse;
+export type DerivativesAPIResponse<TData> =
+  | DerivativesAPISuccessResponse<TData>
+  | DerivativesAPIErrorResponse;
 
 export type SpotAPISuccessResponse<TData> = {
   error: string[];
