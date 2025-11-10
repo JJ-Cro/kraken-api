@@ -9,7 +9,7 @@ import { DerivativesClient } from '../../../src/index.js';
  */
 
 // you can initialise public client without api keys as public calls do not require auth
-const client = new DerivativesClient({});
+const client = new DerivativesClient();
 
 async function getAllTickers() {
   try {

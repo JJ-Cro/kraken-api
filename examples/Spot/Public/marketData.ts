@@ -9,7 +9,7 @@ import { SpotClient } from '../../../src/index.js';
  */
 
 // you can initialise public client without api keys as public calls do not require auth
-const client = new SpotClient({});
+const client = new SpotClient();
 
 async function publicCalls() {
   try {
