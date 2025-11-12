@@ -4,11 +4,27 @@ import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
 
 /** Should be one WS key per unique URL */
 export const WS_KEY_MAP = {
-  /** Public WebSocket topics for Spot, via the V2 API: https://docs.kraken.com/api/docs/guides/spot-ws-intro */
+  /**
+   * Public WebSocket subscriptions for Kraken Spot products, via the V2 API
+   *
+   * - Ref: https://docs.kraken.com/api/docs/guides/spot-ws-intro
+   * - Channels: https://docs.kraken.com/api/docs/websocket-v2/add_order
+   *
+   * Note: Use spotPrivateV2 for private channels (requires API keys).
+   */
   spotPublicV2: 'spotPublicV2',
   spotPrivateV2: 'spotPrivateV2',
   spotBetaPublicV2: 'spotBetaPublicV2',
   spotBetaPrivateV2: 'spotBetaPrivateV2',
+  /**
+   * Public WebSocket subscriptions for Kraken Derivatives products, via the V1 API:
+   *
+   * - Ref: https://docs.kraken.com/api/docs/guides/futures-websockets
+   * - Channels: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
+   *
+   * Note: Both Public and Private channels use the same WebSocket URL, so we only need one WS key here.
+   */
+  derivativesV1: 'derivativesV1',
 } as const;
 
 /** This is used to differentiate between each of the available websocket streams */

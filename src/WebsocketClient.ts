@@ -328,6 +328,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       case WS_KEY_MAP.spotBetaPrivateV2: {
         return 'wss://beta-ws-auth.kraken.com/v2';
       }
+      case WS_KEY_MAP.derivativesV1: {
+        return 'wss://futures.kraken.com/ws/v1';
+      }
       default: {
         throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
       }
