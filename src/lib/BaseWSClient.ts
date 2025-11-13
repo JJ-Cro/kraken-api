@@ -262,6 +262,8 @@ export abstract class BaseWebsocketClient<
 
   protected abstract isWsPong(data: any): boolean;
 
+  protected abstract authPrivateConnectionsOnConnect(_wsKey: TWSKey): boolean;
+
   protected abstract getWsAuthRequestEvent(
     wsKey: TWSKey,
     eventToAuth?: object,
@@ -1124,7 +1126,7 @@ export abstract class BaseWebsocketClient<
     // Some websockets require an auth packet to be sent after opening the connection
     if (
       this.isPrivateWsKey(wsKey) &&
-      this.options.authPrivateConnectionsOnConnect
+      this.authPrivateConnectionsOnConnect(wsKey)
     ) {
       await this.assertIsAuthenticated(wsKey);
     }
@@ -1147,7 +1149,7 @@ export abstract class BaseWebsocketClient<
     }
 
     // Request sub to private topics, if auth on connect isn't needed
-    if (!this.options.authPrivateConnectionsOnConnect) {
+    if (!this.authPrivateConnectionsOnConnect(wsKey)) {
       try {
         this.requestSubscribeTopics(wsKey, privateReqs);
       } catch (e) {
@@ -1194,7 +1196,7 @@ export abstract class BaseWebsocketClient<
     // Remove before continuing, in case there's more requests queued
     this.wsStore.removeAuthenticationInProgressPromise(wsKey);
 
-    if (this.options.authPrivateConnectionsOnConnect) {
+    if (this.authPrivateConnectionsOnConnect(wsKey)) {
       const topics = [...this.wsStore.getTopics(wsKey)];
       const privateTopics = topics.filter((topic) =>
         this.isPrivateTopicRequest(topic, wsKey),
@@ -1309,7 +1311,7 @@ export abstract class BaseWebsocketClient<
             if (
               this.isPrivateWsKey(wsKey) &&
               wsState &&
-              !this.options.authPrivateConnectionsOnConnect
+              !this.authPrivateConnectionsOnConnect(wsKey)
             ) {
               wsState.isAuthenticated = true;
             }

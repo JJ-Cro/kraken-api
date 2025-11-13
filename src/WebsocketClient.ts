@@ -6,6 +6,7 @@ import {
 import { neverGuard } from './lib/misc-util.js';
 import { RestClientOptions } from './lib/requestUtils.js';
 import {
+  hashMessage,
   SignAlgorithm,
   SignEncodeMethod,
   signMessage,
@@ -48,6 +49,8 @@ export interface WSAPIRequestFlags {
 
 export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   private restClientCache: RestClientCache = new RestClientCache();
+
+  private wsChallengeCache: Map<WsKey, string> = new Map();
 
   constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger) {
     super({ ...options, wsLoggerCategory: WS_LOGGER_CATEGORY_ID }, logger);
@@ -328,7 +331,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       case WS_KEY_MAP.spotBetaPrivateV2: {
         return 'wss://beta-ws-auth.kraken.com/v2';
       }
-      case WS_KEY_MAP.derivativesV1: {
+      // Uses the same URL, but we maintain separate connections for easier management
+      case WS_KEY_MAP.derivativesPublicV1:
+      case WS_KEY_MAP.derivativesPrivateV1: {
         return 'wss://futures.kraken.com/ws/v1';
       }
       default: {
@@ -428,8 +433,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     try {
       const parsed = JSON.parse(event.data);
 
-      const responseEvents = ['subscribe', 'unsubscribe'];
-      const authenticatedEvents = ['auth'];
+      // derivatives sends 'challenge' on successful auth-init (used for sign during subscribe)
+      const responseEvents = ['subscribe', 'unsubscribe', 'info'];
+      const authenticatedEvents = ['challenge'];
 
       const eventHeaders = parsed?.header;
       const eventChannel = eventHeaders?.channel;
@@ -439,8 +445,14 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
       const promiseRef = [eventChannel, requestId].join('_');
 
-      const eventAction =
-        parsed.method || parsed.type || parsed?.header?.data || parsed.channel;
+      const derivativesEventAction = parsed.event;
+      const spotEventAction =
+        parsed.method ||
+        parsed.type ||
+        parsed.event ||
+        parsed?.header?.data ||
+        parsed.channel;
+      const eventAction = spotEventAction || derivativesEventAction;
 
       // WS API
       // if (eventType === 'api') {
@@ -542,6 +554,17 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
         // Request/reply pattern for authentication success
         if (authenticatedEvents.includes(eventAction)) {
+          if (wsKey === WS_KEY_MAP.derivativesPrivateV1) {
+            const challenge = parsed.message;
+            if (challenge) {
+              this.logger.trace(
+                `Stored challenge for derivatives auth on wsKey "${wsKey}": "${challenge}"`,
+              );
+              // TODO: clear cache on conn close
+              this.wsChallengeCache.set(wsKey, challenge);
+            }
+          }
+
           results.push({
             eventType: 'authenticated',
             event: parsed,
@@ -653,6 +676,15 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     return 1;
   }
 
+  protected authPrivateConnectionsOnConnect(wsKey: WsKey): boolean {
+    // derivatives require you to send a challenge on connect
+    if (wsKey === WS_KEY_MAP.derivativesPrivateV1) {
+      return true;
+    }
+
+    return this.options.authPrivateConnectionsOnConnect;
+  }
+
   /**
    * @returns one or more correctly structured request events for performing a operations over WS. This can vary per exchange spec.
    */
@@ -670,19 +702,26 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
     for (const topicRequest of requests) {
       const req_id = this.getNewRequestId();
-      const wsEvent: WsRequestOperationKraken<WSTopic> = {
-        method: operation,
-        params: {
-          channel: topicRequest.topic,
-          ...topicRequest.payload,
-        },
-        req_id: req_id,
-      };
 
-      if (this.options.authPrivateRequests) {
-        switch (wsKey) {
-          case WS_KEY_MAP.spotPrivateV2:
-          case WS_KEY_MAP.spotBetaPrivateV2: {
+      switch (wsKey) {
+        case WS_KEY_MAP.spotPublicV2:
+        case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotBetaPublicV2:
+        case WS_KEY_MAP.spotBetaPrivateV2: {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+            method: operation,
+            params: {
+              channel: topicRequest.topic,
+              ...topicRequest.payload,
+            },
+            req_id: req_id,
+          };
+
+          if (
+            this.options.authPrivateRequests &&
+            (wsKey === WS_KEY_MAP.spotPrivateV2 ||
+              wsKey === WS_KEY_MAP.spotBetaPrivateV2)
+          ) {
             // Get token from REST client cache
             const tokenResult =
               await this.restClientCache.fetchSpotWebSocketToken(
@@ -700,34 +739,148 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
             }
 
             wsEvent.params.token = tokenResult.token;
-
-            break;
-          }
-          case WS_KEY_MAP.spotPublicV2:
-          case WS_KEY_MAP.spotBetaPublicV2: {
-            // Public WS - no auth
-            break;
           }
 
-          default: {
-            throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WSTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
+
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+
+          break;
+
+          // move spot stuff here
+        }
+        case WS_KEY_MAP.derivativesPublicV1:
+        case WS_KEY_MAP.derivativesPrivateV1: {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+            method: operation,
+            params: {
+              channel: topicRequest.topic,
+              ...topicRequest.payload,
+            },
+            req_id: req_id,
+          };
+
+          // move derivatives stuff here
+
+          // https://docs.kraken.com/api/docs/guides/futures-websockets
+          // Authenticated requests must include both the original challenge message (original_challenge) and the signed (signed_challenge) in JSON format.
+
+          // Send WS API challenge:
+          // https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
+
+          const challengeRequest = {
+            event: 'challenge',
+            api_key: this.options.apiKey,
+          };
+
+          if (!this.wsChallengeCache.has(wsKey)) {
+            this.logger.trace(
+              `No challenge key cached for wsKey ${wsKey}, asserting authentication...`,
+              { ...WS_LOGGER_CATEGORY, wsKey },
+            );
+
+            await this.assertIsAuthenticated(wsKey);
           }
+
+          const challengeKey = this.wsChallengeCache.get(wsKey);
+          if (!challengeKey) {
+            this.logger.error(
+              `Auth-check passed but no challenge key could be retrieved from cache for wsKey ${wsKey}`,
+              { ...WS_LOGGER_CATEGORY, wsKey },
+            );
+            throw new Error(
+              'No challenge key cached, cannot send authenticated request',
+            );
+          }
+
+          wsEvent.original_challenge = challengeKey;
+          wsEvent.api_key = this.options.apiKey;
+
+          /**
+           * The challenge is a UUID string.
+           * The steps to sign the challenge are the same as the steps to generate an authenticated HTTP request except for step 1 which now is just the challenge string:
+           * - 1. Hash the challenge with the SHA-256 algorithm
+           * - 2. Base64-decode your api_secret
+           * - 3. Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
+           * - 4. Base64-encode the result of step 3
+           *
+           * The result of the step 4 is the signed challenge which will be included in the subscribe request.
+           */
+
+          // Step 1: Hash the challenge with the SHA-256 algorithm
+          const hashedChallenge = await hashMessage(
+            challengeKey,
+            'base64',
+            'SHA-256',
+          );
+
+          // Step 2: Base64-decode your api_secret
+          if (!this.options.apiSecret) {
+            throw new Error(
+              'API Secret missing, cannot sign challenge for authenticated WS request',
+            );
+          }
+
+          /**
+             * Python example:
+             *
+    def __sign_challenge(self, challenge):
+        """Signed a challenge received from Crypto Facilities Ltd"""
+        # step 1: hash the message with SHA256
+        sha256_hash = hashlib.sha256()
+        sha256_hash.update(challenge.encode("utf8"))
+        hash_digest = sha256_hash.digest()
+
+        # step 3: base64 decode apiPrivateKey
+        secret_decoded = base64.b64decode(self.api_secret)
+
+        # step 4: use result of step 3 to has the result of step 2 with HMAC-SHA512
+        hmac_digest = hmac.new(secret_decoded, hash_digest, hashlib.sha512).digest()
+
+        # step 5: base64 encode the result of step 4 and return
+        sch = base64.b64encode(hmac_digest).decode("utf-8")
+        return sch
+             */
+
+          // Step 3 + 4: HMAC-SHA-512 of the hashed challenge using api secret, then base64-encode the result
+          const challengeSign = await this.signMessage(
+            hashedChallenge,
+            this.options.apiSecret,
+            'base64',
+            'SHA-512',
+          );
+
+          wsEvent.signed_challenge = challengeSign;
+
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WSTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
+
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+
+          break;
+        }
+
+        default: {
+          throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
         }
       }
-
-      // Cache midflight subs on the req ID
-      // Enrich response with subs for that req ID
-
-      const midflightWsEvent: MidflightWsRequestEvent<
-        WsRequestOperationKraken<WSTopic>
-      > = {
-        requestKey: wsEvent.req_id,
-        requestEvent: wsEvent,
-      };
-
-      wsRequestEvents.push({
-        ...midflightWsEvent,
-      });
     }
 
     if (wsRequestBuildingErrors.length) {
@@ -754,7 +907,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   private async signMessage(
     paramsStr: string,
     secret: string,
-    method: 'hex' | 'base64',
+    method: SignEncodeMethod,
     algorithm: SignAlgorithm,
   ): Promise<string> {
     if (typeof this.options.customSignMessageFn === 'function') {
@@ -807,12 +960,28 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         case WS_KEY_MAP.spotPublicV2:
-        case WS_KEY_MAP.spotBetaPublicV2: {
+        case WS_KEY_MAP.spotBetaPublicV2:
+        case WS_KEY_MAP.derivativesPublicV1: {
           // Public WS - no auth
           this.logger.trace(
             `getWsAuthRequestEvent(${wsKey}): no auth required for public WS...`,
           );
           return;
+        }
+
+        case WS_KEY_MAP.derivativesPrivateV1: {
+          // https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
+
+          this.logger.trace(
+            `getWsAuthRequestEvent(${wsKey}): preparing auth challenge request...`,
+            { ...WS_LOGGER_CATEGORY, wsKey },
+          );
+          const challengeRequest = {
+            event: 'challenge',
+            api_key: this.options.apiKey,
+          };
+
+          return challengeRequest;
         }
 
         default: {

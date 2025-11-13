@@ -9,4 +9,16 @@ export type WSSpotPrivateTopic = 'executions' | 'balances' | 'level3';
 
 export type WSSpotTopic = WSSpotPublicTopic | WSSpotPrivateTopic;
 
-export type WSTopic = WSSpotTopic;
+export type WSDerivativesPublicTopic =
+  | 'aaaa'
+  | 'baaaaook'
+  | 'oaaahlc'
+  | 'traaaaade';
+
+export type WSDerivativesPrivateTopic = 'open_orders' | 'aaaaaa' | 'aaaaaaa';
+
+export type WSDerivativesTopic =
+  | WSDerivativesPublicTopic
+  | WSDerivativesPrivateTopic;
+
+export type WSTopic = WSSpotTopic | WSDerivativesTopic;

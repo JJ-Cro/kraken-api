@@ -22,9 +22,10 @@ export const WS_KEY_MAP = {
    * - Ref: https://docs.kraken.com/api/docs/guides/futures-websockets
    * - Channels: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
    *
-   * Note: Both Public and Private channels use the same WebSocket URL, so we only need one WS key here.
+   * Note: While both Public and Private channels use the same WebSocket URL, we will actually maintain separate connections for easier management. Private channels require authentication and the connection is authenticated automatically.
    */
-  derivativesV1: 'derivativesV1',
+  derivativesPublicV1: 'derivativesPublicV1',
+  derivativesPrivateV1: 'derivativesPrivateV1',
 } as const;
 
 /** This is used to differentiate between each of the available websocket streams */
@@ -58,7 +59,10 @@ export interface WsRequestOperationKraken<
   TWSTopic extends string,
   TWSParams extends object = any,
 > {
-  method: WsOperation;
+  // spot
+  method?: WsOperation;
+  // futures
+  event?: WsOperation;
   params:
     | {
         channel: (TWSTopic | string | number)[];
@@ -68,6 +72,11 @@ export interface WsRequestOperationKraken<
       }
     | TWSParams;
   req_id: number;
+  // futures
+  feed?: TWSTopic;
+  api_key?: string;
+  original_challenge?: string;
+  signed_challenge?: string;
 }
 
 /**
