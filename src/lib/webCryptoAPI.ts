@@ -60,6 +60,11 @@ export async function hashMessage(
   }
 }
 
+export interface SignMessageOptions {
+  isSecretB64Encoded?: boolean;
+  isInputBinaryString?: boolean;
+}
+
 /**
  * Sign a message, with a secret, using the Web Crypto API
  */
@@ -68,10 +73,7 @@ export async function signMessage(
   secret: string,
   method: SignEncodeMethod,
   algorithm: SignAlgorithm,
-  options?: {
-    isSecretB64Encoded?: boolean;
-    isInputBinaryString?: boolean;
-  },
+  options?: SignMessageOptions,
 ): Promise<string> {
   const encoder = new TextEncoder();
 

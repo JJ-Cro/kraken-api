@@ -10,6 +10,7 @@ import {
   SignAlgorithm,
   SignEncodeMethod,
   signMessage,
+  SignMessageOptions,
 } from './lib/webCryptoAPI.js';
 import { DefaultLogger } from './lib/websocket/logger.js';
 import { RestClientCache } from './lib/websocket/rest-client-cache.js';
@@ -761,7 +762,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         case WS_KEY_MAP.derivativesPublicV1:
         case WS_KEY_MAP.derivativesPrivateV1: {
           const wsEvent: WsRequestOperationKraken<WSTopic> = {
-            method: operation,
+            event: operation,
+            feed: topicRequest.topic,
             params: {
               channel: topicRequest.topic,
               ...topicRequest.payload,
@@ -769,18 +771,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
             req_id: req_id,
           };
 
-          // move derivatives stuff here
-
           // https://docs.kraken.com/api/docs/guides/futures-websockets
           // Authenticated requests must include both the original challenge message (original_challenge) and the signed (signed_challenge) in JSON format.
-
-          // Send WS API challenge:
-          // https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
-
-          const challengeRequest = {
-            event: 'challenge',
-            api_key: this.options.apiKey,
-          };
 
           if (!this.wsChallengeCache.has(wsKey)) {
             this.logger.trace(
@@ -805,58 +797,27 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           wsEvent.original_challenge = challengeKey;
           wsEvent.api_key = this.options.apiKey;
 
-          /**
-           * The challenge is a UUID string.
-           * The steps to sign the challenge are the same as the steps to generate an authenticated HTTP request except for step 1 which now is just the challenge string:
-           * - 1. Hash the challenge with the SHA-256 algorithm
-           * - 2. Base64-decode your api_secret
-           * - 3. Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
-           * - 4. Base64-encode the result of step 3
-           *
-           * The result of the step 4 is the signed challenge which will be included in the subscribe request.
-           */
-
-          // Step 1: Hash the challenge with the SHA-256 algorithm
           const hashedChallenge = await hashMessage(
             challengeKey,
-            'base64',
+            'binary',
             'SHA-256',
           );
 
-          // Step 2: Base64-decode your api_secret
           if (!this.options.apiSecret) {
             throw new Error(
               'API Secret missing, cannot sign challenge for authenticated WS request',
             );
           }
 
-          /**
-             * Python example:
-             *
-    def __sign_challenge(self, challenge):
-        """Signed a challenge received from Crypto Facilities Ltd"""
-        # step 1: hash the message with SHA256
-        sha256_hash = hashlib.sha256()
-        sha256_hash.update(challenge.encode("utf8"))
-        hash_digest = sha256_hash.digest()
-
-        # step 3: base64 decode apiPrivateKey
-        secret_decoded = base64.b64decode(self.api_secret)
-
-        # step 4: use result of step 3 to has the result of step 2 with HMAC-SHA512
-        hmac_digest = hmac.new(secret_decoded, hash_digest, hashlib.sha512).digest()
-
-        # step 5: base64 encode the result of step 4 and return
-        sch = base64.b64encode(hmac_digest).decode("utf-8")
-        return sch
-             */
-
-          // Step 3 + 4: HMAC-SHA-512 of the hashed challenge using api secret, then base64-encode the result
           const challengeSign = await this.signMessage(
             hashedChallenge,
             this.options.apiSecret,
             'base64',
             'SHA-512',
+            {
+              isSecretB64Encoded: true,
+              isInputBinaryString: true,
+            },
           );
 
           wsEvent.signed_challenge = challengeSign;
@@ -909,11 +870,12 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     secret: string,
     method: SignEncodeMethod,
     algorithm: SignAlgorithm,
+    options?: SignMessageOptions,
   ): Promise<string> {
     if (typeof this.options.customSignMessageFn === 'function') {
       return this.options.customSignMessageFn(paramsStr, secret);
     }
-    return await signMessage(paramsStr, secret, method, algorithm);
+    return await signMessage(paramsStr, secret, method, algorithm, options);
   }
 
   protected async getWsAuthRequestEvent(

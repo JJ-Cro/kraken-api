@@ -59,9 +59,9 @@ export interface WsRequestOperationKraken<
   TWSTopic extends string,
   TWSParams extends object = any,
 > {
-  // spot
+  // spot only
   method?: WsOperation;
-  // futures
+  // futures only
   event?: WsOperation;
   params:
     | {
@@ -72,7 +72,9 @@ export interface WsRequestOperationKraken<
       }
     | TWSParams;
   req_id: number;
-  // futures
+  /**
+   * The following are needed for futures/derivatives requests
+   */
   feed?: TWSTopic;
   api_key?: string;
   original_challenge?: string;
