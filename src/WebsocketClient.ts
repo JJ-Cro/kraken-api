@@ -349,36 +349,30 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   protected sendPingEvent(wsKey: WsKey) {
     // let pingChannel: WsRequestPing['channel'];
 
-    // switch (wsKey) {
-    //   case 'deliveryFuturesBTCV4':
-    //   case 'deliveryFuturesUSDTV4':
-    //   case 'perpFuturesBTCV4':
-    //   case 'perpFuturesUSDTV4': {
-    //     pingChannel = 'futures.ping';
-    //     break;
-    //   }
-    //   case 'announcementsV4': {
-    //     pingChannel = 'announcement.ping';
-    //     break;
-    //   }
-    //   case 'optionsV4': {
-    //     pingChannel = 'options.ping';
-    //     break;
-    //   }
-    //   case 'spotV4': {
-    //     pingChannel = 'spot.ping';
-    //     break;
-    //   }
-    //   default: {
-    //     throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
-    //   }
-    // }
+    switch (wsKey) {
+      case WS_KEY_MAP.derivativesPublicV1:
+      case WS_KEY_MAP.derivativesPrivateV1: {
+        const ws = this.getWsStore().get(wsKey)?.ws;
+        if (ws) {
+          ws.ping();
+        }
+        break;
+      }
+      case WS_KEY_MAP.spotPublicV2:
+      case WS_KEY_MAP.spotPrivateV2:
+      case WS_KEY_MAP.spotBetaPublicV2:
+      case WS_KEY_MAP.spotBetaPrivateV2: {
+        // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
+        return this.tryWsSend(
+          wsKey,
+          `{ "method": "ping", "req_id": ${this.getNewRequestId()} }`,
+        );
+      }
 
-    // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
-    return this.tryWsSend(
-      wsKey,
-      `{ "method": "ping", "req_id": ${this.getNewRequestId()} }`,
-    );
+      default: {
+        throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+      }
+    }
   }
 
   protected sendPongEvent(wsKey: WsKey) {
@@ -438,7 +432,14 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       const parsed = JSON.parse(event.data);
 
       // derivatives sends 'challenge' on successful auth-init (used for sign during subscribe)
-      const responseEvents = ['subscribe', 'unsubscribe', 'info'];
+      const responseEvents = [
+        'subscribe',
+        'unsubscribe',
+        'info',
+        // derivatives confirmation for subscription success
+        'subscribed',
+        'unsubscribed',
+      ];
       const authenticatedEvents = ['challenge'];
 
       const eventHeaders = parsed?.header;
@@ -449,7 +450,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
       const promiseRef = [eventChannel, requestId].join('_');
 
-      const derivativesEventAction = parsed.event;
+      const derivativesEventAction = parsed.event || parsed.feed;
       const spotEventAction =
         parsed.method ||
         parsed.type ||
@@ -556,6 +557,15 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           return results;
         }
 
+        // derivatives events include the "feed" property to identify the channel name
+        if (typeof parsed.feed === 'string') {
+          results.push({
+            eventType: 'message',
+            event: parsed,
+          });
+          return results;
+        }
+
         // Request/reply pattern for authentication success
         if (authenticatedEvents.includes(eventAction)) {
           if (wsKey === WS_KEY_MAP.derivativesPrivateV1) {
@@ -564,7 +574,6 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
               this.logger.trace(
                 `Stored challenge for derivatives auth on wsKey "${wsKey}": "${challenge}"`,
               );
-              // TODO: clear cache on conn close
               this.wsChallengeCache.set(wsKey, challenge);
             }
           }
@@ -585,12 +594,12 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         this.logger.error(
-          `!! Unhandled string "eventAction" "${eventAction}". Defaulting to "message" channel...`,
+          `!! Unhandled string "eventAction" "${eventAction}". Defaulting to "message" channel... Parsed:`,
           parsed,
         );
       } else {
         this.logger.error(
-          `!! Unhandled non-string "eventAction" "${eventAction}". Defaulting to "message" channel...`,
+          `!! Unhandled non-string "eventAction" "${eventAction}". Defaulting to "message" channel... Parsed:`,
           parsed,
         );
       }

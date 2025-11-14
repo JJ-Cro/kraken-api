@@ -66,12 +66,12 @@ async function start() {
 
   // Something happened, attempting to reconnect
   client.on('reconnecting', (data) => {
-    console.log('reconnect: ', data);
+    console.log('reconnect: ', data?.wsKey);
   });
 
   // Reconnect successful
   client.on('reconnected', (data) => {
-    console.log('reconnected: ', data);
+    console.log('reconnected: ', data?.wsKey);
   });
 
   // Connection closed. If unexpected, expect reconnect -> reconnected.
