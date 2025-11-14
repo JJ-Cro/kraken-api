@@ -380,17 +380,19 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
   protected sendPongEvent(wsKey: WsKey) {
     try {
-      this.logger.trace('Sending upstream ws PONG: ', {
+      this.logger.trace('Sending upstream ws PONGFRAME: ', {
         ...WS_LOGGER_CATEGORY,
-        wsMessage: 'PONG',
+        wsMessage: 'PONGFRAME',
         wsKey,
       });
       if (!wsKey) {
-        throw new Error('Cannot send PONG, no wsKey provided');
+        throw new Error('Cannot send PONGFRAME, no wsKey provided');
       }
       const wsState = this.getWsStore().get(wsKey);
       if (!wsState || !wsState?.ws) {
-        throw new Error(`Cannot send pong, ${wsKey} socket not connected yet`);
+        throw new Error(
+          `Cannot send PONGFRAME, ${wsKey} socket not connected yet`,
+        );
       }
 
       // Send a protocol layer pong
@@ -398,7 +400,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     } catch (e) {
       this.logger.error('Failed to send WS PONG', {
         ...WS_LOGGER_CATEGORY,
-        wsMessage: 'PONG',
+        wsMessage: 'PONGFRAME',
         wsKey,
         exception: e,
       });

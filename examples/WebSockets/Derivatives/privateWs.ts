@@ -16,13 +16,13 @@ import {
 const customLogger: DefaultLogger = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   trace: (...params: LogParams): void => {
-    console.log('trace', ...params);
+    console.log(new Date(), '--> trace', ...params);
   },
   info: (...params: LogParams): void => {
-    console.log('info', ...params);
+    console.log(new Date(), '--> info', ...params);
   },
   error: (...params: LogParams): void => {
-    console.error('error', ...params);
+    console.error(new Date(), '--> error', ...params);
   },
 };
 
@@ -56,40 +56,40 @@ async function start() {
   );
 
   client.on('open', (data) => {
-    console.log('connected ', data?.wsKey);
+    console.log(new Date(), 'connected ', data?.wsKey);
   });
 
   // Data received
   client.on('message', (data) => {
-    console.info('data received: ', JSON.stringify(data));
+    console.info(new Date(), 'data received: ', JSON.stringify(data));
   });
 
   // Something happened, attempting to reconnect
   client.on('reconnecting', (data) => {
-    console.log('reconnect: ', data?.wsKey);
+    console.log(new Date(), 'reconnect: ', data?.wsKey);
   });
 
   // Reconnect successful
   client.on('reconnected', (data) => {
-    console.log('reconnected: ', data?.wsKey);
+    console.log(new Date(), 'reconnected: ', data?.wsKey);
   });
 
   // Connection closed. If unexpected, expect reconnect -> reconnected.
   client.on('close', (data) => {
-    console.error('close: ', data);
+    console.error(new Date(), 'close: ', data);
   });
 
   // Reply to a request, e.g. "subscribe"/"unsubscribe"/"authenticate"
   client.on('response', (data) => {
-    console.info('server reply: ', JSON.stringify(data), '\n');
+    console.info(new Date(), 'server reply: ', JSON.stringify(data), '\n');
   });
 
   client.on('exception', (data) => {
-    console.error('exception: ', data);
+    console.error(new Date(), 'exception: ', data);
   });
 
   client.on('authenticated', (data) => {
-    console.error('authenticated: ', data);
+    console.error(new Date(), 'authenticated: ', data);
   });
 
   /**

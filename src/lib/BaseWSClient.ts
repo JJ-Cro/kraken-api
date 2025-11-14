@@ -228,7 +228,7 @@ export abstract class BaseWebsocketClient<
       // Automatically re-auth WS API, if we were auth'd before and get reconnected
       reauthWSAPIOnReconnect: true,
       // Whether to use native heartbeats (depends on the exchange)
-      useNativeHeartbeats: false,
+      useNativeHeartbeats: true,
 
       ...options,
     };
@@ -605,11 +605,11 @@ export abstract class BaseWebsocketClient<
       this.parseWsError('WebSocket onWsError', event, wsKey);
     ws.onclose = (event: any) => this.onWsClose(event, wsKey);
 
-    // Native ws ping/pong frames are not in use for okx
+    //
     if (this.options.useNativeHeartbeats) {
       if (typeof ws.on === 'function') {
-        ws.on('ping', (event: any) => this.onWsPing(event, wsKey, ws, 'event'));
-        ws.on('pong', (event: any) => this.onWsPong(event, wsKey, 'event'));
+        ws.on('ping', (event: any) => this.onWsPing(event, wsKey, ws, 'frame'));
+        ws.on('pong', (event: any) => this.onWsPong(event, wsKey, 'frame'));
       }
     }
 
@@ -1227,7 +1227,7 @@ export abstract class BaseWebsocketClient<
     ws: WebSocket,
     source: WsEventInternalSrc,
   ) {
-    this.logger.trace('Received ping', {
+    this.logger.trace(`Received PING ${source}`, {
       ...this.WS_LOGGER_CATEGORY,
       wsKey,
       event,
@@ -1237,12 +1237,14 @@ export abstract class BaseWebsocketClient<
   }
 
   private onWsPong(event: any, wsKey: TWSKey, source: WsEventInternalSrc) {
-    this.logger.trace('Received pong', {
+    this.logger.trace(`Received PONG ${source}`, {
       ...this.WS_LOGGER_CATEGORY,
       wsKey,
       event: (event as any)?.data,
       source,
     });
+    // Necessary when native heartbeats are used
+    this.clearPongTimer(wsKey);
     return;
   }
 
