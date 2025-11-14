@@ -15,7 +15,14 @@ export type WSDerivativesPublicTopic =
   | 'oaaahlc'
   | 'traaaaade';
 
-export type WSDerivativesPrivateTopic = 'open_orders' | 'aaaaaa' | 'aaaaaaa';
+export type WSDerivativesPrivateTopic =
+  | 'open_orders'
+  | 'open_orders_verbose'
+  | 'fills'
+  | 'balances'
+  | 'open_positions'
+  | 'account_log'
+  | 'notifications_auth';
 
 export type WSDerivativesTopic =
   | WSDerivativesPublicTopic

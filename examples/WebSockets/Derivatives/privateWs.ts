@@ -16,7 +16,7 @@ import {
 const customLogger: DefaultLogger = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   trace: (...params: LogParams): void => {
-    console.log(new Date(), '--> trace', ...params);
+    // console.log(new Date(), '--> trace', ...params);
   },
   info: (...params: LogParams): void => {
     console.log(new Date(), '--> info', ...params);
@@ -100,50 +100,52 @@ async function start() {
    * - Cache the challenge
    * - Include the key, original challenge and signed challenge parameters for you when subscribing to private topics on the derivativesPrivateV1 WebSocket connection.
    *
-   * So you do NOT need to manually fetch or provide the token when subscribing to private topics.
+   * You do NOT need to manually fetch or provide the "original_challenge" and "signed_challenge" tokens when subscribing to private topics.
    *
    * Do note that all of these include the "derivativesPrivateV1" WsKey reference. This tells the WebsocketClient to use the private "wss://futures.kraken.com/ws/v1" endpoint for these private subscription requests. It will also automatically authenticate the connection when it is established.
    */
 
   try {
-    // Balances, requires auth: https://docs.kraken.com/api/docs/websocket-v2/executions
-    const executionsRequestWithParams: WsTopicRequest<WSDerivativesTopic> = {
+    /**
+     * All of the following parameters require API keys for Derivatives APIs.
+     *
+     * Note: your "WsTopicRequest" does not need to include "api_key", "original_challenge" and "signed_challenge". See above for details, or below for examples.
+     */
+
+    // Open orders: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
+    const openOrdersTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
       topic: 'open_orders',
     };
-    client.subscribe(
-      executionsRequestWithParams,
-      WS_KEY_MAP.derivativesPrivateV1,
-    );
+    client.subscribe(openOrdersTopicRequest, WS_KEY_MAP.derivativesPrivateV1);
 
-    // // Balances, requires auth: https://docs.kraken.com/api/docs/websocket-v2/balances
-    // const balancesRequestWithParams: WsTopicRequest<WSSpotTopic> = {
-    //   topic: 'balances',
-    //   payload: {
-    //     // below params are optional:
-    //     // snapshot: true, // default: true
-    //     // TODO: are these correct? because in the docs these are higher level objects...but only for this topic?
-    //     // rebased: false, // default: true
-    //     // users: 'all',
-    //   },
-    // };
-    // client.subscribe(
-    //   balancesRequestWithParams,
-    //   WS_KEY_MAP.derivativesPrivateV1,
-    // );
+    // Note: if there are no parameters needed, you can also just request the topic by name
+    // This is the same as openOrdersTopicRequest, since openOrdersTopicRequest contains no parameters
+    // client.subscribe('open_orders', WS_KEY_MAP.derivativesPrivateV1);
 
-    // // Orders Level 3, requires auth: https://docs.kraken.com/api/docs/websocket-v2/level3
-    // const ordersRequestWithParams: WsTopicRequest<WSSpotTopic> = {
-    //   // topic: 'level3',
-    //   topic: 'level3',
-    //   payload: {
-    //     symbol: ['ALGO/USD', 'BTC/USD'],
-    //     // below params are optional:
-    //     // depth: 10, // default: 10, Possible values: [10, 100, 1000]
-    //     // snapshot: true, // default: true
-    //   },
-    // };
+    // Open orders (verbose): https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
+    client.subscribe('open_orders_verbose', WS_KEY_MAP.derivativesPrivateV1);
 
-    // client.subscribe(ordersRequestWithParams, WS_KEY_MAP.derivativesPrivateV1);
+    // Fills: https://docs.kraken.com/api/docs/futures-api/websocket/fills
+    const accountFillsTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+      topic: 'fills',
+      // Optionally, the product_ids field can be used to subscribe only to specific product.
+      // payload: {
+      //   product_ids: ['PF_XBTUSD'],
+      // },
+    };
+    client.subscribe(accountFillsTopicRequest, WS_KEY_MAP.derivativesPrivateV1);
+
+    // Balances: https://docs.kraken.com/api/docs/futures-api/websocket/balances
+    client.subscribe('balances', WS_KEY_MAP.derivativesPrivateV1);
+
+    // Open Position: https://docs.kraken.com/api/docs/futures-api/websocket/open_position
+    client.subscribe('open_positions', WS_KEY_MAP.derivativesPrivateV1);
+
+    // Account Log: https://docs.kraken.com/api/docs/futures-api/websocket/account_log
+    client.subscribe('account_log', WS_KEY_MAP.derivativesPrivateV1);
+
+    // Notification: https://docs.kraken.com/api/docs/futures-api/websocket/notifications
+    client.subscribe('notifications_auth', WS_KEY_MAP.derivativesPrivateV1);
   } catch (e) {
     console.error('Req error: ', e);
   }

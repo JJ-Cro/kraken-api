@@ -543,6 +543,15 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           return results;
         }
 
+        // exceptions with derivatives v1 WS. E.g. { event: 'alert', message: 'Bad websocket message' }
+        if (eventAction === 'alert') {
+          results.push({
+            eventType: 'exception',
+            event: parsed,
+          });
+          return results;
+        }
+
         // Most events use event: "update" or "snapshot" for topic updates
         if (['update', 'snapshot'].includes(eventAction)) {
           results.push({
@@ -785,10 +794,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           const wsEvent: WsRequestOperationKraken<WSTopic> = {
             event: operation,
             feed: topicRequest.topic,
-            params: {
-              channel: topicRequest.topic,
-              ...topicRequest.payload,
-            },
+            ...topicRequest.payload,
             req_id: req_id,
           };
 
