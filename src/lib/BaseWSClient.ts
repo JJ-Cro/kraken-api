@@ -1132,10 +1132,7 @@ export abstract class BaseWebsocketClient<
     this.wsStore.removeConnectingInProgressPromise(wsKey);
 
     // Some websockets require an auth packet to be sent after opening the connection
-    if (
-      this.isPrivateWsKey(wsKey) &&
-      this.authPrivateConnectionsOnConnect(wsKey)
-    ) {
+    if (this.authPrivateConnectionsOnConnect(wsKey)) {
       await this.assertIsAuthenticated(wsKey);
     }
 
@@ -1316,11 +1313,7 @@ export abstract class BaseWebsocketClient<
             );
 
             const wsState = this.wsStore.get(wsKey);
-            if (
-              this.isPrivateWsKey(wsKey) &&
-              wsState &&
-              !this.authPrivateConnectionsOnConnect(wsKey)
-            ) {
+            if (wsState && !this.authPrivateConnectionsOnConnect(wsKey)) {
               wsState.isAuthenticated = true;
             }
 

@@ -300,6 +300,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     };
   }
 
+  /**
+   * Note: implementing this method will wipe the WsStore state for this WsKey, once this method returns
+   */
   protected isCustomReconnectionNeeded(): boolean {
     return false;
   }
@@ -676,7 +679,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    * Whether key represents a private connection. Feeds into automatic auth on connect.
    */
   protected getPrivateWSKeys(): WsKey[] {
-    return [WS_KEY_MAP.spotPrivateV2, WS_KEY_MAP.spotBetaPrivateV2];
+    return [
+      WS_KEY_MAP.spotPrivateV2,
+      WS_KEY_MAP.spotBetaPrivateV2,
+      WS_KEY_MAP.derivativesPrivateV1,
+    ];
   }
 
   protected isAuthOnConnectWsKey(wsKey: WsKey): boolean {
