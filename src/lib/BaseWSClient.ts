@@ -264,6 +264,11 @@ export abstract class BaseWebsocketClient<
 
   protected abstract authPrivateConnectionsOnConnect(_wsKey: TWSKey): boolean;
 
+  /**
+   * Return the event sent to the server to trigger authentication. If the event requires waiting for another event first (e.g. a challenge), return 'waitForEvent' and the library will wait for that event before calling this method again.
+   *
+   * Usually only called once per connection, unless the connection drops/is reset.
+   */
   protected abstract getWsAuthRequestEvent(
     wsKey: TWSKey,
     eventToAuth?: object,
@@ -1397,9 +1402,9 @@ export abstract class BaseWebsocketClient<
     const wsState = this.wsStore.get(wsKey, true);
     wsState.isAuthenticated = false;
 
-    if (
-      this.wsStore.getConnectionState(wsKey) !== WsConnectionStateEnum.CLOSING
-    ) {
+    const wsConnectionState = this.wsStore.getConnectionState(wsKey);
+
+    if (wsConnectionState !== WsConnectionStateEnum.CLOSING) {
       // unintentional close, attempt recovery
       this.logger.trace(
         `onWsClose(${wsKey}): rejecting all deferred promises...`,

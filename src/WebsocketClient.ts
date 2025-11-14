@@ -21,7 +21,10 @@ import {
   WsRequestOperationKraken,
   WsTopicRequest,
 } from './lib/websocket/websocket-util.js';
-import { WSConnectedResult } from './lib/websocket/WsStore.types.js';
+import {
+  WSConnectedResult,
+  WsConnectionStateEnum,
+} from './lib/websocket/WsStore.types.js';
 import {
   WSAPIAuthenticationRequestFromServer,
   WsAPITopicRequestParamMap,
@@ -932,6 +935,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         case WS_KEY_MAP.derivativesPrivateV1: {
+          // cleanup old challenge key (in case we were reconnected)
+          this.wsChallengeCache.delete(wsKey);
+
           // https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
 
           this.logger.trace(
