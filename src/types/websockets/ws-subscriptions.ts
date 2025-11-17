@@ -10,10 +10,10 @@ export type WSSpotPrivateTopic = 'executions' | 'balances' | 'level3';
 export type WSSpotTopic = WSSpotPublicTopic | WSSpotPrivateTopic;
 
 export type WSDerivativesPublicTopic =
-  | 'aaaa'
-  | 'baaaaook'
-  | 'oaaahlc'
-  | 'traaaaade';
+  | 'ticker'
+  | 'ticker_lite'
+  | 'book'
+  | 'trade';
 
 export type WSDerivativesPrivateTopic =
   | 'open_orders'

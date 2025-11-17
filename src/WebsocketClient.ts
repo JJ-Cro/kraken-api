@@ -786,10 +786,32 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           });
 
           break;
-
-          // move spot stuff here
         }
-        case WS_KEY_MAP.derivativesPublicV1:
+        // No auth needed, it's public topics only here
+        case WS_KEY_MAP.derivativesPublicV1: {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+            event: operation,
+            feed: topicRequest.topic,
+            ...topicRequest.payload,
+            req_id: req_id,
+          };
+
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WSTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
+
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+
+          break;
+        }
+
         case WS_KEY_MAP.derivativesPrivateV1: {
           const wsEvent: WsRequestOperationKraken<WSTopic> = {
             event: operation,
