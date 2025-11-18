@@ -4,11 +4,28 @@ import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
 
 /** Should be one WS key per unique URL */
 export const WS_KEY_MAP = {
-  /** Public WebSocket topics for Spot, via the V2 API: https://docs.kraken.com/api/docs/guides/spot-ws-intro */
+  /**
+   * Public WebSocket subscriptions for Kraken Spot products, via the V2 API
+   *
+   * - Ref: https://docs.kraken.com/api/docs/guides/spot-ws-intro
+   * - Channels: https://docs.kraken.com/api/docs/websocket-v2/add_order
+   *
+   * Note: Use spotPrivateV2 for private channels (requires API keys).
+   */
   spotPublicV2: 'spotPublicV2',
   spotPrivateV2: 'spotPrivateV2',
   spotBetaPublicV2: 'spotBetaPublicV2',
   spotBetaPrivateV2: 'spotBetaPrivateV2',
+  /**
+   * Public WebSocket subscriptions for Kraken Derivatives products, via the V1 API:
+   *
+   * - Ref: https://docs.kraken.com/api/docs/guides/futures-websockets
+   * - Channels: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
+   *
+   * Note: While both Public and Private channels use the same WebSocket URL, we will actually maintain separate connections for easier management. Private channels require authentication and the connection is authenticated automatically.
+   */
+  derivativesPublicV1: 'derivativesPublicV1',
+  derivativesPrivateV1: 'derivativesPrivateV1',
 } as const;
 
 /** This is used to differentiate between each of the available websocket streams */
@@ -42,7 +59,10 @@ export interface WsRequestOperationKraken<
   TWSTopic extends string,
   TWSParams extends object = any,
 > {
-  method: WsOperation;
+  // spot only
+  method?: WsOperation;
+  // futures only
+  event?: WsOperation;
   params:
     | {
         channel: (TWSTopic | string | number)[];
@@ -52,6 +72,13 @@ export interface WsRequestOperationKraken<
       }
     | TWSParams;
   req_id: number;
+  /**
+   * The following are needed for futures/derivatives requests
+   */
+  feed?: TWSTopic;
+  api_key?: string;
+  original_challenge?: string;
+  signed_challenge?: string;
 }
 
 /**

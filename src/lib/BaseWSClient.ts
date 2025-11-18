@@ -228,7 +228,7 @@ export abstract class BaseWebsocketClient<
       // Automatically re-auth WS API, if we were auth'd before and get reconnected
       reauthWSAPIOnReconnect: true,
       // Whether to use native heartbeats (depends on the exchange)
-      useNativeHeartbeats: false,
+      useNativeHeartbeats: true,
 
       ...options,
     };
@@ -262,6 +262,13 @@ export abstract class BaseWebsocketClient<
 
   protected abstract isWsPong(data: any): boolean;
 
+  protected abstract authPrivateConnectionsOnConnect(_wsKey: TWSKey): boolean;
+
+  /**
+   * Return the event sent to the server to trigger authentication. If the event requires waiting for another event first (e.g. a challenge), return 'waitForEvent' and the library will wait for that event before calling this method again.
+   *
+   * Usually only called once per connection, unless the connection drops/is reset.
+   */
   protected abstract getWsAuthRequestEvent(
     wsKey: TWSKey,
     eventToAuth?: object,
@@ -530,7 +537,10 @@ export abstract class BaseWebsocketClient<
         return { wsKey, ws: this.wsStore.getWs(wsKey)! };
       }
 
-      if (this.wsStore.isConnectionAttemptInProgress(wsKey)) {
+      if (
+        // Important: don't check for RECONNECTING here, or this clashes with reconnectWithDelay()!
+        this.wsStore.isConnectionState(wsKey, WsConnectionStateEnum.CONNECTING)
+      ) {
         this.logger.error(
           'Refused to connect to ws, connection attempt already active',
           { ...this.WS_LOGGER_CATEGORY, wsKey },
@@ -595,11 +605,11 @@ export abstract class BaseWebsocketClient<
       this.parseWsError('WebSocket onWsError', event, wsKey);
     ws.onclose = (event: any) => this.onWsClose(event, wsKey);
 
-    // Native ws ping/pong frames are not in use for okx
+    //
     if (this.options.useNativeHeartbeats) {
       if (typeof ws.on === 'function') {
-        ws.on('ping', (event: any) => this.onWsPing(event, wsKey, ws, 'event'));
-        ws.on('pong', (event: any) => this.onWsPong(event, wsKey, 'event'));
+        ws.on('ping', (event: any) => this.onWsPing(event, wsKey, ws, 'frame'));
+        ws.on('pong', (event: any) => this.onWsPong(event, wsKey, 'frame'));
       }
     }
 
@@ -1122,10 +1132,7 @@ export abstract class BaseWebsocketClient<
     this.wsStore.removeConnectingInProgressPromise(wsKey);
 
     // Some websockets require an auth packet to be sent after opening the connection
-    if (
-      this.isPrivateWsKey(wsKey) &&
-      this.options.authPrivateConnectionsOnConnect
-    ) {
+    if (this.authPrivateConnectionsOnConnect(wsKey)) {
       await this.assertIsAuthenticated(wsKey);
     }
 
@@ -1147,7 +1154,7 @@ export abstract class BaseWebsocketClient<
     }
 
     // Request sub to private topics, if auth on connect isn't needed
-    if (!this.options.authPrivateConnectionsOnConnect) {
+    if (!this.authPrivateConnectionsOnConnect(wsKey)) {
       try {
         this.requestSubscribeTopics(wsKey, privateReqs);
       } catch (e) {
@@ -1194,7 +1201,7 @@ export abstract class BaseWebsocketClient<
     // Remove before continuing, in case there's more requests queued
     this.wsStore.removeAuthenticationInProgressPromise(wsKey);
 
-    if (this.options.authPrivateConnectionsOnConnect) {
+    if (this.authPrivateConnectionsOnConnect(wsKey)) {
       const topics = [...this.wsStore.getTopics(wsKey)];
       const privateTopics = topics.filter((topic) =>
         this.isPrivateTopicRequest(topic, wsKey),
@@ -1220,7 +1227,7 @@ export abstract class BaseWebsocketClient<
     ws: WebSocket,
     source: WsEventInternalSrc,
   ) {
-    this.logger.trace('Received ping', {
+    this.logger.trace(`Received PING ${source}`, {
       ...this.WS_LOGGER_CATEGORY,
       wsKey,
       event,
@@ -1230,12 +1237,14 @@ export abstract class BaseWebsocketClient<
   }
 
   private onWsPong(event: any, wsKey: TWSKey, source: WsEventInternalSrc) {
-    this.logger.trace('Received pong', {
+    this.logger.trace(`Received PONG ${source}`, {
       ...this.WS_LOGGER_CATEGORY,
       wsKey,
       event: (event as any)?.data,
       source,
     });
+    // Necessary when native heartbeats are used
+    this.clearPongTimer(wsKey);
     return;
   }
 
@@ -1306,11 +1315,7 @@ export abstract class BaseWebsocketClient<
             );
 
             const wsState = this.wsStore.get(wsKey);
-            if (
-              this.isPrivateWsKey(wsKey) &&
-              wsState &&
-              !this.options.authPrivateConnectionsOnConnect
-            ) {
+            if (wsState && !this.authPrivateConnectionsOnConnect(wsKey)) {
               wsState.isAuthenticated = true;
             }
 
@@ -1395,9 +1400,9 @@ export abstract class BaseWebsocketClient<
     const wsState = this.wsStore.get(wsKey, true);
     wsState.isAuthenticated = false;
 
-    if (
-      this.wsStore.getConnectionState(wsKey) !== WsConnectionStateEnum.CLOSING
-    ) {
+    const wsConnectionState = this.wsStore.getConnectionState(wsKey);
+
+    if (wsConnectionState !== WsConnectionStateEnum.CLOSING) {
       // unintentional close, attempt recovery
       this.logger.trace(
         `onWsClose(${wsKey}): rejecting all deferred promises...`,

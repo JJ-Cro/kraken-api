@@ -6,9 +6,11 @@ import {
 import { neverGuard } from './lib/misc-util.js';
 import { RestClientOptions } from './lib/requestUtils.js';
 import {
+  hashMessage,
   SignAlgorithm,
   SignEncodeMethod,
   signMessage,
+  SignMessageOptions,
 } from './lib/webCryptoAPI.js';
 import { DefaultLogger } from './lib/websocket/logger.js';
 import { RestClientCache } from './lib/websocket/rest-client-cache.js';
@@ -19,7 +21,10 @@ import {
   WsRequestOperationKraken,
   WsTopicRequest,
 } from './lib/websocket/websocket-util.js';
-import { WSConnectedResult } from './lib/websocket/WsStore.types.js';
+import {
+  WSConnectedResult,
+  WsConnectionStateEnum,
+} from './lib/websocket/WsStore.types.js';
 import {
   WSAPIAuthenticationRequestFromServer,
   WsAPITopicRequestParamMap,
@@ -48,6 +53,8 @@ export interface WSAPIRequestFlags {
 
 export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   private restClientCache: RestClientCache = new RestClientCache();
+
+  private wsChallengeCache: Map<WsKey, string> = new Map();
 
   constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger) {
     super({ ...options, wsLoggerCategory: WS_LOGGER_CATEGORY_ID }, logger);
@@ -293,6 +300,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     };
   }
 
+  /**
+   * Note: implementing this method will wipe the WsStore state for this WsKey, once this method returns
+   */
   protected isCustomReconnectionNeeded(): boolean {
     return false;
   }
@@ -328,6 +338,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       case WS_KEY_MAP.spotBetaPrivateV2: {
         return 'wss://beta-ws-auth.kraken.com/v2';
       }
+      // Uses the same URL, but we maintain separate connections for easier management
+      case WS_KEY_MAP.derivativesPublicV1:
+      case WS_KEY_MAP.derivativesPrivateV1: {
+        return 'wss://futures.kraken.com/ws/v1';
+      }
       default: {
         throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
       }
@@ -337,51 +352,47 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   protected sendPingEvent(wsKey: WsKey) {
     // let pingChannel: WsRequestPing['channel'];
 
-    // switch (wsKey) {
-    //   case 'deliveryFuturesBTCV4':
-    //   case 'deliveryFuturesUSDTV4':
-    //   case 'perpFuturesBTCV4':
-    //   case 'perpFuturesUSDTV4': {
-    //     pingChannel = 'futures.ping';
-    //     break;
-    //   }
-    //   case 'announcementsV4': {
-    //     pingChannel = 'announcement.ping';
-    //     break;
-    //   }
-    //   case 'optionsV4': {
-    //     pingChannel = 'options.ping';
-    //     break;
-    //   }
-    //   case 'spotV4': {
-    //     pingChannel = 'spot.ping';
-    //     break;
-    //   }
-    //   default: {
-    //     throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
-    //   }
-    // }
+    switch (wsKey) {
+      case WS_KEY_MAP.derivativesPublicV1:
+      case WS_KEY_MAP.derivativesPrivateV1: {
+        const ws = this.getWsStore().get(wsKey)?.ws;
+        if (ws) {
+          ws.ping();
+        }
+        break;
+      }
+      case WS_KEY_MAP.spotPublicV2:
+      case WS_KEY_MAP.spotPrivateV2:
+      case WS_KEY_MAP.spotBetaPublicV2:
+      case WS_KEY_MAP.spotBetaPrivateV2: {
+        // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
+        return this.tryWsSend(
+          wsKey,
+          `{ "method": "ping", "req_id": ${this.getNewRequestId()} }`,
+        );
+      }
 
-    // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
-    return this.tryWsSend(
-      wsKey,
-      `{ "method": "ping", "req_id": ${this.getNewRequestId()} }`,
-    );
+      default: {
+        throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+      }
+    }
   }
 
   protected sendPongEvent(wsKey: WsKey) {
     try {
-      this.logger.trace('Sending upstream ws PONG: ', {
+      this.logger.trace('Sending upstream ws PONGFRAME: ', {
         ...WS_LOGGER_CATEGORY,
-        wsMessage: 'PONG',
+        wsMessage: 'PONGFRAME',
         wsKey,
       });
       if (!wsKey) {
-        throw new Error('Cannot send PONG, no wsKey provided');
+        throw new Error('Cannot send PONGFRAME, no wsKey provided');
       }
       const wsState = this.getWsStore().get(wsKey);
       if (!wsState || !wsState?.ws) {
-        throw new Error(`Cannot send pong, ${wsKey} socket not connected yet`);
+        throw new Error(
+          `Cannot send PONGFRAME, ${wsKey} socket not connected yet`,
+        );
       }
 
       // Send a protocol layer pong
@@ -389,7 +400,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     } catch (e) {
       this.logger.error('Failed to send WS PONG', {
         ...WS_LOGGER_CATEGORY,
-        wsMessage: 'PONG',
+        wsMessage: 'PONGFRAME',
         wsKey,
         exception: e,
       });
@@ -425,8 +436,16 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     try {
       const parsed = JSON.parse(event.data);
 
-      const responseEvents = ['subscribe', 'unsubscribe'];
-      const authenticatedEvents = ['auth'];
+      // derivatives sends 'challenge' on successful auth-init (used for sign during subscribe)
+      const responseEvents = [
+        'subscribe',
+        'unsubscribe',
+        'info',
+        // derivatives confirmation for subscription success
+        'subscribed',
+        'unsubscribed',
+      ];
+      const authenticatedEvents = ['challenge'];
 
       const eventHeaders = parsed?.header;
       const eventChannel = eventHeaders?.channel;
@@ -436,8 +455,14 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
       const promiseRef = [eventChannel, requestId].join('_');
 
-      const eventAction =
-        parsed.method || parsed.type || parsed?.header?.data || parsed.channel;
+      const derivativesEventAction = parsed.event || parsed.feed;
+      const spotEventAction =
+        parsed.method ||
+        parsed.type ||
+        parsed.event ||
+        parsed?.header?.data ||
+        parsed.channel;
+      const eventAction = spotEventAction || derivativesEventAction;
 
       // WS API
       // if (eventType === 'api') {
@@ -518,6 +543,15 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           return results;
         }
 
+        // exceptions with derivatives v1 WS. E.g. { event: 'alert', message: 'Bad websocket message' }
+        if (eventAction === 'alert') {
+          results.push({
+            eventType: 'exception',
+            event: parsed,
+          });
+          return results;
+        }
+
         // Most events use event: "update" or "snapshot" for topic updates
         if (['update', 'snapshot'].includes(eventAction)) {
           results.push({
@@ -537,8 +571,27 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           return results;
         }
 
+        // derivatives events include the "feed" property to identify the channel name
+        if (typeof parsed.feed === 'string') {
+          results.push({
+            eventType: 'message',
+            event: parsed,
+          });
+          return results;
+        }
+
         // Request/reply pattern for authentication success
         if (authenticatedEvents.includes(eventAction)) {
+          if (wsKey === WS_KEY_MAP.derivativesPrivateV1) {
+            const challenge = parsed.message;
+            if (challenge) {
+              this.logger.trace(
+                `Stored challenge for derivatives auth on wsKey "${wsKey}": "${challenge}"`,
+              );
+              this.wsChallengeCache.set(wsKey, challenge);
+            }
+          }
+
           results.push({
             eventType: 'authenticated',
             event: parsed,
@@ -555,12 +608,12 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         this.logger.error(
-          `!! Unhandled string "eventAction" "${eventAction}". Defaulting to "message" channel...`,
+          `!! Unhandled string "eventAction" "${eventAction}". Defaulting to "message" channel... Parsed:`,
           parsed,
         );
       } else {
         this.logger.error(
-          `!! Unhandled non-string "eventAction" "${eventAction}". Defaulting to "message" channel...`,
+          `!! Unhandled non-string "eventAction" "${eventAction}". Defaulting to "message" channel... Parsed:`,
           parsed,
         );
       }
@@ -637,7 +690,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    * Whether key represents a private connection. Feeds into automatic auth on connect.
    */
   protected getPrivateWSKeys(): WsKey[] {
-    return [WS_KEY_MAP.spotPrivateV2, WS_KEY_MAP.spotBetaPrivateV2];
+    return [
+      WS_KEY_MAP.spotPrivateV2,
+      WS_KEY_MAP.spotBetaPrivateV2,
+      WS_KEY_MAP.derivativesPrivateV1,
+    ];
   }
 
   protected isAuthOnConnectWsKey(wsKey: WsKey): boolean {
@@ -648,6 +705,15 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected getMaxTopicsPerSubscribeEvent(_wsKey: WsKey): number | null {
     return 1;
+  }
+
+  protected authPrivateConnectionsOnConnect(wsKey: WsKey): boolean {
+    // derivatives require you to send a challenge on connect
+    if (wsKey === WS_KEY_MAP.derivativesPrivateV1) {
+      return true;
+    }
+
+    return this.options.authPrivateConnectionsOnConnect;
   }
 
   /**
@@ -667,19 +733,26 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
     for (const topicRequest of requests) {
       const req_id = this.getNewRequestId();
-      const wsEvent: WsRequestOperationKraken<WSTopic> = {
-        method: operation,
-        params: {
-          channel: topicRequest.topic,
-          ...topicRequest.payload,
-        },
-        req_id: req_id,
-      };
 
-      if (this.options.authPrivateRequests) {
-        switch (wsKey) {
-          case WS_KEY_MAP.spotPrivateV2:
-          case WS_KEY_MAP.spotBetaPrivateV2: {
+      switch (wsKey) {
+        case WS_KEY_MAP.spotPublicV2:
+        case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotBetaPublicV2:
+        case WS_KEY_MAP.spotBetaPrivateV2: {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+            method: operation,
+            params: {
+              channel: topicRequest.topic,
+              ...topicRequest.payload,
+            },
+            req_id: req_id,
+          };
+
+          if (
+            this.options.authPrivateRequests &&
+            (wsKey === WS_KEY_MAP.spotPrivateV2 ||
+              wsKey === WS_KEY_MAP.spotBetaPrivateV2)
+          ) {
             // Get token from REST client cache
             const tokenResult =
               await this.restClientCache.fetchSpotWebSocketToken(
@@ -697,34 +770,127 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
             }
 
             wsEvent.params.token = tokenResult.token;
-
-            break;
-          }
-          case WS_KEY_MAP.spotPublicV2:
-          case WS_KEY_MAP.spotBetaPublicV2: {
-            // Public WS - no auth
-            break;
           }
 
-          default: {
-            throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WSTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
+
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+
+          break;
+        }
+        // No auth needed, it's public topics only here
+        case WS_KEY_MAP.derivativesPublicV1: {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+            event: operation,
+            feed: topicRequest.topic,
+            ...topicRequest.payload,
+            req_id: req_id,
+          };
+
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WSTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
+
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+
+          break;
+        }
+
+        case WS_KEY_MAP.derivativesPrivateV1: {
+          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+            event: operation,
+            feed: topicRequest.topic,
+            ...topicRequest.payload,
+            req_id: req_id,
+          };
+
+          // https://docs.kraken.com/api/docs/guides/futures-websockets
+          // Authenticated requests must include both the original challenge message (original_challenge) and the signed (signed_challenge) in JSON format.
+
+          if (!this.wsChallengeCache.has(wsKey)) {
+            this.logger.trace(
+              `No challenge key cached for wsKey ${wsKey}, asserting authentication...`,
+              { ...WS_LOGGER_CATEGORY, wsKey },
+            );
+
+            await this.assertIsAuthenticated(wsKey);
           }
+
+          const challengeKey = this.wsChallengeCache.get(wsKey);
+          if (!challengeKey) {
+            this.logger.error(
+              `Auth-check passed but no challenge key could be retrieved from cache for wsKey ${wsKey}`,
+              { ...WS_LOGGER_CATEGORY, wsKey },
+            );
+            throw new Error(
+              'No challenge key cached, cannot send authenticated request',
+            );
+          }
+
+          wsEvent.original_challenge = challengeKey;
+          wsEvent.api_key = this.options.apiKey;
+
+          const hashedChallenge = await hashMessage(
+            challengeKey,
+            'binary',
+            'SHA-256',
+          );
+
+          if (!this.options.apiSecret) {
+            throw new Error(
+              'API Secret missing, cannot sign challenge for authenticated WS request',
+            );
+          }
+
+          const challengeSign = await this.signMessage(
+            hashedChallenge,
+            this.options.apiSecret,
+            'base64',
+            'SHA-512',
+            {
+              isSecretB64Encoded: true,
+              isInputBinaryString: true,
+            },
+          );
+
+          wsEvent.signed_challenge = challengeSign;
+
+          // Cache midflight subs on the req ID
+          // Enrich response with subs for that req ID
+          const midflightWsEvent: MidflightWsRequestEvent<
+            WsRequestOperationKraken<WSTopic>
+          > = {
+            requestKey: wsEvent.req_id,
+            requestEvent: wsEvent,
+          };
+
+          wsRequestEvents.push({
+            ...midflightWsEvent,
+          });
+
+          break;
+        }
+
+        default: {
+          throw neverGuard(wsKey, `Unhandled WsKey "${wsKey}"`);
         }
       }
-
-      // Cache midflight subs on the req ID
-      // Enrich response with subs for that req ID
-
-      const midflightWsEvent: MidflightWsRequestEvent<
-        WsRequestOperationKraken<WSTopic>
-      > = {
-        requestKey: wsEvent.req_id,
-        requestEvent: wsEvent,
-      };
-
-      wsRequestEvents.push({
-        ...midflightWsEvent,
-      });
     }
 
     if (wsRequestBuildingErrors.length) {
@@ -751,13 +917,14 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   private async signMessage(
     paramsStr: string,
     secret: string,
-    method: 'hex' | 'base64',
+    method: SignEncodeMethod,
     algorithm: SignAlgorithm,
+    options?: SignMessageOptions,
   ): Promise<string> {
     if (typeof this.options.customSignMessageFn === 'function') {
       return this.options.customSignMessageFn(paramsStr, secret);
     }
-    return await signMessage(paramsStr, secret, method, algorithm);
+    return await signMessage(paramsStr, secret, method, algorithm, options);
   }
 
   protected async getWsAuthRequestEvent(
@@ -804,12 +971,31 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         case WS_KEY_MAP.spotPublicV2:
-        case WS_KEY_MAP.spotBetaPublicV2: {
+        case WS_KEY_MAP.spotBetaPublicV2:
+        case WS_KEY_MAP.derivativesPublicV1: {
           // Public WS - no auth
           this.logger.trace(
             `getWsAuthRequestEvent(${wsKey}): no auth required for public WS...`,
           );
           return;
+        }
+
+        case WS_KEY_MAP.derivativesPrivateV1: {
+          // cleanup old challenge key (in case we were reconnected)
+          this.wsChallengeCache.delete(wsKey);
+
+          // https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
+
+          this.logger.trace(
+            `getWsAuthRequestEvent(${wsKey}): preparing auth challenge request...`,
+            { ...WS_LOGGER_CATEGORY, wsKey },
+          );
+          const challengeRequest = {
+            event: 'challenge',
+            api_key: this.options.apiKey,
+          };
+
+          return challengeRequest;
         }
 
         default: {
