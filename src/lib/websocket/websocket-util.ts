@@ -1,5 +1,6 @@
 import WebSocket from 'isomorphic-ws';
 
+import { WSAPIRequestOperationKrakenSpot } from '../../types/websockets/ws-api.js';
 import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
 
 /** Should be one WS key per unique URL */
@@ -101,4 +102,20 @@ export function safeTerminateWs(
   }
 
   return false;
+}
+
+/**
+ * WS API promises are stored using a primary key. This key is constructed using
+ * properties found in every request & reply.
+ *
+ * The counterpart to this is in resolveEmittableEvents
+ */
+export function getPromiseRefForWSAPIRequest(
+  wsKey: WsKey,
+  requestEvent: WSAPIRequestOperationKrakenSpot,
+): string {
+  const promiseRef = [wsKey, requestEvent.method, requestEvent.req_id].join(
+    '_',
+  );
+  return promiseRef;
 }

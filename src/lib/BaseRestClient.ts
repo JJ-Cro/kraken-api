@@ -38,6 +38,7 @@ interface SignedRequest<T extends object | undefined = {}> {
 interface UnsignedRequest<T extends object | undefined = {}> {
   originalParams: T;
   paramsWithSign: T;
+  queryParamsWithSign: undefined;
 }
 
 type SignMethod = 'kraken';
