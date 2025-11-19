@@ -1,4 +1,23 @@
 import { WS_KEY_MAP, WsOperation } from '../../lib/websocket/websocket-util.js';
+import {
+  WSAPIAddSpotOrderParams,
+  WSAPIAmendSpotOrderParams,
+  WSAPIBatchAddSpotOrdersParams,
+  WSAPIBatchCancelSpotOrdersParams,
+  WSAPICancelAllSpotOrdersAfterParams,
+  WSAPICancelSpotOrderParams,
+  WSAPIEditSpotOrderParams,
+} from '../request/wsapi.types.js';
+import {
+  WSAPIAddSpotOrderResult,
+  WSAPIAmendSpotOrderResult,
+  WSAPIBatchAddSpotOrdersResult,
+  WSAPIBatchCancelSpotOrdersResult,
+  WSAPICancelAllSpotOrdersAfterResult,
+  WSAPICancelAllSpotOrdersResult,
+  WSAPICancelSpotOrderResult,
+  WSAPIEditSpotOrderResult,
+} from '../response/wsapi.types.js';
 
 export type Exact<T> = {
   // This part says: if there's any key that's not in T, it's an error
@@ -78,31 +97,31 @@ export interface WSAPISpotResponse<
 export interface WSAPITopicRequestParamMap {
   [key: string]: unknown;
 
-  add_order: {
-    order_type: 'limit';
-    side: 'buy';
-    order_qty: number;
-    symbol: string;
-    limit_price?: number;
-  };
-  amend_order: {};
-  cancel_order: {};
+  add_order: WSAPIAddSpotOrderParams;
+  amend_order: WSAPIAmendSpotOrderParams;
+  cancel_order: WSAPICancelSpotOrderParams;
   cancel_all: never;
-  cancel_all_orders_after: {};
-  batch_add: {};
-  batch_cancel: {};
-  edit_order: {};
+  cancel_all_orders_after: WSAPICancelAllSpotOrdersAfterParams;
+  batch_add: WSAPIBatchAddSpotOrdersParams;
+  batch_cancel: WSAPIBatchCancelSpotOrdersParams;
+  edit_order: WSAPIEditSpotOrderParams;
 }
 
 export interface WSAPITopicResponseMap {
   [k: string]: unknown;
 
-  add_order: {};
-  amend_order: {};
-  cancel_order: {};
-  cancel_all: WSAPISpotResponse<{ count: number }, 'cancel_all'>;
-  cancel_all_orders_after: {};
-  batch_add: {};
-  batch_cancel: {};
-  edit_order: {};
+  add_order: WSAPISpotResponse<WSAPIAddSpotOrderResult, 'add_order'>;
+  amend_order: WSAPISpotResponse<WSAPIAmendSpotOrderResult, 'amend_order'>;
+  cancel_order: WSAPISpotResponse<WSAPICancelSpotOrderResult, 'cancel_order'>;
+  cancel_all: WSAPISpotResponse<WSAPICancelAllSpotOrdersResult, 'cancel_all'>;
+  cancel_all_orders_after: WSAPISpotResponse<
+    WSAPICancelAllSpotOrdersAfterResult,
+    'cancel_all_orders_after'
+  >;
+  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult, 'batch_add'>;
+  batch_cancel: WSAPISpotResponse<
+    WSAPIBatchCancelSpotOrdersResult,
+    'batch_cancel'
+  >;
+  edit_order: WSAPISpotResponse<WSAPIEditSpotOrderResult, 'edit_order'>;
 }
