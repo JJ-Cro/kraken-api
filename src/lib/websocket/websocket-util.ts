@@ -1,6 +1,6 @@
 import WebSocket from 'isomorphic-ws';
 
-import { WsRequestOperationKrakenSpot } from '../../types/websockets/ws-api.js';
+import { WSAPIRequestOperationKrakenSpot } from '../../types/websockets/ws-api.js';
 import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
 
 /** Should be one WS key per unique URL */
@@ -112,7 +112,7 @@ export function safeTerminateWs(
  */
 export function getPromiseRefForWSAPIRequest(
   wsKey: WsKey,
-  requestEvent: WsRequestOperationKrakenSpot,
+  requestEvent: WSAPIRequestOperationKrakenSpot,
 ): string {
   const promiseRef = [wsKey, requestEvent.method, requestEvent.req_id].join(
     '_',

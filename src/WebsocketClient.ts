@@ -30,10 +30,11 @@ import {
   Exact,
   WS_API_Operations,
   WSAPIAuthenticationRequestFromServer,
-  WsAPITopicRequestParamMap,
-  WsAPITopicResponseMap,
-  WsAPIWsKeyTopicMap,
-  WsRequestOperationKrakenSpot,
+  WSAPIRequestOperationKrakenSpot,
+  WSAPITopicRequestParamMap,
+  WSAPITopicResponseMap,
+  WSAPIWsKey,
+  WSAPIWsKeyTopicMap,
 } from './types/websockets/ws-api.js';
 import { MessageEventLike } from './types/websockets/ws-events.js';
 import {
@@ -46,8 +47,6 @@ const WS_LOGGER_CATEGORY_ID = 'kraken-ws';
 const WS_LOGGER_CATEGORY = {
   category: WS_LOGGER_CATEGORY_ID,
 };
-
-type WSAPIWsKey = any;
 
 export interface WSAPIRequestFlags {
   /** If true, will skip auth requirement for WS API connection */
@@ -165,12 +164,12 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
 
   // This overload allows the caller to omit the 3rd param, if it isn't required (e.g. for the login call)
   async sendWSAPIRequest<
-    TWSKey extends keyof WsAPIWsKeyTopicMap,
-    TWSOperation extends WsAPIWsKeyTopicMap[TWSKey],
-    TWSParams extends Exact<WsAPITopicRequestParamMap[TWSOperation]>,
+    TWSKey extends keyof WSAPIWsKeyTopicMap,
+    TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
+    TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
     TWSAPIResponse extends
-      | WsAPITopicResponseMap[TWSOperation]
-      | object = WsAPITopicResponseMap[TWSOperation],
+      | WSAPITopicResponseMap[TWSOperation]
+      | object = WSAPITopicResponseMap[TWSOperation],
   >(
     wsKey: TWSKey,
     operation: TWSOperation,
@@ -179,10 +178,10 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   ): Promise<TWSAPIResponse>;
 
   async sendWSAPIRequest<
-    TWSKey extends keyof WsAPIWsKeyTopicMap,
-    TWSOperation extends WsAPIWsKeyTopicMap[TWSKey],
+    TWSKey extends keyof WSAPIWsKeyTopicMap,
+    TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
     // if this throws a type error, probably forgot to add a new operation to WsAPITopicRequestParamMap
-    TWSParams extends Exact<WsAPITopicRequestParamMap[TWSOperation]>,
+    TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
     TWSAPIResponse = object,
   >(
     wsKey: TWSKey,
@@ -215,7 +214,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       );
     }
 
-    const requestEvent: WsRequestOperationKrakenSpot = {
+    const requestEvent: WSAPIRequestOperationKrakenSpot = {
       method: operation,
       params: params,
       req_id: this.getNewRequestId(),
@@ -944,8 +943,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    * @returns A signed updated WS API request object, ready to be sent
    */
   private async signWSAPIRequest(
-    requestEvent: WsRequestOperationKrakenSpot,
-  ): Promise<WsRequestOperationKrakenSpot> {
+    requestEvent: WSAPIRequestOperationKrakenSpot,
+  ): Promise<WSAPIRequestOperationKrakenSpot> {
     if (!this.options.apiSecret) {
       throw new Error('API Secret missing');
     }

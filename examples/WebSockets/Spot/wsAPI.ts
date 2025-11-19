@@ -2,11 +2,11 @@
 import {
   DefaultLogger,
   LogParams,
-  WebsocketClient,
+  WebsocketAPIClient,
   WS_KEY_MAP,
 } from '../../../src/index.js';
 // normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
-// import { DefaultLogger, LogParams, WebsocketClient, WS_KEY_MAP } from '@siebly/kraken-api';
+// import { DefaultLogger, LogParams, WebsocketAPIClient, WS_KEY_MAP } from '@siebly/kraken-api';
 
 const customLogger: DefaultLogger = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,7 +42,7 @@ async function start() {
    *
    * Refer to WS_KEY_MAP in the source code for all available WsKey options.
    */
-  const client = new WebsocketClient(
+  const client = new WebsocketAPIClient(
     {
       apiKey: account.key,
       apiSecret: account.secret,
@@ -50,45 +50,8 @@ async function start() {
     customLogger,
   );
 
-  client.on('open', (data) => {
-    console.log('connected ', data?.wsKey);
-  });
-
-  // Data received
-  client.on('message', (data) => {
-    console.info('data received: ', JSON.stringify(data));
-  });
-
-  // Something happened, attempting to reconnect
-  client.on('reconnecting', (data) => {
-    console.log('reconnect: ', data);
-  });
-
-  // Reconnect successful
-  client.on('reconnected', (data) => {
-    console.log('reconnected: ', data);
-  });
-
-  // Connection closed. If unexpected, expect reconnect -> reconnected.
-  client.on('close', (data) => {
-    console.error('close: ', data);
-  });
-
-  // Reply to a request, e.g. "subscribe"/"unsubscribe"/"authenticate"
-  client.on('response', (data) => {
-    console.info('server reply: ', JSON.stringify(data), '\n');
-  });
-
-  client.on('exception', (data) => {
-    console.error('exception: ', data);
-  });
-
-  client.on('authenticated', (data) => {
-    console.error('authenticated: ', data);
-  });
-
   /**
-   *    * TODO:
+   * TODO:
    * The below examples demonstrate how you can subscribe to private topics.
    *
    * Note: while the documentation specifies "token" as a required parameter, the SDK will automatically:
@@ -104,25 +67,11 @@ async function start() {
   try {
     // Add Order https://docs.kraken.com/api/docs/websocket-v2/add_order
     // TODO:
-    // const addOrderResponse = await client.sendWSAPIRequest(
-    //   WS_KEY_MAP.spotPrivateV2,
-    //   'add_order',
-    //   {
-    //     order_type: 'limit',
-    //     side: 'buy',
-    //     order_qty: 0.0001,
-    //     symbol: 'BTC/USD',
-    //     limit_price: 1000,
-    //   },
-    // );
 
     // console.log('addOrderResponse: ', addOrderResponse);
 
     // Cancel All: https://docs.kraken.com/api/docs/websocket-v2/cancel_all
-    const cancelAllResponse = await client.sendWSAPIRequest(
-      WS_KEY_MAP.spotPrivateV2,
-      'cancel_all',
-    );
+    const cancelAllResponse = await client.cancelAllSpotOrders();
 
     console.log('cancelAllResponse: ', cancelAllResponse);
   } catch (e) {

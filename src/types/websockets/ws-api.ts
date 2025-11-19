@@ -42,10 +42,10 @@ export const WS_API_Operations = [
   'edit_order',
 ] as const;
 
-export type WsAPIOperation = (typeof WS_API_Operations)[number];
+export type WSAPIOperation = (typeof WS_API_Operations)[number];
 
-export interface WsRequestOperationKrakenSpot<
-  TWSOperation extends WsAPIOperation = WsAPIOperation,
+export interface WSAPIRequestOperationKrakenSpot<
+  TWSOperation extends WSAPIOperation = WSAPIOperation,
   TWSParams extends object = any,
 > {
   method: TWSOperation;
@@ -53,12 +53,29 @@ export interface WsRequestOperationKrakenSpot<
   req_id: number;
 }
 
-export interface WsAPIWsKeyTopicMap {
-  [WS_KEY_MAP.spotPrivateV2]: WsAPIOperation;
-  [WS_KEY_MAP.spotBetaPrivateV2]: WsAPIOperation;
+export interface WSAPIWsKeyTopicMap {
+  [WS_KEY_MAP.spotPrivateV2]: WSAPIOperation;
+  [WS_KEY_MAP.spotBetaPrivateV2]: WSAPIOperation;
 }
 
-export interface WsAPITopicRequestParamMap {
+export type WSAPIWsKey = keyof WSAPIWsKeyTopicMap;
+
+export interface WSAPISpotResponse<
+  TResponseData extends object = object,
+  TWSAPIOperation = WSAPIOperation,
+> {
+  wsKey: WSAPIWsKey;
+  error?: string;
+  method: TWSAPIOperation;
+  req_id: number;
+  success: boolean;
+  time_in: string;
+  time_out: string;
+  result: TResponseData;
+  request: any;
+}
+
+export interface WSAPITopicRequestParamMap {
   [key: string]: unknown;
 
   add_order: {
@@ -77,6 +94,15 @@ export interface WsAPITopicRequestParamMap {
   edit_order: {};
 }
 
-export interface WsAPITopicResponseMap {
-  [k: string]: never;
+export interface WSAPITopicResponseMap {
+  [k: string]: unknown;
+
+  add_order: {};
+  amend_order: {};
+  cancel_order: {};
+  cancel_all: WSAPISpotResponse<{ count: number }, 'cancel_all'>;
+  cancel_all_orders_after: {};
+  batch_add: {};
+  batch_cancel: {};
+  edit_order: {};
 }
