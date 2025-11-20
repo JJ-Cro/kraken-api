@@ -4,11 +4,11 @@ import {
   LogParams,
   WebsocketClient,
   WS_KEY_MAP,
-  WsTopicRequest,
+  WSTopicRequest,
 } from '../../../src/index.js';
 import { WSSpotTopic } from '../../../src/types/websockets/ws-subscriptions.js';
 // normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
-// import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
+// import { LogParams, WebsocketClient, WSTopicRequest } from '@siebly/kraken-api';
 
 const customLogger: DefaultLogger = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -104,7 +104,7 @@ async function start() {
 
   try {
     // Balances, requires auth: https://docs.kraken.com/api/docs/websocket-v2/executions
-    const executionsRequestWithParams: WsTopicRequest<WSSpotTopic> = {
+    const executionsRequestWithParams: WSTopicRequest<WSSpotTopic> = {
       topic: 'executions',
       payload: {
         // below params are optional:
@@ -120,7 +120,7 @@ async function start() {
     client.subscribe(executionsRequestWithParams, WS_KEY_MAP.spotPrivateV2);
 
     // Balances, requires auth: https://docs.kraken.com/api/docs/websocket-v2/balances
-    const balancesRequestWithParams: WsTopicRequest<WSSpotTopic> = {
+    const balancesRequestWithParams: WSTopicRequest<WSSpotTopic> = {
       topic: 'balances',
       payload: {
         // below params are optional:
@@ -133,7 +133,7 @@ async function start() {
     client.subscribe(balancesRequestWithParams, WS_KEY_MAP.spotPrivateV2);
 
     // Orders Level 3, requires auth: https://docs.kraken.com/api/docs/websocket-v2/level3
-    const ordersRequestWithParams: WsTopicRequest<WSSpotTopic> = {
+    const ordersRequestWithParams: WSTopicRequest<WSSpotTopic> = {
       // topic: 'level3',
       topic: 'level3',
       payload: {

@@ -1,4 +1,4 @@
-import { RestClientOptions } from '../../lib/requestUtils';
+import { RestClientOptions } from '../../lib/requestUtils.js';
 
 export type DerivativesAPISuccessResponse<TData> = {
   result: 'success';

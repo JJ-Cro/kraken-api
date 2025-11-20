@@ -345,7 +345,6 @@ For public market data, API credentials are not required:
 import { WebsocketClient } from '@siebly/kraken-api';
 // or if you prefer require:
 // const { WebsocketClient } = require('@siebly/kraken-api');
-
 // Create WebSocket client for public streams
 const wsClient = new WebsocketClient();
 
@@ -354,7 +353,7 @@ wsClient.on('open', (data) => {
   console.log('WebSocket connected: ', data?.wsKey);
 });
 
-wsClient.on('update', (data) => {
+wsClient.on('message', (data) => {
   console.log('Data received: ', JSON.stringify(data, null, 2));
 });
 
@@ -366,8 +365,7 @@ wsClient.on('exception', (data) => {
   console.error('WebSocket error: ', data);
 });
 
-// Subscribe to public data streams
-
+// Spot - Subscribe to public data streams
 wsClient.subscribe(
   {
     topic: 'ticker',
@@ -389,25 +387,25 @@ wsClient.subscribe(
   'spotPublicV2',
 );
 
+// Derivatives - Subscribe to public data streams
 wsClient.subscribe(
   {
-    topic: 'trade',
+    topic: 'ticker',
     payload: {
-      symbol: ['BTC/USD'],
+      product_ids: ['PI_XBTUSD', 'PI_ETHUSD'],
     },
   },
-  'spotPublicV2',
+  'derivativesPublicV1',
 );
 
 wsClient.subscribe(
   {
-    topic: 'ohlc',
+    topic: 'book',
     payload: {
-      symbol: ['BTC/USD'],
-      interval: 1,
+      product_ids: ['PI_XBTUSD'],
     },
   },
-  'spotPublicV2',
+  'derivativesPublicV1',
 );
 ```
 
@@ -429,7 +427,7 @@ wsClient.on('open', (data) => {
   console.log('Private WebSocket connected: ', data?.wsKey);
 });
 
-wsClient.on('update', (data) => {
+wsClient.on('message', (data) => {
   console.log('Private data received: ', JSON.stringify(data, null, 2));
 });
 
@@ -445,8 +443,7 @@ wsClient.on('exception', (data) => {
   console.error('WebSocket error: ', data);
 });
 
-// Subscribe to private data streams
-
+// Spot - Subscribe to private data streams
 wsClient.subscribe(
   {
     topic: 'executions',
@@ -469,23 +466,30 @@ wsClient.subscribe(
   'spotPrivateV2',
 );
 
+// Derivatives - Subscribe to private data streams
+// Note: SDK automatically handles authentication and challenge tokens
+wsClient.subscribe('open_orders', 'derivativesPrivateV1');
+
 wsClient.subscribe(
   {
-    topic: 'level3',
+    topic: 'fills',
     payload: {
-      symbol: ['BTC/USD'],
-      depth: 10,
+      product_ids: ['PF_XBTUSD'],
     },
   },
-  'spotPrivateV2',
+  'derivativesPrivateV1',
 );
+
+wsClient.subscribe('balances', 'derivativesPrivateV1');
+
+wsClient.subscribe('open_positions', 'derivativesPrivateV1');
 ```
 
 For more comprehensive examples, including custom logging and error handling, check the [examples](./examples/WebSockets) folder.
 
 ### WebSocket API (WebsocketAPIClient)
 
-The `WebsocketAPIClient` provides a REST-like interface for trading operations over WebSocket, offering lower latency than REST APIs.
+The `WebsocketAPIClient` provides a REST-like interface for trading operations over WebSocket, offering lower latency than REST APIs. Currently, only Spot trading is supported.
 
 ```javascript
 import { WebsocketAPIClient } from '@siebly/kraken-api';
