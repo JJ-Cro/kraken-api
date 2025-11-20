@@ -18,9 +18,9 @@ import {
   getPromiseRefForWSAPIRequest,
   WS_KEY_MAP,
   WsKey,
-  WsOperation,
-  WsRequestOperationKraken,
-  WsTopicRequest,
+  WSOperation,
+  WSRequestOperationKraken,
+  WSTopicRequest,
 } from './lib/websocket/websocket-util.js';
 import {
   WSConnectedResult,
@@ -101,8 +101,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   // TODO: auto resolve public vs private wsKey based on topic name!
   public subscribe(
     requests:
-      | (WsTopicRequest<WSTopic> | WSTopic)
-      | (WsTopicRequest<WSTopic> | WSTopic)[],
+      | (WSTopicRequest<WSTopic> | WSTopic)
+      | (WSTopicRequest<WSTopic> | WSTopic)[],
     wsKey: WsKey,
   ) {
     if (!Array.isArray(requests)) {
@@ -123,8 +123,8 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    */
   public unsubscribe(
     requests:
-      | (WsTopicRequest<WSTopic> | WSTopic)
-      | (WsTopicRequest<WSTopic> | WSTopic)[],
+      | (WSTopicRequest<WSTopic> | WSTopic)
+      | (WSTopicRequest<WSTopic> | WSTopic)[],
     wsKey: WsKey,
   ) {
     if (!Array.isArray(requests)) {
@@ -614,7 +614,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   /**
    * Determines if a topic is for a private channel, using a hardcoded list of strings
    */
-  protected isPrivateTopicRequest(request: WsTopicRequest<WSTopic>): boolean {
+  protected isPrivateTopicRequest(request: WSTopicRequest<WSTopic>): boolean {
     // TODO: configure this to auto-route requests for private topics to priate websockets
     const topicName = request?.topic?.toLowerCase();
     if (!topicName) {
@@ -668,11 +668,11 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    */
   protected async getWsRequestEvents(
     wsKey: WsKey,
-    operation: WsOperation,
-    requests: WsTopicRequest<WSTopic>[],
-  ): Promise<MidflightWsRequestEvent<WsRequestOperationKraken<string>>[]> {
+    operation: WSOperation,
+    requests: WSTopicRequest<WSTopic>[],
+  ): Promise<MidflightWsRequestEvent<WSRequestOperationKraken<string>>[]> {
     const wsRequestEvents: MidflightWsRequestEvent<
-      WsRequestOperationKraken<WSTopic>
+      WSRequestOperationKraken<WSTopic>
     >[] = [];
     const wsRequestBuildingErrors: unknown[] = [];
 
@@ -686,7 +686,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         case WS_KEY_MAP.spotPrivateV2:
         case WS_KEY_MAP.spotBetaPublicV2:
         case WS_KEY_MAP.spotBetaPrivateV2: {
-          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+          const wsEvent: WSRequestOperationKraken<WSTopic> = {
             method: operation,
             params: {
               channel: topicRequest.topic,
@@ -722,7 +722,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           // Cache midflight subs on the req ID
           // Enrich response with subs for that req ID
           const midflightWsEvent: MidflightWsRequestEvent<
-            WsRequestOperationKraken<WSTopic>
+            WSRequestOperationKraken<WSTopic>
           > = {
             requestKey: wsEvent.req_id,
             requestEvent: wsEvent,
@@ -736,7 +736,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
         // No auth needed, it's public topics only here
         case WS_KEY_MAP.derivativesPublicV1: {
-          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+          const wsEvent: WSRequestOperationKraken<WSTopic> = {
             event: operation,
             feed: topicRequest.topic,
             ...topicRequest.payload,
@@ -746,7 +746,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           // Cache midflight subs on the req ID
           // Enrich response with subs for that req ID
           const midflightWsEvent: MidflightWsRequestEvent<
-            WsRequestOperationKraken<WSTopic>
+            WSRequestOperationKraken<WSTopic>
           > = {
             requestKey: wsEvent.req_id,
             requestEvent: wsEvent,
@@ -760,7 +760,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
         }
 
         case WS_KEY_MAP.derivativesPrivateV1: {
-          const wsEvent: WsRequestOperationKraken<WSTopic> = {
+          const wsEvent: WSRequestOperationKraken<WSTopic> = {
             event: operation,
             feed: topicRequest.topic,
             ...topicRequest.payload,
@@ -821,7 +821,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           // Cache midflight subs on the req ID
           // Enrich response with subs for that req ID
           const midflightWsEvent: MidflightWsRequestEvent<
-            WsRequestOperationKraken<WSTopic>
+            WSRequestOperationKraken<WSTopic>
           > = {
             requestKey: wsEvent.req_id,
             requestEvent: wsEvent,

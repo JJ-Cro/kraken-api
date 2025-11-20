@@ -51,6 +51,9 @@ export interface WSAPIClientConfigurableOptions {
  *
  * Refer to the WS API promises example for a more detailed example on using sendWSAPIRequest() directly:
  * https://github.com/sieblyio/kraken-api/blob/main/examples/WebSockets/Spot/wsAPI.RAW.ts#L105
+ *
+ * Docs:
+ * - Spot WS API: https://docs.kraken.com/api/docs/websocket-v2/add_order/
  */
 export class WebsocketAPIClient {
   private wsClient: WebsocketClient;
