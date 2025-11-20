@@ -33,14 +33,12 @@ export interface WSAPICancelAllSpotOrdersAfterResult {
   warnings?: string[];
 }
 
-export interface WSAPIBatchAddSpotOrdersResultItem {
+export interface WSAPIBatchAddSpotOrdersResult {
   order_id: string;
   cl_ord_id?: string;
   order_userref?: number;
   warnings?: string[];
 }
-
-export type WSAPIBatchAddSpotOrdersResult = WSAPIBatchAddSpotOrdersResultItem[];
 
 export interface WSAPIBatchCancelSpotOrdersResult {
   count: number;

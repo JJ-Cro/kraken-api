@@ -15,9 +15,9 @@ import { checkWebCryptoAPISupported } from './webCryptoAPI.js';
 import { DefaultLogger } from './websocket/logger.js';
 import {
   safeTerminateWs,
-  WsOperation,
-  WsTopicRequest,
-  WsTopicRequestOrStringTopic,
+  WSOperation,
+  WSTopicRequest,
+  WSTopicRequestOrStringTopic,
 } from './websocket/websocket-util.js';
 import { WsStore } from './websocket/WsStore.js';
 import {
@@ -161,14 +161,14 @@ function getFinalEmittable(
  * This method normalises topics into objects (object has topic name + optional params).
  */
 function getNormalisedTopicRequests(
-  wsTopicRequests: WsTopicRequestOrStringTopic<WSTopic>[],
-): WsTopicRequest<WSTopic>[] {
-  const normalisedTopicRequests: WsTopicRequest<WSTopic>[] = [];
+  wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
+): WSTopicRequest<WSTopic>[] {
+  const normalisedTopicRequests: WSTopicRequest<WSTopic>[] = [];
 
   for (const wsTopicRequest of wsTopicRequests) {
     // passed as string, convert to object
     if (typeof wsTopicRequest === 'string') {
-      const topicRequest: WsTopicRequest<WSTopic> = {
+      const topicRequest: WSTopicRequest<WSTopic> = {
         topic: wsTopicRequest as WSTopic,
         payload: undefined,
       };
@@ -187,7 +187,7 @@ export abstract class BaseWebsocketClient<
   TWSKey extends string,
   TWSRequestEvent extends object,
 > extends EventEmitter {
-  private wsStore: WsStore<TWSKey, WsTopicRequest<WSTopic>>;
+  private wsStore: WsStore<TWSKey, WSTopicRequest<WSTopic>>;
 
   protected logger: DefaultLogger;
 
@@ -275,7 +275,7 @@ export abstract class BaseWebsocketClient<
   ): Promise<object | string | 'waitForEvent' | void>;
 
   protected abstract isPrivateTopicRequest(
-    request: WsTopicRequest<WSTopic>,
+    request: WSTopicRequest<WSTopic>,
     wsKey: TWSKey,
   ): boolean;
 
@@ -301,8 +301,8 @@ export abstract class BaseWebsocketClient<
    */
   protected abstract getWsRequestEvents(
     wsKey: TWSKey,
-    operation: WsOperation,
-    requests: WsTopicRequest<WSTopic>[],
+    operation: WSOperation,
+    requests: WSTopicRequest<WSTopic>[],
   ): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]>;
 
   /**
@@ -361,7 +361,7 @@ export abstract class BaseWebsocketClient<
    * @param wsKey ws key referring to the ws connection these topics should be subscribed on
    */
   protected async subscribeTopicsForWsKey(
-    wsTopicRequests: WsTopicRequestOrStringTopic<WSTopic>[],
+    wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
     wsKey: TWSKey,
   ) {
     const normalisedTopicRequests = getNormalisedTopicRequests(wsTopicRequests);
@@ -420,7 +420,7 @@ export abstract class BaseWebsocketClient<
   }
 
   protected async unsubscribeTopicsForWsKey(
-    wsTopicRequests: WsTopicRequestOrStringTopic<WSTopic>[],
+    wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
     wsKey: TWSKey,
   ): Promise<unknown> {
     const normalisedTopicRequests = getNormalisedTopicRequests(wsTopicRequests);
@@ -460,14 +460,14 @@ export abstract class BaseWebsocketClient<
    * Splits topic requests into two groups, public & private topic requests
    */
   private sortTopicRequestsIntoPublicPrivate(
-    wsTopicRequests: WsTopicRequest<WSTopic>[],
+    wsTopicRequests: WSTopicRequest<WSTopic>[],
     wsKey: TWSKey,
   ): {
-    publicReqs: WsTopicRequest<WSTopic>[];
-    privateReqs: WsTopicRequest<WSTopic>[];
+    publicReqs: WSTopicRequest<WSTopic>[];
+    privateReqs: WSTopicRequest<WSTopic>[];
   } {
-    const publicTopicRequests: WsTopicRequest<WSTopic>[] = [];
-    const privateTopicRequests: WsTopicRequest<WSTopic>[] = [];
+    const publicTopicRequests: WSTopicRequest<WSTopic>[] = [];
+    const privateTopicRequests: WSTopicRequest<WSTopic>[] = [];
 
     for (const topic of wsTopicRequests) {
       if (this.isPrivateTopicRequest(topic, wsKey)) {
@@ -484,7 +484,7 @@ export abstract class BaseWebsocketClient<
   }
 
   /** Get the WsStore that tracks websockets & topics */
-  public getWsStore(): WsStore<TWSKey, WsTopicRequest<WSTopic>> {
+  public getWsStore(): WsStore<TWSKey, WSTopicRequest<WSTopic>> {
     return this.wsStore;
   }
 
@@ -876,9 +876,9 @@ export abstract class BaseWebsocketClient<
    * Events are automatically split into smaller batches, by this method, if needed.
    */
   protected async getWsOperationEventsForTopics(
-    topics: WsTopicRequest<WSTopic>[],
+    topics: WSTopicRequest<WSTopic>[],
     wsKey: TWSKey,
-    operation: WsOperation,
+    operation: WSOperation,
   ): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]> {
     if (!topics.length) {
       return [];
@@ -923,7 +923,7 @@ export abstract class BaseWebsocketClient<
    */
   private async requestSubscribeTopics(
     wsKey: TWSKey,
-    wsTopicRequests: WsTopicRequest<WSTopic>[],
+    wsTopicRequests: WSTopicRequest<WSTopic>[],
   ) {
     if (!wsTopicRequests.length) {
       return;
@@ -951,7 +951,6 @@ export abstract class BaseWebsocketClient<
         this.tryWsSend(wsKey, JSON.stringify(wsMessage), true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
-        // TODO: is this the right thing to do here
         throw e;
       }
     }
@@ -968,7 +967,7 @@ export abstract class BaseWebsocketClient<
    */
   private async requestUnsubscribeTopics(
     wsKey: TWSKey,
-    wsTopicRequests: WsTopicRequest<WSTopic>[],
+    wsTopicRequests: WSTopicRequest<WSTopic>[],
   ) {
     if (!wsTopicRequests.length) {
       return;
@@ -992,7 +991,6 @@ export abstract class BaseWebsocketClient<
         this.tryWsSend(wsKey, JSON.stringify(wsMessage));
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
-        // TODO: is this the right thing to do here
         throw e;
       }
     }
@@ -1073,10 +1071,9 @@ export abstract class BaseWebsocketClient<
       this.emit('reconnected', {
         wsKey,
         event,
-        didReconnectSuccessfully,
         wsUrl: url,
         ws,
-      } as any); // TODO: as any?
+      });
     }
 
     this.setWsState(wsKey, WsConnectionStateEnum.CONNECTED);
@@ -1091,7 +1088,6 @@ export abstract class BaseWebsocketClient<
       this.options.pingInterval,
     );
 
-    // TODO: is this correct? unsure about ordering here. Check assertIsConnected mechanics in kucoin
     if (!this.options.requireConnectionReadyConfirmation) {
       return await this.onWsReadyForEvents(wsKey);
     } else {

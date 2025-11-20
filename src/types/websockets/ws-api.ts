@@ -1,4 +1,4 @@
-import { WS_KEY_MAP, WsOperation } from '../../lib/websocket/websocket-util.js';
+import { WS_KEY_MAP, WSOperation } from '../../lib/websocket/websocket-util.js';
 import {
   WSAPIAddSpotOrderParams,
   WSAPIAmendSpotOrderParams,
@@ -29,7 +29,7 @@ export type Exact<T> = {
 
 export interface WsRequestOperation<TWSTopic extends string> {
   id: number;
-  type: WsOperation;
+  type: WSOperation;
   topic: TWSTopic;
   privateChannel: boolean;
   response: boolean;
@@ -118,7 +118,7 @@ export interface WSAPITopicResponseMap {
     WSAPICancelAllSpotOrdersAfterResult,
     'cancel_all_orders_after'
   >;
-  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult, 'batch_add'>;
+  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>;
   batch_cancel: WSAPISpotResponse<
     WSAPIBatchCancelSpotOrdersResult,
     'batch_cancel'

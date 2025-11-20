@@ -32,7 +32,7 @@ export const WS_KEY_MAP = {
 /** This is used to differentiate between each of the available websocket streams */
 export type WsKey = (typeof WS_KEY_MAP)[keyof typeof WS_KEY_MAP];
 
-export type WsOperation = 'subscribe' | 'unsubscribe';
+export type WSOperation = 'subscribe' | 'unsubscribe';
 
 /**
  * Normalised internal format for a request (subscribe/unsubscribe/etc) on a topic, with optional parameters.
@@ -40,7 +40,7 @@ export type WsOperation = 'subscribe' | 'unsubscribe';
  * - Topic: the topic this event is for
  * - Payload: the parameters to include, optional. E.g. auth requires key + sign. Some topics allow configurable parameters.
  */
-export interface WsTopicRequest<
+export interface WSTopicRequest<
   TWSTopic extends WSTopic = WSTopic,
   TWSPayload = any,
 > {
@@ -51,19 +51,19 @@ export interface WsTopicRequest<
 /**
  * Conveniently allow users to request a topic either as string topics or objects (containing string topic + params)
  */
-export type WsTopicRequestOrStringTopic<
+export type WSTopicRequestOrStringTopic<
   TWSTopic extends WSTopic,
   TWSPayload = any,
-> = WsTopicRequest<TWSTopic, TWSPayload> | string;
+> = WSTopicRequest<TWSTopic, TWSPayload> | string;
 
-export interface WsRequestOperationKraken<
+export interface WSRequestOperationKraken<
   TWSTopic extends string,
   TWSParams extends object = any,
 > {
   // spot only
-  method?: WsOperation;
+  method?: WSOperation;
   // futures only
-  event?: WsOperation;
+  event?: WSOperation;
   params:
     | {
         channel: (TWSTopic | string | number)[];
