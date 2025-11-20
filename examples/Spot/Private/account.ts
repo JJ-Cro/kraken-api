@@ -25,8 +25,8 @@ import { SpotClient } from '../../../src/index.js';
  *
  */
 const client = new SpotClient({
-  apiKey: process.env.API_KEY_NAME || 'insertApiKeyHere',
-  apiSecret: process.env.API_PRIVATE_KEY || 'insertApiSecretHere',
+  apiKey: process.env.API_SPOT_KEY || 'insertApiKeyHere',
+  apiSecret: process.env.API_SPOT_SECRET || 'insertApiSecretHere',
 });
 
 async function getAccountBalance() {
@@ -127,7 +127,7 @@ async function getTradingVolume() {
 
 // Uncomment the function you want to test:
 
-// getAccountBalance();
+getAccountBalance();
 // getExtendedBalance();
 // getTradeBalance();
 // getLedgers();

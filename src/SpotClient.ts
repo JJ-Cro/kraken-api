@@ -97,14 +97,6 @@ import {
  * - https://docs.kraken.com/api/docs/rest-api/get-server-time
  */
 export class SpotClient extends BaseRestClient {
-  constructor(
-    restClientOptions: RestClientOptions = {},
-    requestOptions: AxiosRequestConfig = {},
-  ) {
-    super(restClientOptions, requestOptions);
-    return this;
-  }
-
   getClientType(): RestClientType {
     // Points to api.kraken.com
     return REST_CLIENT_TYPE_ENUM.main;
@@ -144,7 +136,7 @@ export class SpotClient extends BaseRestClient {
       rfc1123: string;
     }>
   > {
-    return this.get(`0/public/Time`);
+    return this.get('0/public/Time');
   }
 
   /**

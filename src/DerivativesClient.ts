@@ -3,6 +3,8 @@ import { nanoid } from 'nanoid';
 
 import { BaseRestClient } from './lib/BaseRestClient.js';
 import {
+  APIIDMain,
+  APIIDMainKey,
   REST_CLIENT_TYPE_ENUM,
   RestClientOptions,
   RestClientType,
@@ -225,7 +227,13 @@ export class DerivativesClient extends BaseRestClient {
     return this.postPrivate('derivatives/api/v3/batchorder', {
       body: {
         ProcessBefore: ProcessBefore,
-        json: JSON.stringify(json),
+        json: JSON.stringify({
+          ...json,
+          batchOrder: json.batchOrder.map((order) => ({
+            ...order,
+            [APIIDMainKey]: APIIDMain,
+          })),
+        }),
       },
     });
   }
@@ -235,9 +243,7 @@ export class DerivativesClient extends BaseRestClient {
    *
    * This endpoint allows cancelling orders which are associated with a future's contract or a margin account. If no arguments are specified all open orders will be cancelled.
    */
-  cancelAllOrders(params?: {
-    symbol?: string;
-  }): Promise<
+  cancelAllOrders(params?: { symbol?: string }): Promise<
     DerivativesAPISuccessResponse<{
       cancelStatus: FuturesCancelAllOrdersStatus;
     }>

@@ -22,12 +22,12 @@ import {
 const MISSING_API_KEYS_ERROR =
   'API Key & Secret are BOTH required to use the authenticated REST client';
 
-const rawTrace = false;
+const rawTrace = true;
 
-interface SignedRequest<T extends object | undefined = {}> {
+interface SignedRequest<T extends object | undefined = {}, TReqData = object> {
   originalParams: T;
   paramsWithSign?: T & { sign: string };
-  requestData?: object;
+  requestData?: TReqData;
   serializedParams: string;
   sign: string;
   queryParamsWithSign: string;
@@ -308,7 +308,7 @@ export abstract class BaseRestClient {
     );
 
     if (ENABLE_HTTP_TRACE || rawTrace) {
-      console.log('full request: ', { options });
+      console.log('full request: ', JSON.stringify(options, null, 2));
     }
 
     // Dispatch request
@@ -441,13 +441,9 @@ export abstract class BaseRestClient {
     const timestamp = this.getSignTimestampMs();
 
     const requestBody = data?.body || data?.query || data;
-    const res: SignedRequest<T> = {
+    const res: SignedRequest<T, any> = {
       originalParams: { ...data },
-      requestData: requestBody
-        ? Array.isArray(requestBody)
-          ? requestBody.map((p) => ({ ...p, [APIIDMainKey]: APIIDMain }))
-          : { ...requestBody, [APIIDMainKey]: APIIDMain }
-        : undefined,
+      requestData: requestBody,
       sign: '',
       timestamp,
       recvWindow: 0,
@@ -457,6 +453,29 @@ export abstract class BaseRestClient {
 
     if (!this.hasValidCredentials()) {
       return res;
+    }
+
+    if (Array.isArray(res.requestData)) {
+      res.requestData.forEach((element) => {
+        element[APIIDMainKey] = APIIDMain;
+      });
+    } else if (
+      !Array.isArray(res.requestData) &&
+      Array.isArray(res.requestData.orders)
+    ) {
+      res.requestData.orders.forEach((order: any) => {
+        order[APIIDMainKey] = APIIDMain;
+      });
+    } else if (
+      !Array.isArray(res.requestData) &&
+      res.requestData?.json
+      // Array.isArray(res.requestData?.json?.batchOrder)
+    ) {
+      res.requestData?.json?.batchOrder?.forEach((order: any) => {
+        order[APIIDMainKey] = APIIDMain;
+      });
+    } else if (res.requestData) {
+      res.requestData[APIIDMainKey] = APIIDMain;
     }
 
     const strictParamValidation = this.options.strictParamValidation;
@@ -745,7 +764,6 @@ export abstract class BaseRestClient {
           signHeaders = {
             Authent: signResult.sign,
             APIKey: this.apiKey,
-            // Nonce: 1,// Optional: enable "useNonce" to enable. TODO:
           };
         }
         break;
@@ -758,17 +776,6 @@ export abstract class BaseRestClient {
 
     const urlWithQueryParams = options.url + queryParams;
 
-    if (rawTrace)
-      console.log('merged headers: ', {
-        options,
-        headers: {
-          ...options.headers,
-          ...signHeaders,
-        },
-        url: urlWithQueryParams,
-        data: params,
-      });
-
     if (method !== 'GET') {
       return {
         ...options,
@@ -777,7 +784,6 @@ export abstract class BaseRestClient {
           ...signHeaders,
         },
         url: urlWithQueryParams,
-        // url: options.url,
         data: signResult.requestData,
       };
     }
