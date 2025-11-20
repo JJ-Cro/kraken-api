@@ -4,10 +4,10 @@ import {
   LogParams,
   WebsocketClient,
   WS_KEY_MAP,
-  WsTopicRequest,
+  WSTopicRequest,
 } from '../../../src/index.js';
 // normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
-// import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
+// import { LogParams, WebsocketClient, WSTopicRequest } from '@siebly/kraken-api';
 
 const customLogger: DefaultLogger = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -82,7 +82,7 @@ async function start() {
 
   try {
     // Spot ticker level 1: https://docs.kraken.com/api/docs/websocket-v2/ticker
-    const tickersRequestWithParams: WsTopicRequest = {
+    const tickersRequestWithParams: WSTopicRequest = {
       topic: 'ticker',
       payload: {
         symbol: ['ALGO/USD', 'BTC/USD'],
@@ -96,7 +96,7 @@ async function start() {
     // client.subscribe(tickersRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
     // Book level 2: https://docs.kraken.com/api/docs/websocket-v2/book
-    const bookRequestWithParams: WsTopicRequest = {
+    const bookRequestWithParams: WSTopicRequest = {
       topic: 'book',
       payload: {
         symbol: ['BTC/USD', 'BTC/GBP'],
@@ -109,7 +109,7 @@ async function start() {
     // client.subscribe(bookRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
     // Candles (OHLC): https://docs.kraken.com/api/docs/websocket-v2/ohlc
-    const candleOhlcRequestWithParams: WsTopicRequest = {
+    const candleOhlcRequestWithParams: WSTopicRequest = {
       topic: 'ohlc',
       payload: {
         symbol: ['BTC/USD', 'BTC/GBP'],
@@ -123,7 +123,7 @@ async function start() {
     // client.subscribe(candleOhlcRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
     // Trades: https://docs.kraken.com/api/docs/websocket-v2/trade
-    const tradesRequestWithParams: WsTopicRequest = {
+    const tradesRequestWithParams: WSTopicRequest = {
       topic: 'trade',
       payload: {
         symbol: ['BTC/USD', 'BTC/GBP'],
@@ -135,7 +135,7 @@ async function start() {
     // client.subscribe(tradesRequestWithParams, WS_KEY_MAP.spotPublicV2);
 
     // Instruments: https://docs.kraken.com/api/docs/websocket-v2/instrument
-    const instrumentsRequestWithParams: WsTopicRequest = {
+    const instrumentsRequestWithParams: WSTopicRequest = {
       topic: 'instrument',
       payload: {
         symbol: ['BTC/USD', 'BTC/GBP'],

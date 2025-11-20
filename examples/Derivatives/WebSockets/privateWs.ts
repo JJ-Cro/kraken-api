@@ -4,12 +4,9 @@ import {
   LogParams,
   WebsocketClient,
   WS_KEY_MAP,
-  WsTopicRequest,
+  WSTopicRequest,
 } from '../../../src/index.js';
-import {
-  WSDerivativesTopic,
-  WSSpotTopic,
-} from '../../../src/types/websockets/ws-subscriptions.js';
+import { WSDerivativesTopic } from '../../../src/types/websockets/ws-subscriptions.js';
 // normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
 // import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
 
@@ -113,7 +110,7 @@ async function start() {
      */
 
     // Open orders: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
-    const openOrdersTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+    const openOrdersTopicRequest: WSTopicRequest<WSDerivativesTopic> = {
       topic: 'open_orders',
     };
     client.subscribe(openOrdersTopicRequest, WS_KEY_MAP.derivativesPrivateV1);
@@ -126,7 +123,7 @@ async function start() {
     client.subscribe('open_orders_verbose', WS_KEY_MAP.derivativesPrivateV1);
 
     // Fills: https://docs.kraken.com/api/docs/futures-api/websocket/fills
-    const accountFillsTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+    const accountFillsTopicRequest: WSTopicRequest<WSDerivativesTopic> = {
       topic: 'fills',
       // Optionally, the product_ids field can be used to subscribe only to specific product.
       // payload: {

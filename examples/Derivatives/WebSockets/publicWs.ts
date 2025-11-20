@@ -4,12 +4,9 @@ import {
   LogParams,
   WebsocketClient,
   WS_KEY_MAP,
-  WsTopicRequest,
+  WSTopicRequest,
 } from '../../../src/index.js';
-import {
-  WSDerivativesTopic,
-  WSSpotTopic,
-} from '../../../src/types/websockets/ws-subscriptions.js';
+import { WSDerivativesTopic } from '../../../src/types/websockets/ws-subscriptions.js';
 // normally you should install this module via npm: `npm install @siebly/kraken-api` and import the module:
 // import { LogParams, WebsocketClient, WsTopicRequest } from '@siebly/kraken-api';
 
@@ -95,7 +92,7 @@ async function start() {
 
   try {
     // Ticker: https://docs.kraken.com/api/docs/futures-api/websocket/ticker
-    const publicTickerTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+    const publicTickerTopicRequest: WSTopicRequest<WSDerivativesTopic> = {
       topic: 'ticker',
       payload: {
         product_ids: ['PI_XBTUSD', 'PI_ETHUSD'],
@@ -104,7 +101,7 @@ async function start() {
     // client.subscribe(publicTickerTopicRequest, WS_KEY_MAP.derivativesPublicV1);
 
     // Ticker Lite: https://docs.kraken.com/api/docs/futures-api/websocket/ticker
-    const publicTickerLiteTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+    const publicTickerLiteTopicRequest: WSTopicRequest<WSDerivativesTopic> = {
       topic: 'ticker_lite',
       payload: {
         product_ids: ['PI_XBTUSD', 'PI_ETHUSD'],
@@ -116,7 +113,7 @@ async function start() {
     // );
 
     // Book: https://docs.kraken.com/api/docs/futures-api/websocket/ticker
-    const publicBookTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+    const publicBookTopicRequest: WSTopicRequest<WSDerivativesTopic> = {
       topic: 'book',
       payload: {
         product_ids: ['PI_XBTUSD', 'PI_ETHUSD'],
@@ -125,7 +122,7 @@ async function start() {
     // client.subscribe(publicBookTopicRequest, WS_KEY_MAP.derivativesPublicV1);
 
     // Trade: https://docs.kraken.com/api/docs/futures-api/websocket/ticker
-    const publicTradeTopicRequest: WsTopicRequest<WSDerivativesTopic> = {
+    const publicTradeTopicRequest: WSTopicRequest<WSDerivativesTopic> = {
       topic: 'trade',
       payload: {
         product_ids: ['PI_XBTUSD', 'PI_ETHUSD'],
