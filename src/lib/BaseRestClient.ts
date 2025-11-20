@@ -17,12 +17,11 @@ import {
   SignAlgorithm,
   SignEncodeMethod,
   signMessage,
+  SignMessageOptions,
 } from './webCryptoAPI.js';
 
 const MISSING_API_KEYS_ERROR =
   'API Key & Secret are BOTH required to use the authenticated REST client';
-
-const rawTrace = true;
 
 interface SignedRequest<T extends object | undefined = {}, TReqData = object> {
   originalParams: T;
@@ -151,7 +150,7 @@ export abstract class BaseRestClient {
     this.globalRequestOptions = {
       /** in ms == 5 minutes by default */
       timeout: 1000 * 60 * 5,
-      /** inject custom rquest options based on axios specs - see axios docs for more guidance on AxiosRequestConfig: https://github.com/axios/axios#request-config */
+      /** inject custom request options based on axios specs - see axios docs for more guidance on AxiosRequestConfig: https://github.com/axios/axios#request-config */
       ...networkOptions,
       headers: {
         'Content-Type': 'application/json',
@@ -307,8 +306,12 @@ export abstract class BaseRestClient {
       isPublicApi,
     );
 
-    if (ENABLE_HTTP_TRACE || rawTrace) {
-      console.log('full request: ', JSON.stringify(options, null, 2));
+    if (ENABLE_HTTP_TRACE) {
+      console.log(
+        new Date(),
+        'full request: ',
+        JSON.stringify(options, null, 2),
+      );
     }
 
     // Dispatch request
@@ -419,11 +422,12 @@ export abstract class BaseRestClient {
     secret: string,
     method: SignEncodeMethod,
     algorithm: SignAlgorithm,
+    options?: SignMessageOptions,
   ): Promise<string> {
     if (typeof this.options.customSignMessageFn === 'function') {
       return this.options.customSignMessageFn(paramsStr, secret);
     }
-    return await signMessage(paramsStr, secret, method, algorithm);
+    return await signMessage(paramsStr, secret, method, algorithm, options);
   }
 
   /**
@@ -553,7 +557,7 @@ export abstract class BaseRestClient {
               //   .update(signMessage, 'binary')
               //   .digest('base64');
 
-              const sign = await signMessage(
+              const sign = await this.signMessage(
                 signMessageInput,
                 this.apiSecret!,
                 'base64',
@@ -563,20 +567,6 @@ export abstract class BaseRestClient {
                   isInputBinaryString: true,
                 },
               );
-
-              if (rawTrace) {
-                // console.clear();
-                console.log('getSignature: ', {
-                  data,
-                  signMessageInput,
-                  signInput,
-                  privateKey: this.apiSecret,
-                  method,
-                  path: endpoint,
-                  query: method === 'POST' ? res.requestData : requestBody,
-                  body: method === 'POST' ? res.requestData : requestBody,
-                });
-              }
 
               res.sign = sign;
             } catch (error) {
@@ -636,7 +626,7 @@ export abstract class BaseRestClient {
             //   .update(signMessage, 'binary')
             //   .digest('base64');
 
-            const sign = await signMessage(
+            const sign = await this.signMessage(
               signMessageInput,
               this.apiSecret!,
               'base64',
@@ -646,19 +636,6 @@ export abstract class BaseRestClient {
                 isInputBinaryString: true,
               },
             );
-
-            if (rawTrace) {
-              // console.clear();
-              console.log('getSignature: ', {
-                data,
-                signInput,
-                privateKey: this.apiSecret,
-                method,
-                path: endpoint,
-                query: method === 'POST' ? res.requestData : requestBody,
-                body: method === 'POST' ? res.requestData : requestBody,
-              });
-            }
 
             res.sign = sign;
           }
