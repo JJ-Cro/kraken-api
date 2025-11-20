@@ -44,16 +44,13 @@ export interface WSAPIClientConfigurableOptions {
  *
  * Some methods support passing in a custom "wsKey". This is a reference to which WS connection should
  * be used to transmit that message. This is only useful if you wish to use an alternative wss
- * domain that is supported by the SDK.
- *
- * Note: To use testnet, don't set the wsKey - use `testnet: true` in
- * the constructor instead.
+ * domain that is supported by the SDK. E.g. WS_API_KEY_MAP.spotBetaPrivateV2.
  *
  * Note: You can also directly use the sendWSAPIRequest() method to make WS API calls, but some
  * may find the below methods slightly more intuitive.
  *
  * Refer to the WS API promises example for a more detailed example on using sendWSAPIRequest() directly:
- * https://github.com/tiagosiebler/binance/blob/master/examples/WebSockets/ws-api-raw-promises.ts#L108
+ * https://github.com/sieblyio/kraken-api/blob/main/examples/WebSockets/Spot/wsAPI.RAW.ts#L105
  */
 export class WebsocketAPIClient {
   private wsClient: WebsocketClient;
@@ -158,7 +155,7 @@ export class WebsocketAPIClient {
   batchSubmitSpotOrders(
     params: WSAPIBatchAddSpotOrdersParams,
     wsKey?: WSAPIWsKey,
-  ): Promise<WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult, 'batch_add'>> {
+  ): Promise<WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>> {
     return this.wsClient.sendWSAPIRequest(
       wsKey || WS_KEY_MAP.spotPrivateV2,
       'batch_add',

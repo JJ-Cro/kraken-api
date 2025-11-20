@@ -118,7 +118,7 @@ export interface WSAPITopicResponseMap {
     WSAPICancelAllSpotOrdersAfterResult,
     'cancel_all_orders_after'
   >;
-  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult, 'batch_add'>;
+  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>;
   batch_cancel: WSAPISpotResponse<
     WSAPIBatchCancelSpotOrdersResult,
     'batch_cancel'

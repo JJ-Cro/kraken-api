@@ -182,13 +182,14 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
     // if this throws a type error, probably forgot to add a new operation to WsAPITopicRequestParamMap
     TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
-    TWSAPIResponse = object,
+    TWSAPIResponse extends
+      | WSAPITopicResponseMap[TWSOperation]
+      | object = WSAPITopicResponseMap[TWSOperation],
   >(
     wsKey: TWSKey,
     operation: TWSOperation,
     params: TWSParams & { signRequest?: boolean },
     requestFlags?: WSAPIRequestFlags,
-    // tODO: response type:
   ): Promise<TWSAPIResponse | any> {
     /**
      * Base Info:
