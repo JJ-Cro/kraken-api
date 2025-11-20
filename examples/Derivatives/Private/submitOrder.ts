@@ -23,8 +23,12 @@ import { DerivativesClient } from '../../../src/index.js';
  *
  */
 const client = new DerivativesClient({
-  apiKey: process.env.API_KEY_NAME || 'insertApiKeyHere',
-  apiSecret: process.env.API_PRIVATE_KEY || 'insertApiSecretHere',
+  apiKey:
+    process.env.API_KEY_NAME ||
+    '5wyukSkIjnqK27+7bOJThMOxDIPXSlII9C8VmuuslAB7leiAzDTaMDJT',
+  apiSecret:
+    process.env.API_PRIVATE_KEY ||
+    'lgrp89dP4HhebYRtXXWX3gZlIsnBv0YL25CWY5noQJi9+Cbwzo5N1NNoJC0vLYKDAtMj/j40ATm4MWUFwgpzjytF',
 });
 
 async function submitLimitOrder() {
@@ -151,4 +155,4 @@ async function batchOrderSubmit() {
 // cancelOrder();
 // cancelAllOrders();
 // cancelAllOrdersBySymbol();
-// batchOrderSubmit();
+batchOrderSubmit();
