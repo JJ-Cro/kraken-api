@@ -332,7 +332,6 @@ export abstract class BaseRestClient {
 
           switch (this.getClientType()) {
             case REST_CLIENT_TYPE_ENUM.main: {
-              // TODO: check if basic auth error is thrown
               if (response.data?.error?.length) {
                 throw throable;
               }
@@ -468,11 +467,17 @@ export abstract class BaseRestClient {
       });
     } else if (
       !Array.isArray(res.requestData) &&
-      res.requestData?.json
-      // Array.isArray(res.requestData?.json?.batchOrder)
+      res.requestData?.json &&
+      typeof res.requestData.json === 'object' &&
+      Array.isArray(res.requestData.json?.batchOrder)
     ) {
-      res.requestData?.json?.batchOrder?.forEach((order: any) => {
-        order[APIIDMainKey] = APIIDMain;
+      // Unique to batch order placement, json must be pre-stringified in request
+      res.requestData.json = JSON.stringify({
+        ...res.requestData.json,
+        batchOrder: res.requestData.json.batchOrder.map((order: any) => ({
+          ...order,
+          [APIIDMainKey]: APIIDMain,
+        })),
       });
     } else if (res.requestData) {
       res.requestData[APIIDMainKey] = APIIDMain;
@@ -603,7 +608,6 @@ export abstract class BaseRestClient {
           );
           const signEndpoint = endpoint.replace('/derivatives', '');
 
-          // TODO:
           const nonce = ''; //this.getNextRequestNonce();
           const signInput = `${signRequestParams}${nonce}${signEndpoint}`;
 

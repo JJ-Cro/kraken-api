@@ -213,8 +213,6 @@ export class DerivativesClient extends BaseRestClient {
   /**
    * Batch order management
    *
-   * TODO: Check this endpoint request, see if it is properly formatted for query/body
-   *
    * This endpoint allows sending limit or stop order(s) and/or cancelling open order(s) and/or editing open order(s) for a currently listed Futures contract in batch.
    * When editing an order, if the trailingStopMaxDeviation and trailingStopDeviationUnit parameters are sent unchanged, the system will recalculate a new stop price upon successful order modification.
    */
@@ -227,13 +225,7 @@ export class DerivativesClient extends BaseRestClient {
     return this.postPrivate('derivatives/api/v3/batchorder', {
       body: {
         ProcessBefore: ProcessBefore,
-        json: JSON.stringify({
-          ...json,
-          batchOrder: json.batchOrder.map((order) => ({
-            ...order,
-            [APIIDMainKey]: APIIDMain,
-          })),
-        }),
+        json,
       },
     });
   }
