@@ -41,7 +41,12 @@ import {
   WSClientConfigurableOptions,
   WsMarket,
 } from './types/websockets/ws-general.js';
-import { WSSpotTopic, WSTopic } from './types/websockets/ws-subscriptions.js';
+import {
+  WS_DERIVATIVES_PRIVATE_TOPICS,
+  WS_SPOT_PRIVATE_TOPICS,
+  WSSpotTopic,
+  WSTopic,
+} from './types/websockets/ws-subscriptions.js';
 
 const WS_LOGGER_CATEGORY_ID = 'kraken-ws';
 const WS_LOGGER_CATEGORY = {
@@ -98,7 +103,6 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
    *
    * Call `unsubscribe(topics)` to remove topics
    */
-  // TODO: auto resolve public vs private wsKey based on topic name!
   public subscribe(
     requests:
       | (WSTopicRequest<WSTopic> | WSTopic)
@@ -614,11 +618,18 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   /**
    * Determines if a topic is for a private channel, using a hardcoded list of strings
    */
-  protected isPrivateTopicRequest(request: WSTopicRequest<WSTopic>): boolean {
-    // TODO: configure this to auto-route requests for private topics to priate websockets
+  protected isPrivateTopicRequest(request: WSTopicRequest<any>): boolean {
     const topicName = request?.topic?.toLowerCase();
     if (!topicName) {
       return false;
+    }
+
+    if (WS_SPOT_PRIVATE_TOPICS.includes(topicName)) {
+      return true;
+    }
+
+    if (WS_DERIVATIVES_PRIVATE_TOPICS.includes(topicName)) {
+      return true;
     }
 
     return false;
