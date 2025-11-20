@@ -1,5 +1,24 @@
 import { DefaultLogger } from './lib/websocket/logger.js';
 import { WS_KEY_MAP } from './lib/websocket/websocket-util.js';
+import {
+  WSAPIAddSpotOrderParams,
+  WSAPIAmendSpotOrderParams,
+  WSAPIBatchAddSpotOrdersParams,
+  WSAPIBatchCancelSpotOrdersParams,
+  WSAPICancelAllSpotOrdersAfterParams,
+  WSAPICancelSpotOrderParams,
+  WSAPIEditSpotOrderParams,
+} from './types/request/wsapi.types.js';
+import {
+  WSAPIAddSpotOrderResult,
+  WSAPIAmendSpotOrderResult,
+  WSAPIBatchAddSpotOrdersResult,
+  WSAPIBatchCancelSpotOrdersResult,
+  WSAPICancelAllSpotOrdersAfterResult,
+  WSAPICancelAllSpotOrdersResult,
+  WSAPICancelSpotOrderResult,
+  WSAPIEditSpotOrderResult,
+} from './types/response/wsapi.types.js';
 import { WSAPISpotResponse, WSAPIWsKey } from './types/websockets/ws-api.js';
 import { WSClientConfigurableOptions } from './types/websockets/ws-general.js';
 import { WebsocketClient } from './WebsocketClient.js';
@@ -61,14 +80,120 @@ export class WebsocketAPIClient {
   }
 
   /**
-   * Submit a spot order
+   * Add a spot order
+   */
+  submitSpotOrder(
+    params: Omit<WSAPIAddSpotOrderParams, 'token' | 'req_id'>,
+    wsKey?: WSAPIWsKey,
+  ): Promise<WSAPISpotResponse<WSAPIAddSpotOrderResult, 'add_order'>> {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'add_order',
+      params,
+    );
+  }
+
+  /**
+   * Amend an existing order
+   */
+  amendSpotOrder(
+    params: WSAPIAmendSpotOrderParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<WSAPISpotResponse<WSAPIAmendSpotOrderResult, 'amend_order'>> {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'amend_order',
+      params,
+    );
+  }
+
+  /**
+   * Cancel one or more orders
+   */
+  cancelSpotOrder(
+    params: WSAPICancelSpotOrderParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<WSAPISpotResponse<WSAPICancelSpotOrderResult, 'cancel_order'>> {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'cancel_order',
+      params,
+    );
+  }
+
+  /**
+   * Cancel all open orders
    */
   cancelAllSpotOrders(
     wsKey?: WSAPIWsKey,
-  ): Promise<WSAPISpotResponse<{ count: number }, 'cancel_all'>> {
+  ): Promise<WSAPISpotResponse<WSAPICancelAllSpotOrdersResult, 'cancel_all'>> {
     return this.wsClient.sendWSAPIRequest(
       wsKey || WS_KEY_MAP.spotPrivateV2,
       'cancel_all',
+    );
+  }
+
+  /**
+   * Cancel all orders after a timeout (Dead Man's Switch)
+   */
+  cancelAllSpotOrdersAfter(
+    params: WSAPICancelAllSpotOrdersAfterParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<
+    WSAPISpotResponse<
+      WSAPICancelAllSpotOrdersAfterResult,
+      'cancel_all_orders_after'
+    >
+  > {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'cancel_all_orders_after',
+      params,
+    );
+  }
+
+  /**
+   * Add multiple orders in a single batch (2-15 orders)
+   */
+  batchSubmitSpotOrders(
+    params: WSAPIBatchAddSpotOrdersParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult, 'batch_add'>> {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'batch_add',
+      params,
+    );
+  }
+
+  /**
+   * Cancel multiple orders in a single batch (2-50 orders)
+   */
+  batchCancelSpotOrders(
+    params: WSAPIBatchCancelSpotOrdersParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<
+    WSAPISpotResponse<WSAPIBatchCancelSpotOrdersResult, 'batch_cancel'>
+  > {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'batch_cancel',
+      params,
+    );
+  }
+
+  /**
+   * Edit an existing order (legacy method, use amendSpotOrder instead)
+   * @deprecated Use amendSpotOrder for better performance and features
+   */
+  editSpotOrder(
+    params: WSAPIEditSpotOrderParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<WSAPISpotResponse<WSAPIEditSpotOrderResult, 'edit_order'>> {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'edit_order',
+      params,
     );
   }
   /**

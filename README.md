@@ -319,7 +319,14 @@ See [DerivativesClient](./src/DerivativesClient.ts) for further information.
 
 ## WebSockets
 
-All WebSocket functionality is supported via the unified `WebsocketClient`. This client handles all Kraken WebSocket streams with automatic connection management and reconnection.
+Kraken supports two types of WebSocket connections:
+
+1. **WebSocket Subscriptions** - Real-time market data and account updates via the `WebsocketClient`
+2. **WebSocket API** - REST-like request/response trading via the `WebsocketAPIClient`
+
+### WebSocket Subscriptions (WebsocketClient)
+
+The unified `WebsocketClient` handles all Kraken WebSocket streams with automatic connection management and reconnection.
 
 Key WebSocket features:
 
@@ -361,8 +368,47 @@ wsClient.on('exception', (data) => {
 
 // Subscribe to public data streams
 
-// TODO: Add WebSocket subscription examples
-// Examples coming soon...
+wsClient.subscribe(
+  {
+    topic: 'ticker',
+    payload: {
+      symbol: ['BTC/USD', 'ETH/USD'],
+    },
+  },
+  'spotPublicV2',
+);
+
+wsClient.subscribe(
+  {
+    topic: 'book',
+    payload: {
+      symbol: ['BTC/USD'],
+      depth: 10,
+    },
+  },
+  'spotPublicV2',
+);
+
+wsClient.subscribe(
+  {
+    topic: 'trade',
+    payload: {
+      symbol: ['BTC/USD'],
+    },
+  },
+  'spotPublicV2',
+);
+
+wsClient.subscribe(
+  {
+    topic: 'ohlc',
+    payload: {
+      symbol: ['BTC/USD'],
+      interval: 1,
+    },
+  },
+  'spotPublicV2',
+);
 ```
 
 ### Private WebSocket Streams
@@ -401,11 +447,104 @@ wsClient.on('exception', (data) => {
 
 // Subscribe to private data streams
 
-// TODO: Add private WebSocket subscription examples
-// Examples coming soon...
+wsClient.subscribe(
+  {
+    topic: 'executions',
+    payload: {
+      snap_trades: true,
+      snap_orders: true,
+      order_status: true,
+    },
+  },
+  'spotPrivateV2',
+);
+
+wsClient.subscribe(
+  {
+    topic: 'balances',
+    payload: {
+      snapshot: true,
+    },
+  },
+  'spotPrivateV2',
+);
+
+wsClient.subscribe(
+  {
+    topic: 'level3',
+    payload: {
+      symbol: ['BTC/USD'],
+      depth: 10,
+    },
+  },
+  'spotPrivateV2',
+);
 ```
 
 For more comprehensive examples, including custom logging and error handling, check the [examples](./examples/WebSockets) folder.
+
+### WebSocket API (WebsocketAPIClient)
+
+The `WebsocketAPIClient` provides a REST-like interface for trading operations over WebSocket, offering lower latency than REST APIs.
+
+```javascript
+import { WebsocketAPIClient } from '@siebly/kraken-api';
+
+// Create WebSocket API client with credentials
+const wsApiClient = new WebsocketAPIClient({
+  apiKey: 'your-api-key',
+  apiSecret: 'your-api-secret',
+});
+
+// The client handles event listeners automatically, but you can customize them
+wsApiClient
+  .getWSClient()
+  .on('open', (data) => {
+    console.log('WebSocket API connected:', data.wsKey);
+  })
+  .on('response', (data) => {
+    console.log('Response:', data);
+  })
+  .on('exception', (data) => {
+    console.error('Error:', data);
+  });
+
+// Trading operations return promises
+
+// Submit a spot order
+const orderResponse = await wsApiClient.submitSpotOrder({
+  order_type: 'limit',
+  side: 'buy',
+  limit_price: 26500.4,
+  order_qty: 1.2,
+  symbol: 'BTC/USD',
+});
+console.log('Order placed:', orderResponse);
+
+// Amend an existing order
+const amendResponse = await wsApiClient.amendSpotOrder({
+  order_id: 'OAIYAU-LGI3M-PFM5VW',
+  order_qty: 1.5,
+  limit_price: 27000,
+});
+
+// Cancel specific orders
+const cancelResponse = await wsApiClient.cancelSpotOrder({
+  order_id: ['OM5CRX-N2HAL-GFGWE9', 'OLUMT4-UTEGU-ZYM7E9'],
+});
+
+// Cancel all open orders
+const cancelAllResponse = await wsApiClient.cancelAllSpotOrders();
+```
+
+The WebSocket API provides several advantages:
+
+- **Lower Latency** - Faster than REST API for high-frequency trading
+- **Connection Reuse** - Single persistent connection for multiple requests
+- **Better Performance** - Batch operations for submitting/canceling multiple orders
+- **Type Safety** - Full TypeScript support with typed requests and responses
+
+See the [WebSocket API examples](./examples/WebSockets/Spot/wsAPI.ts) for more detailed usage.
 
 ---
 
