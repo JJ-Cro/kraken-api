@@ -479,6 +479,15 @@ export abstract class BaseRestClient {
           [APIIDMainKey]: APIIDMain,
         })),
       });
+    } else if (
+      !Array.isArray(res.requestData) &&
+      res.requestData?.json &&
+      typeof res.requestData.json === 'object'
+    ) {
+      // For the rare non-order requests that expected pre-stringified json
+      res.requestData.json = JSON.stringify({
+        ...res.requestData.json,
+      });
     } else if (res.requestData) {
       res.requestData[APIIDMainKey] = APIIDMain;
     }
