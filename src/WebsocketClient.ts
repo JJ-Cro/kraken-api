@@ -4,7 +4,7 @@ import {
   MidflightWsRequestEvent,
 } from './lib/BaseWSClient.js';
 import { neverGuard } from './lib/misc-util.js';
-import { APIIDMain, RestClientOptions } from './lib/requestUtils.js';
+import { RestClientOptions } from './lib/requestUtils.js';
 import {
   hashMessage,
   SignAlgorithm,
@@ -22,10 +22,7 @@ import {
   WSRequestOperationKraken,
   WSTopicRequest,
 } from './lib/websocket/websocket-util.js';
-import {
-  WSConnectedResult,
-  WsConnectionStateEnum,
-} from './lib/websocket/WsStore.types.js';
+import { WSConnectedResult } from './lib/websocket/WsStore.types.js';
 import {
   Exact,
   WS_API_Operations,
@@ -44,7 +41,6 @@ import {
 import {
   WS_DERIVATIVES_PRIVATE_TOPICS,
   WS_SPOT_PRIVATE_TOPICS,
-  WSSpotTopic,
   WSTopic,
 } from './types/websockets/ws-subscriptions.js';
 

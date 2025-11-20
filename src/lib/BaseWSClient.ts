@@ -951,7 +951,6 @@ export abstract class BaseWebsocketClient<
         this.tryWsSend(wsKey, JSON.stringify(wsMessage), true);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
-        // TODO: is this the right thing to do here
         throw e;
       }
     }
@@ -992,7 +991,6 @@ export abstract class BaseWebsocketClient<
         this.tryWsSend(wsKey, JSON.stringify(wsMessage));
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
-        // TODO: is this the right thing to do here
         throw e;
       }
     }
@@ -1073,10 +1071,9 @@ export abstract class BaseWebsocketClient<
       this.emit('reconnected', {
         wsKey,
         event,
-        didReconnectSuccessfully,
         wsUrl: url,
         ws,
-      } as any); // TODO: as any?
+      });
     }
 
     this.setWsState(wsKey, WsConnectionStateEnum.CONNECTED);
@@ -1091,7 +1088,6 @@ export abstract class BaseWebsocketClient<
       this.options.pingInterval,
     );
 
-    // TODO: is this correct? unsure about ordering here. Check assertIsConnected mechanics in kucoin
     if (!this.options.requireConnectionReadyConfirmation) {
       return await this.onWsReadyForEvents(wsKey);
     } else {
