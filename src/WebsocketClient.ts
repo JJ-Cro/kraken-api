@@ -325,6 +325,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       // Uses the same URL, but we maintain separate connections for easier management
       case WS_KEY_MAP.derivativesPublicV1:
       case WS_KEY_MAP.derivativesPrivateV1: {
+        if (this.options.testnet) {
+          return 'wss://demo-futures.kraken.com/ws/v1';
+        }
         return 'wss://futures.kraken.com/ws/v1';
       }
       default: {
