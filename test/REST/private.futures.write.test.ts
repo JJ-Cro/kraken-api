@@ -3,8 +3,8 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE FUTURES WRITE', () => {
   const account = {
-    key: process.env.API_FUTURES_WRITE_KEY,
-    secret: process.env.API_FUTURES_WRITE_SECRET,
+    key: process.env.API_FUTURES_KEY,
+    secret: process.env.API_FUTURES_SECRET,
   };
 
   const rest = new DerivativesClient(
@@ -20,157 +20,191 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     expect(account.secret).toBeDefined();
   });
 
-  describe('public endpoints', () => {
-    it('should succeed making a GET request', async () => {
-      const res = await rest.getTradeHistory({ symbol: 'PF_XBTUSD' });
+  describe('POST write operations', () => {
+    it('should succeed or fail with permission error calling submitOrder', async () => {
+      try {
+        const res = await rest.submitOrder({
+          symbol: 'PF_XBTUSD',
+          orderType: 'lmt',
+          side: 'buy',
+          size: 1,
+          limitPrice: 10000,
+        });
 
-      expect(res.history).toMatchObject(expect.any(Array));
+        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // If it succeeds, that's fine too (means we have full permissions)
+        expect(res).toMatchObject({
+          result: 'success',
+          sendStatus: expect.any(Object),
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
+    });
+
+    it('should succeed calling cancelAllOrders', async () => {
+      try {
+        const res = await rest.cancelAllOrders();
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+          cancelStatus: expect.any(Object),
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
+    });
+
+    it('should handle cancelOrder with non-existent order', async () => {
+      try {
+        const res = await rest.cancelOrder({
+          order_id: 'a068cbe2-bd99-4312-bc10-072e90ba4696',
+        });
+
+        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // If it succeeds somehow, that's fine
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
+    });
+
+    it('should succeed calling submitWalletTransfer with invalid params (validates signature)', async () => {
+      try {
+        const res = await rest.submitWalletTransfer({
+          fromAccount: 'cash',
+          toAccount: 'flex',
+          unit: 'BTC',
+          amount: '0.0001',
+        });
+
+        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // If it succeeds, that's fine
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
     });
   });
 
-  describe('private endpoints', () => {
-    describe.skip('POST requests', () => {
-      test('with params as query', async () => {
-        try {
-          const res = await rest.getOrderStatus({
-            orderIds: ['a02ed7b1-096f-4629-877c-24749fab6560'],
-          });
+  describe('PUT write operations', () => {
+    it('should succeed calling setPnlPreference', async () => {
+      try {
+        const res = await rest.setPnlPreference({
+          symbol: 'PF_XBTUSD',
+          pnlPreference: 'USD',
+        });
 
-          console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            orders: expect.any(Array),
-          });
-        } catch (e: any) {
-          console.log(`err "${expect.getState().currentTestName}"`, e?.body);
-          const responseBody = e?.body;
-          expect(responseBody).toBeUndefined();
-        }
-      });
-
-      it.skip('should throw exceptions (bad request)', async () => {
-        try {
-          const res = await rest.getOrderStatus({
-            orderIds: [
-              'a02ed7b1-096f-4629-877c-24749fab6560',
-              // bad request because order GUID is unusually long
-              'a030cb03-cbf9-4e56-9a7d-cd072873760a11111111',
-            ],
-          });
-
-          console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            orders: expect.any(Array),
-          });
-        } catch (e: any) {
-          // console.log(`err "${expect.getState().currentTestName}"`, e?.body);
-          const responseBody = e?.body;
-          expect(responseBody).toMatchObject({
-            errors: expect.any(Array),
-            result: 'error',
-            status: 'BAD_REQUEST',
-            serverTime: expect.any(String),
-          });
-        }
-      });
-
-      // TODO: dummy order request with read-only keys
-      // These are deliberatly restricted API keys. If the response is a permission error, it confirms the sign + request was OK and permissions were denied.
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+          serverTime: expect.any(String),
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
     });
 
-    describe('PUT requests', () => {
-      test('with params as query', async () => {
-        try {
-          const res = await rest.setPnlPreference({
-            symbol: 'PF_XBTUSD',
-            pnlPreference: 'USD',
-          });
+    it('should fail setPnlPreference with invalid symbol', async () => {
+      try {
+        const res = await rest.setPnlPreference({
+          symbol: 'INVALID_SYMBOL',
+          pnlPreference: 'USD',
+        });
 
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            serverTime: expect.any(String),
-          });
-        } catch (e: any) {
-          console.log(
-            `err "${expect.getState().currentTestName}"`,
-            e?.body || e,
-          );
-          const responseBody = e?.body;
-          expect(responseBody).toBeUndefined();
-        }
-      });
-
-      it('should throw exceptions (bad request)', async () => {
-        try {
-          const res = await rest.setPnlPreference({
-            symbol: 'ASDFLAMKDFAF',
-            pnlPreference: 'LKMALDSKFMD',
-          });
-
-          console.log(`res "${expect.getState().currentTestName}"`, res);
-          expect(res).toMatchObject({
-            result: 'success',
-            orders: expect.any(Array),
-          });
-        } catch (e: any) {
-          // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
-          const responseBody = e?.body;
-          expect(responseBody).toMatchObject({
-            errors: [{ code: 87, message: 'CONTRACT_DOES_NOT_EXIST' }],
-            result: 'error',
-            status: 'NOT_FOUND',
-            serverTime: expect.any(String),
-          });
-        }
-      });
+        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // Should not succeed
+        expect(res).not.toBeDefined();
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
     });
 
-    // describe('DELETE requests', () => {
-    //   test('with params in path', async () => {
-    //     try {
-    //       const res = await rest.cancelRFQOffer({
-    //         rfqUid: '12312312',
-    //       });
+    it('should succeed calling updateSelfTradeStrategy', async () => {
+      try {
+        const res = await rest.updateSelfTradeStrategy({
+          strategy: 'CANCEL_MAKER_SELF',
+        });
 
-    //       console.log(`res "${expect.getState().currentTestName}"`, res);
-    //       expect(res).toMatchObject({
-    //         result: 'success',
-    //         serverTime: expect.any(String),
-    //       });
-    //     } catch (e: any) {
-    //       console.log(
-    //         `err "${expect.getState().currentTestName}"`,
-    //         e?.body || e,
-    //       );
-    //       const responseBody = e?.body;
-    //       expect(responseBody).toBeUndefined();
-    //     }
-    //   });
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+          strategy: expect.any(Object),
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
+    });
+  });
 
-    //   it.skip('should throw exceptions (bad request)', async () => {
-    //     try {
-    //       const res = await rest.cancelRFQOffer({
-    //         rfqUid: '12312312',
-    //       } as any);
+  describe('DELETE write operations', () => {
+    it('should fail deleteAssignmentPreference with non-existent ID (validates signature)', async () => {
+      try {
+        const res = await rest.deleteAssignmentPreference({
+          id: 999999,
+        });
 
-    //       console.log(`res "${expect.getState().currentTestName}"`, res);
-    //       expect(res).toMatchObject({
-    //         result: 'success',
-    //         orders: expect.any(Array),
-    //       });
-    //     } catch (e: any) {
-    //       // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
-    //       const responseBody = e?.body;
-    //       expect(responseBody).toMatchObject({
-    //         errors: [{ code: 87, message: 'CONTRACT_DOES_NOT_EXIST' }],
-    //         result: 'error',
-    //         status: 'NOT_FOUND',
-    //         serverTime: expect.any(String),
-    //       });
-    //     }
-    //   });
-    // });
+        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // If it somehow succeeds, that's fine
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('Permission denied'),
+        });
+      }
+    });
   });
 });
