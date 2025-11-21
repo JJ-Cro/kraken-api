@@ -838,7 +838,7 @@ export class DerivativesClient extends BaseRestClient {
       FuturesHistoryResponse<FuturesHistoryExecutionEvent>
     >
   > {
-    return this.getPrivate('api/history/v3/executions', { params });
+    return this.getPrivate('api/history/v3/executions', params);
   }
 
   /**
@@ -853,7 +853,7 @@ export class DerivativesClient extends BaseRestClient {
       FuturesHistoryResponse<FuturesHistoryOrderEvent>
     >
   > {
-    return this.getPrivate('api/history/v3/orders', { params });
+    return this.getPrivate('api/history/v3/orders', params);
   }
 
   /**
@@ -868,7 +868,7 @@ export class DerivativesClient extends BaseRestClient {
       FuturesHistoryResponse<FuturesHistoryTriggerEvent>
     >
   > {
-    return this.getPrivate('api/history/v3/triggers', { params });
+    return this.getPrivate('api/history/v3/triggers', params);
   }
 
   /**
@@ -883,7 +883,7 @@ export class DerivativesClient extends BaseRestClient {
       FuturesHistoryResponse<FuturesPositionUpdateEvent>
     >
   > {
-    return this.getPrivate('api/history/v3/positions', { params });
+    return this.getPrivate('api/history/v3/positions', params);
   }
 
   /**
@@ -895,7 +895,7 @@ export class DerivativesClient extends BaseRestClient {
   getAccountLog(
     params?: FuturesGetAccountLogParams,
   ): Promise<DerivativesAPISuccessResponse<FuturesAccountLog>> {
-    return this.getPrivate('api/history/v3/account-log', { params });
+    return this.getPrivate('api/history/v3/account-log', params);
   }
 
   /**
@@ -904,7 +904,7 @@ export class DerivativesClient extends BaseRestClient {
    * Lists recent account log entries in CSV format.
    */
   getAccountLogCsv(params?: { conversion_details?: boolean }): Promise<string> {
-    return this.getPrivate('api/history/v3/accountlogcsv', { params });
+    return this.getPrivate('api/history/v3/accountlogcsv', params);
   }
 
   /**
@@ -1025,7 +1025,7 @@ export class DerivativesClient extends BaseRestClient {
   getLiquidityPoolStatistic(
     params: FuturesGetAnalyticsParams,
   ): Promise<FuturesAnalyticsResponse> {
-    return this.get('api/charts/v1/analytics/liquidity-pool', { params });
+    return this.get('api/charts/v1/analytics/liquidity-pool', params);
   }
 
   /**

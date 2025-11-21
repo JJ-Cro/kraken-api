@@ -6,6 +6,8 @@ export const REST_CLIENT_TYPE_ENUM = {
   main: 'main',
   /** Futures */
   derivatives: 'derivatives',
+  /** Futures Demo */
+  derivativesDemo: 'derivativesDemo',
   /** Institutional */
   institutional: 'institutional',
   /** Partner */
@@ -18,6 +20,7 @@ export type RestClientType =
 const krakenURLMap = {
   [REST_CLIENT_TYPE_ENUM.main]: 'https://api.kraken.com',
   [REST_CLIENT_TYPE_ENUM.derivatives]: 'https://futures.kraken.com',
+  [REST_CLIENT_TYPE_ENUM.derivativesDemo]: 'https://demo-futures.kraken.com',
   [REST_CLIENT_TYPE_ENUM.institutional]: 'https://api.kraken.com',
   [REST_CLIENT_TYPE_ENUM.partner]: 'https://embed.kraken.com',
 } as const;
@@ -29,8 +32,16 @@ export interface RestClientOptions {
   /** Your API secret */
   apiSecret?: string;
 
-  /** Your API passphrase (can be anything) that you set when creating this API key (NOT your account password) */
-  apiPassphrase?: string;
+  /**
+   * Set to `true` to connect to testnet (Kraken's demo environment). The live environment is used by default.
+   *
+   * Note: as of November 2025, only the DerivativesClient supports testnet connections. Kraken refer to this as the "Demo" environment, but it is effectively a testnet.
+   * This is a place to test your API integration. It is not a good place to test strategy performance, as the liquidity and orderbook dynamics are very different to the live environment.
+   *
+   * Refer to the following for more information:
+   * https://github.com/tiagosiebler/awesome-crypto-examples/wiki/CEX-Testnets
+   */
+  testnet?: boolean;
 
   /**
    * Use access token instead of sign, if this is provided.
@@ -38,15 +49,12 @@ export interface RestClientOptions {
    */
   apiAccessToken?: string;
 
-  /** The API key version. Defaults to "2" right now. You can see this in your API management page */
-  apiKeyVersion?: number | string;
-
   /** Default: false. If true, we'll throw errors if any params are undefined */
   strictParamValidation?: boolean;
 
   /**
    * Optionally override API protocol + domain
-   * e.g baseUrl: 'https://api.kucoin.com'
+   * e.g baseUrl: 'https://api.kraken.com'
    **/
   baseUrl?: string;
 
@@ -129,22 +137,22 @@ export function isEmptyObject(obj: any) {
 }
 
 export function getRestBaseUrl(
-  useTestnet: boolean,
-  restInverseOptions: RestClientOptions,
+  restClientOptions: RestClientOptions,
   restClientType: RestClientType,
 ): string {
-  const exchangeBaseUrls = {
-    livenet: krakenURLMap[restClientType],
-    testnet: 'https://noTestnet',
-  };
-
-  if (restInverseOptions.baseUrl) {
-    return restInverseOptions.baseUrl;
+  if (restClientOptions.baseUrl) {
+    return restClientOptions.baseUrl;
   }
 
-  if (useTestnet) {
-    return exchangeBaseUrls.testnet;
+  if (restClientOptions.testnet) {
+    if (restClientType === REST_CLIENT_TYPE_ENUM.derivatives) {
+      return krakenURLMap[REST_CLIENT_TYPE_ENUM.derivativesDemo];
+    }
+
+    throw new Error(
+      `Testnet is not supported for this environment: ${restClientType}. Refer to Kraken's API documentation for more information. If you believe this is incorrect, please open an issue on GitHub.`,
+    );
   }
 
-  return exchangeBaseUrls.livenet;
+  return krakenURLMap[restClientType];
 }

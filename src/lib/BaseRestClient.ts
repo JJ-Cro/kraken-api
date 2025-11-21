@@ -143,7 +143,6 @@ export abstract class BaseRestClient {
     this.options = {
       /** Throw errors if any request params are empty */
       strictParamValidation: false,
-      apiKeyVersion: 2,
       ...restClientOptions,
     };
 
@@ -177,11 +176,7 @@ export abstract class BaseRestClient {
       });
     }
 
-    this.baseUrl = getRestBaseUrl(
-      false,
-      restClientOptions,
-      this.getClientType(),
-    );
+    this.baseUrl = getRestBaseUrl(restClientOptions, this.getClientType());
 
     this.apiKey = this.options.apiKey;
     this.apiSecret = this.options.apiSecret;
@@ -458,12 +453,7 @@ export abstract class BaseRestClient {
       return res;
     }
 
-    const clientType = this.getClientType();
-    const shouldAddAPIId =
-      clientType === REST_CLIENT_TYPE_ENUM.main ||
-      (clientType === REST_CLIENT_TYPE_ENUM.derivatives && method === 'POST');
-
-    if (shouldAddAPIId) {
+    if (method === 'POST') {
       if (Array.isArray(res.requestData)) {
         res.requestData.forEach((element) => {
           element[APIIDMainKey] = APIIDMain;
@@ -533,7 +523,7 @@ export abstract class BaseRestClient {
             (res.requestData as any)?.nonce || this.getNextRequestNonce();
 
           const serialisedParams = serializeParams(
-            data?.query,
+            requestBody,
             strictParamValidation,
             encodeQueryStringValues,
             prefixWith,
