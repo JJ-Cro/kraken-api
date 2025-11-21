@@ -143,7 +143,6 @@ export abstract class BaseRestClient {
     this.options = {
       /** Throw errors if any request params are empty */
       strictParamValidation: false,
-      apiKeyVersion: 2,
       ...restClientOptions,
     };
 
@@ -177,11 +176,7 @@ export abstract class BaseRestClient {
       });
     }
 
-    this.baseUrl = getRestBaseUrl(
-      false,
-      restClientOptions,
-      this.getClientType(),
-    );
+    this.baseUrl = getRestBaseUrl(restClientOptions, this.getClientType());
 
     this.apiKey = this.options.apiKey;
     this.apiSecret = this.options.apiSecret;
