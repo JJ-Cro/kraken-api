@@ -1,6 +1,6 @@
 # Node.js & JavaScript SDK for Kraken REST APIs & WebSockets
 
-[![Build & Test](https://github.com/sieblyio/kraken-api/actions/workflows/e2etest.yml/badge.svg?branch=master)](https://github.com/sieblyio/kraken-api/actions/workflows/e2etest.yml)
+[![Build & Test](https://github.com/sieblyio/kraken-api/actions/workflows/e2etest.yml/badge.svg?branch=main)](https://github.com/sieblyio/kraken-api/actions/workflows/e2etest.yml)
 [![npm version](https://img.shields.io/npm/v/@siebly/kraken-api)][1]
 [![npm size](https://img.shields.io/bundlephobia/min/@siebly/kraken-api/latest)][1]
 [![npm downloads](https://img.shields.io/npm/dt/@siebly/kraken-api)][1]
@@ -10,8 +10,8 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@siebly/kraken-api">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/sieblyio/kraken-api/blob/master/docs/images/logoDarkMode2.svg?raw=true#gh-dark-mode-only">
-      <img alt="SDK Logo" src="https://github.com/sieblyio/kraken-api/blob/master/docs/images/logoBrightMode2.svg?raw=true#gh-light-mode-only">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/sieblyio/kraken-api/blob/main/docs/images/logoDarkMode2.svg?raw=true#gh-dark-mode-only">
+      <img alt="SDK Logo" src="https://github.com/sieblyio/kraken-api/blob/main/docs/images/logoBrightMode2.svg?raw=true#gh-light-mode-only">
     </picture>
   </a>
 </p>
