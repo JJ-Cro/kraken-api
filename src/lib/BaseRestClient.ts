@@ -458,42 +458,49 @@ export abstract class BaseRestClient {
       return res;
     }
 
-    if (Array.isArray(res.requestData)) {
-      res.requestData.forEach((element) => {
-        element[APIIDMainKey] = APIIDMain;
-      });
-    } else if (
-      !Array.isArray(res.requestData) &&
-      Array.isArray(res.requestData.orders)
-    ) {
-      res.requestData.orders.forEach((order: any) => {
-        order[APIIDMainKey] = APIIDMain;
-      });
-    } else if (
-      !Array.isArray(res.requestData) &&
-      res.requestData?.json &&
-      typeof res.requestData.json === 'object' &&
-      Array.isArray(res.requestData.json?.batchOrder)
-    ) {
-      // Unique to batch order placement, json must be pre-stringified in request
-      res.requestData.json = JSON.stringify({
-        ...res.requestData.json,
-        batchOrder: res.requestData.json.batchOrder.map((order: any) => ({
-          ...order,
-          [APIIDMainKey]: APIIDMain,
-        })),
-      });
-    } else if (
-      !Array.isArray(res.requestData) &&
-      res.requestData?.json &&
-      typeof res.requestData.json === 'object'
-    ) {
-      // For the rare non-order requests that expected pre-stringified json
-      res.requestData.json = JSON.stringify({
-        ...res.requestData.json,
-      });
-    } else if (res.requestData) {
-      res.requestData[APIIDMainKey] = APIIDMain;
+    const clientType = this.getClientType();
+    const shouldAddAPIId =
+      clientType === REST_CLIENT_TYPE_ENUM.main ||
+      (clientType === REST_CLIENT_TYPE_ENUM.derivatives && method === 'POST');
+
+    if (shouldAddAPIId) {
+      if (Array.isArray(res.requestData)) {
+        res.requestData.forEach((element) => {
+          element[APIIDMainKey] = APIIDMain;
+        });
+      } else if (
+        !Array.isArray(res.requestData) &&
+        Array.isArray(res.requestData.orders)
+      ) {
+        res.requestData.orders.forEach((order: any) => {
+          order[APIIDMainKey] = APIIDMain;
+        });
+      } else if (
+        !Array.isArray(res.requestData) &&
+        res.requestData?.json &&
+        typeof res.requestData.json === 'object' &&
+        Array.isArray(res.requestData.json?.batchOrder)
+      ) {
+        // Unique to batch order placement, json must be pre-stringified in request
+        res.requestData.json = JSON.stringify({
+          ...res.requestData.json,
+          batchOrder: res.requestData.json.batchOrder.map((order: any) => ({
+            ...order,
+            [APIIDMainKey]: APIIDMain,
+          })),
+        });
+      } else if (
+        !Array.isArray(res.requestData) &&
+        res.requestData?.json &&
+        typeof res.requestData.json === 'object'
+      ) {
+        // For the rare non-order requests that expected pre-stringified json
+        res.requestData.json = JSON.stringify({
+          ...res.requestData.json,
+        });
+      } else if (res.requestData) {
+        res.requestData[APIIDMainKey] = APIIDMain;
+      }
     }
 
     const strictParamValidation = this.options.strictParamValidation;
