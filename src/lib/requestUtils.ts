@@ -146,7 +146,7 @@ export function getRestBaseUrl(
 
   if (restClientOptions.testnet) {
     if (restClientType === REST_CLIENT_TYPE_ENUM.derivatives) {
-      return REST_CLIENT_TYPE_ENUM.derivativesDemo;
+      return krakenURLMap[REST_CLIENT_TYPE_ENUM.derivativesDemo];
     }
 
     throw new Error(
