@@ -57,7 +57,7 @@ type ParamsInQueryBodyOrHeader = {
 const ENABLE_HTTP_TRACE =
   typeof process === 'object' &&
   typeof process.env === 'object' &&
-  process.env.KUCOINTRACE;
+  process.env.KRAKENTRACE;
 
 if (ENABLE_HTTP_TRACE) {
   axios.interceptors.request.use((request) => {
