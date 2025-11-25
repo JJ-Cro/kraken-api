@@ -3,8 +3,6 @@ import { nanoid } from 'nanoid';
 
 import { BaseRestClient } from './lib/BaseRestClient.js';
 import {
-  APIIDMain,
-  APIIDMainKey,
   REST_CLIENT_TYPE_ENUM,
   RestClientOptions,
   RestClientType,
@@ -257,7 +255,7 @@ export class DerivativesClient extends BaseRestClient {
     DerivativesAPISuccessResponse<{ status: FuturesDeadMansSwitchStatus }>
   > {
     return this.postPrivate('derivatives/api/v3/cancelallordersafter', {
-      query: params,
+      body: params,
     });
   }
 
@@ -272,7 +270,7 @@ export class DerivativesClient extends BaseRestClient {
     DerivativesAPISuccessResponse<{ cancelStatus: FuturesCancelOrderStatus }>
   > {
     return this.postPrivate('derivatives/api/v3/cancelorder', {
-      query: params,
+      body: params,
     });
   }
 
@@ -330,7 +328,7 @@ export class DerivativesClient extends BaseRestClient {
     DerivativesAPISuccessResponse<{ orders: FuturesOrderStatusInfo[] }>
   > {
     return this.postPrivate('derivatives/api/v3/orders/status', {
-      query: params,
+      body: params,
     });
   }
 
@@ -489,7 +487,7 @@ export class DerivativesClient extends BaseRestClient {
     params: FuturesAddAssignmentPreferenceParams,
   ): Promise<DerivativesAPISuccessResponse<FuturesAssignmentProgram>> {
     return this.postPrivate('derivatives/api/v3/assignmentprogram/add', {
-      query: params,
+      body: params,
     });
   }
 
@@ -502,7 +500,7 @@ export class DerivativesClient extends BaseRestClient {
     id: number;
   }): Promise<DerivativesAPISuccessResponse<FuturesAssignmentProgram>> {
     return this.postPrivate('derivatives/api/v3/assignmentprogram/delete', {
-      query: params,
+      body: params,
     });
   }
 
@@ -699,7 +697,7 @@ export class DerivativesClient extends BaseRestClient {
     params: FuturesInitiateWalletTransferParams,
   ): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.postPrivate('derivatives/api/v3/transfer', {
-      query: params,
+      body: params,
     });
   }
 
@@ -712,7 +710,7 @@ export class DerivativesClient extends BaseRestClient {
     params: FuturesInitiateSubaccountTransferParams,
   ): Promise<DerivativesAPISuccessResponse<Record<string, never>>> {
     return this.postPrivate('derivatives/api/v3/transfer/subaccount', {
-      query: params,
+      body: params,
     });
   }
 
@@ -726,7 +724,7 @@ export class DerivativesClient extends BaseRestClient {
     params: FuturesSubmitToSpotParams,
   ): Promise<DerivativesAPISuccessResponse<{ uid: string }>> {
     return this.postPrivate('derivatives/api/v3/withdrawal', {
-      query: params,
+      body: params,
     });
   }
 

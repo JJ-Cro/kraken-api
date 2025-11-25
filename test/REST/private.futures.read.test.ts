@@ -44,7 +44,7 @@ describe('REST PRIVATE FUTURES READ', () => {
         try {
           const res = await rest.getAccounts();
 
-          console.log(`res "${expect.getState().currentTestName}"`, res);
+          // console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
             accounts: expect.any(Object),
