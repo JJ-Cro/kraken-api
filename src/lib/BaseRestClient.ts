@@ -23,10 +23,17 @@ import {
 const MISSING_API_KEYS_ERROR =
   'API Key & Secret are BOTH required to use the authenticated REST client';
 
-interface SignedRequest<T extends object | undefined = {}, TReqData = object> {
+interface SignedRequest<
+  T extends object | undefined = {},
+  TReqData = object,
+  TReqQuery = object,
+> {
   originalParams: T;
   paramsWithSign?: T & { sign: string };
+  // all request params intended for request body (e.g. POST)
   requestData?: TReqData;
+  // all params intended for request query string (e.g. GET)
+  requestQuery?: TReqQuery;
   serializedParams: string;
   sign: string;
   queryParamsWithSign: string;
@@ -438,10 +445,10 @@ export abstract class BaseRestClient {
   ): Promise<SignedRequest<T>> {
     const timestamp = this.getSignTimestampMs();
 
-    const requestBody = data?.body || data?.query || data;
     const res: SignedRequest<T, any> = {
       originalParams: { ...data },
-      requestData: requestBody,
+      requestData: data?.body || {},
+      requestQuery: data?.query,
       sign: '',
       timestamp,
       recvWindow: 0,
@@ -453,12 +460,15 @@ export abstract class BaseRestClient {
       return res;
     }
 
+    // handle JSON preprocessing for requests, including embedded stringify
     if (method === 'POST') {
+      // array
       if (Array.isArray(res.requestData)) {
         res.requestData.forEach((element) => {
           element[APIIDMainKey] = APIIDMain;
         });
       } else if (
+        // not array in top, but has array orders
         !Array.isArray(res.requestData) &&
         Array.isArray(res.requestData.orders)
       ) {
@@ -466,6 +476,7 @@ export abstract class BaseRestClient {
           order[APIIDMainKey] = APIIDMain;
         });
       } else if (
+        // not array in top, but has array batchOrder
         !Array.isArray(res.requestData) &&
         res.requestData?.json &&
         typeof res.requestData.json === 'object' &&
@@ -480,6 +491,7 @@ export abstract class BaseRestClient {
           })),
         });
       } else if (
+        // not array in top, but has json object
         !Array.isArray(res.requestData) &&
         res.requestData?.json &&
         typeof res.requestData.json === 'object'
@@ -489,6 +501,7 @@ export abstract class BaseRestClient {
           ...res.requestData.json,
         });
       } else if (res.requestData) {
+        // simple object
         res.requestData[APIIDMainKey] = APIIDMain;
       }
     }
@@ -523,7 +536,15 @@ export abstract class BaseRestClient {
             (res.requestData as any)?.nonce || this.getNextRequestNonce();
 
           const serialisedParams = serializeParams(
-            requestBody,
+            method === 'GET' ? res.requestQuery : res.requestData,
+            strictParamValidation,
+            encodeQueryStringValues,
+            prefixWith,
+            repeatArrayValuesAsKVPairs,
+          );
+
+          const serialisedQueryParams = serializeParams(
+            res.requestQuery,
             strictParamValidation,
             encodeQueryStringValues,
             prefixWith,
@@ -589,14 +610,15 @@ export abstract class BaseRestClient {
             }
           }
 
-          res.queryParamsWithSign = serialisedParams;
+          // ONLY the query params. The rest goes in the body, if there is a body.
+          res.queryParamsWithSign = serialisedQueryParams;
 
           break;
         }
         case REST_CLIENT_TYPE_ENUM.derivatives: {
           // for futures, serialise GET & POST values as query
           const signRequestParams = serializeParams(
-            method === 'POST' ? res.requestData : requestBody,
+            method === 'POST' ? res.requestData : res.requestQuery,
             strictParamValidation,
             encodeQueryStringValues,
             prefixWith,
