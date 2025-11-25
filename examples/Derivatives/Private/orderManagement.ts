@@ -20,8 +20,8 @@ import { DerivativesClient } from '../../../src';
  * }
  */
 const client = new DerivativesClient({
-  apiKey: process.env.API_KEY_NAME || 'insertApiKeyHere',
-  apiSecret: process.env.API_PRIVATE_KEY || 'insertApiSecretHere',
+  apiKey: process.env.API_FUTURES_KEY || 'insertApiKeyHere',
+  apiSecret: process.env.API_FUTURES_SECRET || 'insertApiSecretHere',
 });
 
 async function editOrder() {
