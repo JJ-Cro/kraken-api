@@ -449,7 +449,7 @@ export abstract class BaseRestClient {
     const res: SignedRequest<T, any> = {
       originalParams: { ...data },
       requestData: data?.body || {},
-      requestQuery: data?.query,
+      requestQuery: data?.query || {},
       sign: '',
       timestamp,
       recvWindow: 0,
@@ -617,23 +617,27 @@ export abstract class BaseRestClient {
           break;
         }
         case REST_CLIENT_TYPE_ENUM.derivatives: {
-          // for futures, serialise GET & POST values as query
-          const signInputRequestParams = {
-            ...res.requestData,
-            ...res.requestQuery,
-          };
-
-          const signRequestParams = serializeParams(
-            signInputRequestParams,
+          const serialisedQueryParams = serializeParams(
+            res.requestQuery,
             strictParamValidation,
             encodeQueryStringValues,
             prefixWith,
             repeatArrayValuesAsKVPairs,
           );
+
+          const serialisedBodyParams = serializeParams(
+            res.requestData,
+            strictParamValidation,
+            encodeQueryStringValues,
+            prefixWith,
+            repeatArrayValuesAsKVPairs,
+          );
+
           const signEndpoint = endpoint.replace('/derivatives', '');
 
           const nonce = ''; //this.getNextRequestNonce();
-          const signInput = `${signRequestParams}${nonce}${signEndpoint}`;
+
+          const signInput = `${serialisedQueryParams}${serialisedBodyParams}${nonce}${signEndpoint}`;
 
           // Only sign when no access token is provided
           if (!this.hasAccessToken()) {
@@ -665,7 +669,10 @@ export abstract class BaseRestClient {
             res.sign = sign;
           }
 
-          res.queryParamsWithSign = signRequestParams;
+          res.queryParamsWithSign = serialisedQueryParams;
+
+          // Submitted as query string in form body
+          res.requestData = serialisedBodyParams;
 
           break;
         }
@@ -779,6 +786,7 @@ export abstract class BaseRestClient {
           signHeaders = {
             Authent: signResult.sign,
             APIKey: this.apiKey,
+            'Content-Type': 'application/x-www-form-urlencoded',
           };
         }
         break;
@@ -799,7 +807,7 @@ export abstract class BaseRestClient {
           ...signHeaders,
         },
         url: urlWithQueryParams,
-        data: isEmptyObject(signResult.requestData)
+        data: isEmptyObject(signResult.requestData, true)
           ? undefined
           : signResult.requestData,
       };
