@@ -126,7 +126,10 @@ export function serializeParams<T extends Record<string, any> | undefined = {}>(
 export const APIIDMainKey = 'broker';
 export const APIIDMain = 'AA56 N84G TOOP ELJQ';
 
-export function isEmptyObject(obj: any) {
+export function isEmptyObject(obj: any, acceptStringIfNotEmpty: boolean) {
+  if (obj && acceptStringIfNotEmpty && typeof obj === 'string') {
+    return false;
+  }
   if (!obj || typeof obj !== 'object') {
     return true;
   }

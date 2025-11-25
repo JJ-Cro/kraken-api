@@ -314,7 +314,7 @@ export class DerivativesClient extends BaseRestClient {
     DerivativesAPISuccessResponse<{ sendStatus: FuturesSendOrderStatus }>
   > {
     return this.postPrivate('derivatives/api/v3/sendorder', {
-      query: params,
+      body: params,
     });
   }
 
