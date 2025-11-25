@@ -6,6 +6,7 @@ import {
   APIIDMain,
   APIIDMainKey,
   getRestBaseUrl,
+  isEmptyObject,
   REST_CLIENT_TYPE_ENUM,
   RestClientOptions,
   RestClientType,
