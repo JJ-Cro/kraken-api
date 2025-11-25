@@ -88,7 +88,6 @@ async function start() {
   });
 
   /**
-   *    * TODO:
    * The below examples demonstrate how you can subscribe to private topics.
    *
    * Note: while the documentation specifies "token" as a required parameter, the SDK will automatically:
