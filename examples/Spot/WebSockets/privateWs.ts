@@ -125,7 +125,6 @@ async function start() {
       payload: {
         // below params are optional:
         // snapshot: true, // default: true
-        // TODO: are these correct? because in the docs these are higher level objects...but only for this topic?
         // rebased: false, // default: true
         // users: 'all',
       },
