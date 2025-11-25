@@ -617,8 +617,13 @@ export abstract class BaseRestClient {
         }
         case REST_CLIENT_TYPE_ENUM.derivatives: {
           // for futures, serialise GET & POST values as query
+          const signInputRequestParams = {
+            ...res.requestData,
+            ...res.requestQuery,
+          };
+
           const signRequestParams = serializeParams(
-            method === 'POST' ? res.requestData : res.requestQuery,
+            signInputRequestParams,
             strictParamValidation,
             encodeQueryStringValues,
             prefixWith,
@@ -793,7 +798,9 @@ export abstract class BaseRestClient {
           ...signHeaders,
         },
         url: urlWithQueryParams,
-        data: signResult.requestData,
+        data: isEmptyObject(signResult.requestData)
+          ? undefined
+          : signResult.requestData,
       };
     }
 
