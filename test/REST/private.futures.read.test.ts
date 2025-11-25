@@ -3,8 +3,8 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE FUTURES READ', () => {
   const account = {
-    key: process.env.API_FUTURES_KEY,
-    secret: process.env.API_FUTURES_SECRET,
+    key: process.env.API_FUTURES_WRITE_KEY, // write keys because read only give auth error only
+    secret: process.env.API_FUTURES_WRITE_SECRET,
   };
 
   const rest = new DerivativesClient(
@@ -16,6 +16,7 @@ describe('REST PRIVATE FUTURES READ', () => {
   );
 
   it('should have credentials to test with', () => {
+    console.log(account);
     expect(account.key).toBeDefined();
     expect(account.secret).toBeDefined();
   });
@@ -43,7 +44,7 @@ describe('REST PRIVATE FUTURES READ', () => {
         try {
           const res = await rest.getAccounts();
 
-          // console.log(`res "${expect.getState().currentTestName}"`, res);
+          console.log(`res "${expect.getState().currentTestName}"`, res);
           expect(res).toMatchObject({
             result: 'success',
             accounts: expect.any(Object),

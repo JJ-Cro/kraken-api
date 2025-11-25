@@ -3,8 +3,8 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE FUTURES WRITE', () => {
   const account = {
-    key: process.env.API_FUTURES_KEY,
-    secret: process.env.API_FUTURES_SECRET,
+    key: process.env.API_FUTURES_WRITE_KEY,
+    secret: process.env.API_FUTURES_WRITE_SECRET,
   };
 
   const rest = new DerivativesClient(
@@ -35,7 +35,13 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         // If it succeeds, that's fine too (means we have full permissions)
         expect(res).toMatchObject({
           result: 'success',
-          sendStatus: expect.any(Object),
+          serverTime: expect.any(String),
+          sendStatus: {
+            status: 'insufficientAvailableFunds',
+            order_id: expect.any(String),
+            receivedTime: expect.any(String),
+            orderEvents: expect.any(Array),
+          },
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
@@ -110,7 +116,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('Permission denied'),
+          error: expect.stringContaining('InsufficientFunds'),
         });
       }
     });
@@ -170,7 +176,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         // console.log(`res "${expect.getState().currentTestName}"`, res);
         expect(res).toMatchObject({
           result: 'success',
-          strategy: expect.any(Object),
+          strategy: 'CANCEL_MAKER_SELF',
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
