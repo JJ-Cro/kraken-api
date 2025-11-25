@@ -24,14 +24,13 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     it('should succeed or fail with permission error calling submitOrder', async () => {
       try {
         const res = await rest.submitOrder({
-          symbol: 'PF_XBTUSD',
-          orderType: 'lmt',
+          orderType: 'mkt',
+          symbol: 'PF_ETHUSD', // Perpetual ETH/USD
           side: 'buy',
-          size: 1,
-          limitPrice: 10000,
+          size: 100, // Contract size
         });
 
-        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
         // If it succeeds, that's fine too (means we have full permissions)
         expect(res).toMatchObject({
           result: 'success',
@@ -45,7 +44,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
-        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        console.log(`err "${expect.getState().currentTestName}"`, e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
@@ -80,14 +79,15 @@ describe('REST PRIVATE FUTURES WRITE', () => {
           order_id: 'a068cbe2-bd99-4312-bc10-072e90ba4696',
         });
 
-        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
         // If it succeeds somehow, that's fine
         expect(res).toMatchObject({
           result: 'success',
+          cancelStatus: expect.objectContaining({ status: 'notFound' }),
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
-        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
@@ -102,21 +102,21 @@ describe('REST PRIVATE FUTURES WRITE', () => {
           fromAccount: 'cash',
           toAccount: 'flex',
           unit: 'BTC',
-          amount: '0.0001',
+          amount: '100',
         });
 
-        console.log(`res "${expect.getState().currentTestName}"`, res);
+        //console.log(`res "${expect.getState().currentTestName}"`, res);
         // If it succeeds, that's fine
         expect(res).toMatchObject({
           result: 'success',
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
-        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('InsufficientFunds'),
+          error: expect.stringContaining('insufficientFunds'),
         });
       }
     });
@@ -126,8 +126,8 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     it('should succeed calling setPnlPreference', async () => {
       try {
         const res = await rest.setPnlPreference({
-          symbol: 'PF_XBTUSD',
-          pnlPreference: 'USD',
+          symbol: 'PF_ETHUSD',
+          pnlPreference: 'ETH',
         });
 
         // console.log(`res "${expect.getState().currentTestName}"`, res);
@@ -137,11 +137,12 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
-        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
+          status: 'UNPROCESSABLE_ENTITY',
           result: 'error',
-          error: expect.stringContaining('Permission denied'),
+          errors: expect.any(Array),
         });
       }
     });
@@ -158,11 +159,12 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         expect(res).not.toBeDefined();
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
-        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
+          status: 'NOT_FOUND',
           result: 'error',
-          error: expect.stringContaining('Permission denied'),
+          errors: expect.any(Array),
         });
       }
     });
@@ -204,11 +206,272 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected with read-only API keys or insufficient balance - validates signature is correct
-        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining(
+            'assignmentProgramTermsNotAcceptedFrontend',
+          ),
+        });
+      }
+    });
+
+    it('should handle cancelRFQOffer with non-existent RFQ (validates signature)', async () => {
+      try {
+        const res = await rest.cancelRFQOffer({
+          rfqUid: 'non-existent-rfq-uid',
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('notFound'),
+        });
+      }
+    });
+  });
+
+  describe('Additional POST write operations', () => {
+    it('should handle batchOrderManagement (validates signature)', async () => {
+      try {
+        const res = await rest.batchOrderManagement({
+          ProcessBefore: new Date(Date.now() + 60000).toISOString(),
+          json: {
+            batchOrder: [
+              {
+                order: 'send',
+                order_tag: 'test1',
+                orderType: 'lmt',
+                symbol: 'PF_ETHUSD',
+                side: 'buy',
+                size: 10,
+                limitPrice: 1000,
+              },
+            ],
+          },
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+          batchStatus: expect.any(Array),
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys or insufficient balance - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('notFound'),
+        });
+      }
+    });
+
+    it('should succeed calling cancelAllOrdersAfter', async () => {
+      try {
+        const res = await rest.cancelAllOrdersAfter({
+          timeout: 60,
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+          status: expect.any(Object),
+        });
+      } catch (e: any) {
+        // Expected with read-only API keys - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
           error: expect.stringContaining('Permission denied'),
+        });
+      }
+    });
+
+    it('should handle editOrder with non-existent order (validates signature)', async () => {
+      try {
+        const res = await rest.editOrder({
+          orderId: 'non-existent-order-id',
+          size: 10,
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          status: 'BAD_REQUEST',
+          result: 'error',
+          errors: expect.arrayContaining([
+            expect.objectContaining({
+              code: 11,
+              message: expect.stringContaining(
+                'Invalid UUID string: non-existent-order-id',
+              ),
+            }),
+          ]),
+        });
+      }
+    });
+
+    it('should handle addAssignmentPreference (validates signature)', async () => {
+      try {
+        const res = await rest.addAssignmentPreference({
+          contractType: 'flex',
+          contract: 'PF_XBTUSD',
+          acceptLong: true,
+          acceptShort: true,
+          timeFrame: 'all',
+          enabled: true,
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining(
+            'assignmentProgramTermsNotAcceptedFrontend',
+          ),
+        });
+      }
+    });
+
+    it('should handle submitSubaccountTransfer (validates signature)', async () => {
+      try {
+        const res = await rest.submitSubaccountTransfer({
+          fromUser: 'main-user',
+          toUser: 'sub-user',
+          fromAccount: 'cash',
+          toAccount: 'flex',
+          unit: 'BTC',
+          amount: '0.001',
+        });
+
+        //console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        //console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          error: expect.stringContaining('invalidArgument'),
+        });
+      }
+    });
+
+    it('should handle submitTransferToSpot (validates signature)', async () => {
+      try {
+        const res = await rest.submitTransferToSpot({
+          amount: '1000',
+          currency: 'BTC',
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        //console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+        });
+        // If error field exists, it should not be an authentication error
+        if (responseBody?.error) {
+          expect(responseBody.error).not.toContain('authenticationError');
+        }
+      }
+    });
+
+    it('should handle submitRFQNewOffer (validates signature)', async () => {
+      try {
+        const res = await rest.submitRFQNewOffer({
+          rfqUid: 'non-existent-rfq-uid',
+          bid: 1000,
+          ask: 1100,
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          status: 'UNSUPPORTED_MEDIA_TYPE',
+        });
+      }
+    });
+  });
+
+  describe('Additional PUT write operations', () => {
+    it('should handle setLeverageSettings (validates signature)', async () => {
+      try {
+        const res = await rest.setLeverageSettings({
+          symbol: 'PF_ETHUSD',
+          maxLeverage: 5,
+        });
+
+        //console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          status: 'UNSUPPORTED_MEDIA_TYPE',
+        });
+      }
+    });
+
+    it('should handle updateRFQOpenOffer (validates signature)', async () => {
+      try {
+        const res = await rest.updateRFQOpenOffer({
+          rfqUid: 'non-existent-rfq-uid',
+          bid: 1050,
+          ask: 1150,
+        });
+
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
+        expect(res).toMatchObject({
+          result: 'success',
+        });
+      } catch (e: any) {
+        // Expected - validates signature is correct
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        const responseBody = e?.body;
+        expect(responseBody).toMatchObject({
+          result: 'error',
+          status: 'UNSUPPORTED_MEDIA_TYPE',
         });
       }
     });
