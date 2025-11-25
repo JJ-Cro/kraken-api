@@ -237,6 +237,43 @@ async function getAccountLogFiltered() {
   }
 }
 
+async function enableFuturesSubTrading() {
+  try {
+    const enableFuturesSubTrading = await client.updateSubaccountTradingStatus({
+      subaccountUid: '6e5378ff-31ce-44e8-929f-23f822aa5673',
+      tradingEnabled: true,
+    });
+    console.log(
+      'Enable Futures Sub Trading: ',
+      JSON.stringify(enableFuturesSubTrading, null, 2),
+    );
+  } catch (e) {
+    console.error('Enable futures sub trading error: ', e);
+  }
+}
+
+async function getSubaccountTradingStatus() {
+  try {
+    const subaccountTradingStatus = await client.getSubaccountTradingStatus({
+      subaccountUid: '6e5378ff-31ce-44e8-929f-23f822aa5673',
+    });
+    console.log(
+      'Subaccount Trading Status: ',
+      JSON.stringify(subaccountTradingStatus, null, 2),
+    );
+  } catch (e) {
+    console.error('Get subaccount trading status error: ', e);
+  }
+}
+
+async function getSubaccounts() {
+  try {
+    const subaccounts = await client.getSubaccounts();
+    console.log('Subaccounts: ', JSON.stringify(subaccounts, null, 2));
+  } catch (e) {
+    console.error('Get subaccounts error: ', e);
+  }
+}
 // Uncomment the function you want to test:
 
 // getWallets();
@@ -251,3 +288,6 @@ async function getAccountLogFiltered() {
 // getExecutionEventsBySymbol();
 // getAccountLog();
 // getAccountLogFiltered();
+// enableFuturesSubTrading();
+// getSubaccountTradingStatus();
+// getSubaccounts();

@@ -263,6 +263,34 @@ async function getWithdrawalInfo() {
   }
 }
 
+async function transferToFutures() {
+  try {
+    const transfer = await client.submitTransferToFutures({
+      asset: 'EUR',
+      amount: '10',
+      from: 'Spot Wallet',
+      to: 'Futures Wallet',
+    });
+    console.log('Transfer to Futures: ', JSON.stringify(transfer, null, 2));
+  } catch (e) {
+    console.error('Transfer to futures error: ', e);
+  }
+}
+
+async function transferToSubaccount() {
+  try {
+    const transfer = await client.submitSubaccountTransfer({
+      asset: 'EUR',
+      amount: '50',
+      from: 'UID', // get From API, getSubaccounts()
+      to: 'UID', // get From API, getSubaccounts()
+    });
+    console.log('Transfer to Subaccount: ', JSON.stringify(transfer, null, 2));
+  } catch (e) {
+    console.error('Transfer to subaccount error: ', e);
+  }
+}
+
 // Uncomment the function you want to test:
 
 // withdrawFunds();
@@ -277,3 +305,5 @@ async function getWithdrawalInfo() {
 // getDepositsStatus();
 // cancelWithdrawal();
 // getWithdrawalInfo();
+// transferToFutures();
+// transferToSubaccount();
