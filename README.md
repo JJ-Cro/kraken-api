@@ -54,6 +54,7 @@ Complete & robust JavaScript & Node.js SDK for the Kraken REST APIs and WebSocke
   - [WebSockets](#websockets)
     - [Public WebSocket Streams](#public-websocket-streams)
     - [Private WebSocket Streams](#private-websocket-streams)
+    - [WebSocket API (WebsocketAPIClient)](#websocket-api-websocketapiclient)
 - [Customise Logging](#customise-logging)
 - [LLMs & AI](#use-with-llms--ai)
 - [Used By](#used-by)
