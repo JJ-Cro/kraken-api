@@ -147,8 +147,4 @@ async function batchOrderSubmit() {
 // submitMarketOrder();
 // submitPostOnlyOrder();
 // submitReduceOnlyOrder();
-// editOrder();
-// cancelOrder();
-// cancelAllOrders();
-// cancelAllOrdersBySymbol();
-batchOrderSubmit();
+//batchOrderSubmit();

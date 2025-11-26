@@ -134,7 +134,7 @@ export interface FuturesInitiateWalletTransferParams {
   fromAccount: string;
   toAccount: string;
   unit: string;
-  amount: string;
+  amount: number;
 }
 
 export interface FuturesInitiateSubaccountTransferParams {
