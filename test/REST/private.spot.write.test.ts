@@ -3,8 +3,8 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE SPOT WRITE', () => {
   const account = {
-    key: process.env.API_SPOT_READ_KEY, // read keys to get the permission error
-    secret: process.env.API_SPOT_READ_SECRET,
+    key: process.env.API_SPOT_KEY, // Use READ-ONLY keys to get the permission error
+    secret: process.env.API_SPOT_SECRET,
   };
 
   const rest = new SpotClient(

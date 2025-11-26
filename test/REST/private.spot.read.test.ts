@@ -3,8 +3,8 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE SPOT READ', () => {
   const account = {
-    key: process.env.API_SPOT_READ_KEY,
-    secret: process.env.API_SPOT_READ_SECRET,
+    key: process.env.API_SPOT_KEY,
+    secret: process.env.API_SPOT_SECRET,
   };
 
   const rest = new SpotClient(
