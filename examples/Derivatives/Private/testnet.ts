@@ -19,9 +19,8 @@ import { DerivativesClient } from '../../../src/index.js';
  */
 const client = new DerivativesClient({
   // https://demo-futures.kraken.com to create demo account
-  apiKey: '1mVo6NgddD3os5nnGTPcEcHIncSplLED3Grz1Fnb6l/Vy0iu2TGftQ0Z',
-  apiSecret:
-    'sCcoKlwBYojnXKTCc+sdkbvwwAieaSfU0VvDlfh2xDV3eR1ZlfpAf7p6Xt/pGL6z+m0KuHqGwQmJnnrlG4ZgNuWd',
+  apiKey: 'testnetKeyHere',
+  apiSecret: 'testnetSecretHere',
   testnet: true,
 });
 
@@ -104,7 +103,7 @@ async function initiateWalletTransfer() {
       fromAccount: 'cash', // or margin account name
       toAccount: 'flex', // or other margin account
       unit: 'EUR',
-      amount: '100',
+      amount: 10000,
     });
     console.log('Transfer Result: ', JSON.stringify(transfer, null, 2));
 

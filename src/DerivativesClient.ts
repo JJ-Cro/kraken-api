@@ -239,7 +239,7 @@ export class DerivativesClient extends BaseRestClient {
     }>
   > {
     return this.postPrivate('derivatives/api/v3/cancelallorders', {
-      query: params,
+      body: params,
     });
   }
 
@@ -286,7 +286,7 @@ export class DerivativesClient extends BaseRestClient {
     DerivativesAPISuccessResponse<{ editStatus: FuturesEditOrderStatus }>
   > {
     return this.postPrivate('derivatives/api/v3/editorder', {
-      query: params,
+      body: params,
     });
   }
 

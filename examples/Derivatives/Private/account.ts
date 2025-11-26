@@ -105,10 +105,10 @@ async function initiateWalletTransfer() {
   try {
     // Transfer between margin accounts or to/from cash account
     const transfer = await client.submitWalletTransfer({
-      fromAccount: 'cash', // or margin account name
-      toAccount: 'flex', // or other margin account
-      unit: 'EUR',
-      amount: '100',
+      fromAccount: 'flex',
+      toAccount: 'fi_xbtusd',
+      unit: 'BTC',
+      amount: 1,
     });
     console.log('Transfer Result: ', JSON.stringify(transfer, null, 2));
 

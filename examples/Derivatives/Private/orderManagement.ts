@@ -2,7 +2,7 @@
 // javascript (js) or typescript (ts) with the npm module "@siebly/kraken-api" for Kraken exchange
 // for ORDER MANAGEMENT
 
-import { DerivativesClient } from '../../../src';
+import { DerivativesClient } from '../../../src/index.js';
 
 /**
  * import { DerivativesClient } from '@siebly/kraken-api';
@@ -23,7 +23,6 @@ const client = new DerivativesClient({
   apiKey: process.env.API_FUTURES_KEY || 'insertApiKeyHere',
   apiSecret: process.env.API_FUTURES_SECRET || 'insertApiSecretHere',
 });
-
 async function editOrder() {
   try {
     // Edit an existing order

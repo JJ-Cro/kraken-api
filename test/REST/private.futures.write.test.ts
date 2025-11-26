@@ -99,10 +99,10 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     it('should succeed calling submitWalletTransfer with invalid params (validates signature)', async () => {
       try {
         const res = await rest.submitWalletTransfer({
-          fromAccount: 'cash',
-          toAccount: 'flex',
+          fromAccount: 'flex',
+          toAccount: 'fi_xbtusd',
           unit: 'BTC',
-          amount: '100',
+          amount: 1,
         });
 
         //console.log(`res "${expect.getState().currentTestName}"`, res);
@@ -116,7 +116,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('insufficientFunds'),
+          error: expect.stringContaining('cashAccountTypeAccessForbidden'),
         });
       }
     });
