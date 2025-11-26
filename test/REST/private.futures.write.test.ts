@@ -3,14 +3,15 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE FUTURES WRITE', () => {
   const account = {
-    key: process.env.API_FUTURES_WRITE_KEY,
-    secret: process.env.API_FUTURES_WRITE_SECRET,
+    key: process.env.API_FUTURES_KEY,
+    secret: process.env.API_FUTURES_SECRET,
   };
 
   const rest = new DerivativesClient(
     {
       apiKey: account.key,
       apiSecret: account.secret,
+      testnet: process.env.API_FUTURES_TESTNET === 'true',
     },
     getTestProxy(),
   );
@@ -116,7 +117,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('cashAccountTypeAccessForbidden'),
+          error: expect.stringContaining('insufficientFunds'),
         });
       }
     });

@@ -3,14 +3,15 @@ import { getTestProxy } from '../proxy.util.js';
 
 describe('REST PRIVATE FUTURES READ', () => {
   const account = {
-    key: process.env.API_FUTURES_WRITE_KEY, // write keys because read only give auth error only
-    secret: process.env.API_FUTURES_WRITE_SECRET,
+    key: process.env.API_FUTURES_KEY, // Use keys with WRITE access (empty sub-account), because read only give auth error only
+    secret: process.env.API_FUTURES_SECRET,
   };
 
   const rest = new DerivativesClient(
     {
       apiKey: account.key,
       apiSecret: account.secret,
+      testnet: process.env.API_FUTURES_TESTNET === 'true',
     },
     getTestProxy(),
   );
