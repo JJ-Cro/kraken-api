@@ -17,7 +17,6 @@ describe('REST PRIVATE FUTURES READ', () => {
   );
 
   it('should have credentials to test with', () => {
-    console.log(account);
     expect(account.key).toBeDefined();
     expect(account.secret).toBeDefined();
   });

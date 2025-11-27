@@ -160,8 +160,6 @@ export abstract class BaseRestClient {
       /** inject custom request options based on axios specs - see axios docs for more guidance on AxiosRequestConfig: https://github.com/axios/axios#request-config */
       ...networkOptions,
       headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
         UserAgent: '@siebly/kraken-api',
         locale: 'en-US',
       },
@@ -220,15 +218,14 @@ export abstract class BaseRestClient {
   }
 
   private getNextRequestNonce(): string {
-    switch (this.getClientType()) {
-      case REST_CLIENT_TYPE_ENUM.derivatives: {
-        return String(this.apiRequestNonce++);
-      }
-      case REST_CLIENT_TYPE_ENUM.main: {
-        return Date.now().toString();
-      }
+    const newNonce = Date.now();
+    if (newNonce <= this.apiRequestNonce) {
+      this.apiRequestNonce = ++this.apiRequestNonce;
+    } else {
+      this.apiRequestNonce = newNonce;
     }
-    return String(this.apiRequestNonce++);
+
+    return String(this.apiRequestNonce);
   }
 
   private hasValidCredentials() {
@@ -770,6 +767,8 @@ export abstract class BaseRestClient {
         signHeaders = {
           'API-Key': this.apiKey,
           'API-Sign': signResult.sign,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         };
         break;
       }
@@ -803,8 +802,9 @@ export abstract class BaseRestClient {
       return {
         ...options,
         headers: {
-          ...options.headers,
           ...signHeaders,
+          ...params?.headers,
+          ...options.headers,
         },
         url: urlWithQueryParams,
         data: isEmptyObject(signResult.requestData, true)
@@ -816,8 +816,9 @@ export abstract class BaseRestClient {
     return {
       ...options,
       headers: {
-        ...options.headers,
         ...signHeaders,
+        ...params?.headers,
+        ...options.headers,
       },
       url: urlWithQueryParams,
     };
