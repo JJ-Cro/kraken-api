@@ -43,7 +43,7 @@ describe('REST PRIVATE SPOT WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           error: expect.arrayContaining([
-            expect.stringContaining('Permission denied'),
+            expect.stringContaining('Cost minimum'),
           ]),
         });
       }
@@ -92,7 +92,7 @@ describe('REST PRIVATE SPOT WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           error: expect.arrayContaining([
-            expect.stringContaining('Permission denied'),
+            expect.stringContaining('Invalid order'),
           ]),
         });
       }
@@ -102,7 +102,7 @@ describe('REST PRIVATE SPOT WRITE', () => {
       try {
         const res = await rest.cancelAllOrders();
 
-        console.log(`res "${expect.getState().currentTestName}"`, res);
+        // console.log(`res "${expect.getState().currentTestName}"`, res);
         // If it succeeds, that's fine too (means we have full permissions)
         expect(res).toMatchObject({
           error: [],

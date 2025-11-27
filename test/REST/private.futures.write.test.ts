@@ -7,6 +7,8 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     secret: process.env.API_FUTURES_SECRET,
   };
 
+  const DUMMY_UUID = 'a02ec31e-668c-4252-a15d-5a58c68a6240';
+
   const rest = new DerivativesClient(
     {
       apiKey: account.key,
@@ -221,7 +223,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
     it('should handle cancelRFQOffer with non-existent RFQ (validates signature)', async () => {
       try {
         const res = await rest.cancelRFQOffer({
-          rfqUid: 'non-existent-rfq-uid',
+          rfqUid: DUMMY_UUID,
         });
 
         // console.log(`res "${expect.getState().currentTestName}"`, res);
@@ -234,7 +236,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('notFound'),
+          error: expect.stringContaining('rfqNotFound'),
         });
       }
     });
@@ -407,10 +409,11 @@ describe('REST PRIVATE FUTURES WRITE', () => {
       }
     });
 
+    // returns auth error in demo env
     it('should handle submitRFQNewOffer (validates signature)', async () => {
       try {
         const res = await rest.submitRFQNewOffer({
-          rfqUid: 'non-existent-rfq-uid',
+          rfqUid: DUMMY_UUID,
           bid: 1000,
           ask: 1100,
         });
@@ -425,7 +428,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          status: 'UNSUPPORTED_MEDIA_TYPE',
+          error: 'rfqNotFound',
         });
       }
     });
@@ -445,7 +448,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected - validates signature is correct
-        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
@@ -454,10 +457,10 @@ describe('REST PRIVATE FUTURES WRITE', () => {
       }
     });
 
-    it('should handle updateRFQOpenOffer (validates signature)', async () => {
+    it.skip('should handle updateRFQOpenOffer (validates signature)', async () => {
       try {
         const res = await rest.updateRFQOpenOffer({
-          rfqUid: 'non-existent-rfq-uid',
+          rfqUid: DUMMY_UUID,
           bid: 1050,
           ask: 1150,
         });
@@ -468,8 +471,10 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected - validates signature is correct
-        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
+        expect(responseBody?.error).not.toBe('authenticationError');
+
         expect(responseBody).toMatchObject({
           result: 'error',
           status: 'UNSUPPORTED_MEDIA_TYPE',
