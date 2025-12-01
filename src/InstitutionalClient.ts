@@ -1,12 +1,7 @@
-import { AxiosRequestConfig } from 'axios';
 import { nanoid } from 'nanoid';
 
 import { BaseRestClient } from './lib/BaseRestClient.js';
-import {
-  REST_CLIENT_TYPE_ENUM,
-  RestClientOptions,
-  RestClientType,
-} from './lib/requestUtils.js';
+import { REST_CLIENT_TYPE_ENUM, RestClientType } from './lib/requestUtils.js';
 import {
   CustodyDepositAddressesParams,
   CustodyDepositMethodsParams,
@@ -50,14 +45,6 @@ import {
  * - https://docs.kraken.com/api/docs/otc-api
  */
 export class InstitutionalClient extends BaseRestClient {
-  constructor(
-    restClientOptions: RestClientOptions = {},
-    requestOptions: AxiosRequestConfig = {},
-  ) {
-    super(restClientOptions, requestOptions);
-    return this;
-  }
-
   getClientType(): RestClientType {
     return REST_CLIENT_TYPE_ENUM.institutional;
   }

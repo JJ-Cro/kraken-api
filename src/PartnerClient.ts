@@ -70,14 +70,6 @@ import {
  * - https://docs.kraken.com/api/docs/ramp-api
  */
 export class PartnerClient extends BaseRestClient {
-  constructor(
-    restClientOptions: RestClientOptions = {},
-    requestOptions: AxiosRequestConfig = {},
-  ) {
-    super(restClientOptions, requestOptions);
-    return this;
-  }
-
   getClientType(): RestClientType {
     return REST_CLIENT_TYPE_ENUM.partner;
   }

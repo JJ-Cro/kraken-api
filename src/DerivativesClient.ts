@@ -85,14 +85,6 @@ import { DerivativesAPISuccessResponse } from './types/response/shared.types.js'
  * - https://docs.kraken.com/api/docs/futures-api/trading/get-history
  */
 export class DerivativesClient extends BaseRestClient {
-  constructor(
-    restClientOptions: RestClientOptions = {},
-    requestOptions: AxiosRequestConfig = {},
-  ) {
-    super(restClientOptions, requestOptions);
-    return this;
-  }
-
   getClientType(): RestClientType {
     return REST_CLIENT_TYPE_ENUM.derivatives;
   }
