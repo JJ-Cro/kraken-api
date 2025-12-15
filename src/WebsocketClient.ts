@@ -105,13 +105,48 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       | (WSTopicRequest<WSTopic> | WSTopic)[],
     wsKey: WsKey,
   ) {
-    if (!Array.isArray(requests)) {
-      this.subscribeTopicsForWsKey([requests], wsKey);
-      return;
+    // Automatically route level3 subscriptions to the L3 endpoint
+    const requestsArray = Array.isArray(requests) ? requests : [requests];
+    const level3Requests: (WSTopicRequest<WSTopic> | WSTopic)[] = [];
+    const otherRequests: (WSTopicRequest<WSTopic> | WSTopic)[] = [];
+
+    for (const request of requestsArray) {
+      const topic = typeof request === 'string' ? request : request.topic;
+      if (topic === 'level3') {
+        level3Requests.push(request);
+      } else {
+        otherRequests.push(request);
+      }
     }
 
-    if (requests.length) {
-      this.subscribeTopicsForWsKey(requests, wsKey);
+    // Subscribe level3 topics to the L3 endpoint
+    if (level3Requests.length > 0) {
+      if (level3Requests.length === 1) {
+        this.subscribeTopicsForWsKey(
+          [level3Requests[0] as WSTopicRequest<WSTopic>],
+          WS_KEY_MAP.spotL3V2,
+        );
+      } else {
+        this.subscribeTopicsForWsKey(
+          level3Requests as WSTopicRequest<WSTopic>[],
+          WS_KEY_MAP.spotL3V2,
+        );
+      }
+    }
+
+    // Subscribe other topics to the original wsKey
+    if (otherRequests.length > 0) {
+      if (otherRequests.length === 1) {
+        this.subscribeTopicsForWsKey(
+          [otherRequests[0] as WSTopicRequest<WSTopic>],
+          wsKey,
+        );
+      } else {
+        this.subscribeTopicsForWsKey(
+          otherRequests as WSTopicRequest<WSTopic>[],
+          wsKey,
+        );
+      }
     }
   }
 
@@ -127,13 +162,48 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       | (WSTopicRequest<WSTopic> | WSTopic)[],
     wsKey: WsKey,
   ) {
-    if (!Array.isArray(requests)) {
-      this.unsubscribeTopicsForWsKey([requests], wsKey);
-      return;
+    // Automatically route level3 unsubscriptions to the L3 endpoint
+    const requestsArray = Array.isArray(requests) ? requests : [requests];
+    const level3Requests: (WSTopicRequest<WSTopic> | WSTopic)[] = [];
+    const otherRequests: (WSTopicRequest<WSTopic> | WSTopic)[] = [];
+
+    for (const request of requestsArray) {
+      const topic = typeof request === 'string' ? request : request.topic;
+      if (topic === 'level3') {
+        level3Requests.push(request);
+      } else {
+        otherRequests.push(request);
+      }
     }
 
-    if (requests.length) {
-      this.unsubscribeTopicsForWsKey(requests, wsKey);
+    // Unsubscribe level3 topics from the L3 endpoint
+    if (level3Requests.length > 0) {
+      if (level3Requests.length === 1) {
+        this.unsubscribeTopicsForWsKey(
+          [level3Requests[0] as WSTopicRequest<WSTopic>],
+          WS_KEY_MAP.spotL3V2,
+        );
+      } else {
+        this.unsubscribeTopicsForWsKey(
+          level3Requests as WSTopicRequest<WSTopic>[],
+          WS_KEY_MAP.spotL3V2,
+        );
+      }
+    }
+
+    // Unsubscribe other topics from the original wsKey
+    if (otherRequests.length > 0) {
+      if (otherRequests.length === 1) {
+        this.unsubscribeTopicsForWsKey(
+          [otherRequests[0] as WSTopicRequest<WSTopic>],
+          wsKey,
+        );
+      } else {
+        this.unsubscribeTopicsForWsKey(
+          otherRequests as WSTopicRequest<WSTopic>[],
+          wsKey,
+        );
+      }
     }
   }
 
@@ -316,6 +386,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       case WS_KEY_MAP.spotPrivateV2: {
         return 'wss://ws-auth.kraken.com/v2';
       }
+      case WS_KEY_MAP.spotL3V2: {
+        return 'wss://ws-l3.kraken.com/v2';
+      }
       case WS_KEY_MAP.spotBetaPublicV2: {
         return 'wss://beta-ws.kraken.com/v2';
       }
@@ -350,6 +423,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       }
       case WS_KEY_MAP.spotPublicV2:
       case WS_KEY_MAP.spotPrivateV2:
+      case WS_KEY_MAP.spotL3V2:
       case WS_KEY_MAP.spotBetaPublicV2:
       case WS_KEY_MAP.spotBetaPrivateV2: {
         // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
@@ -649,6 +723,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   protected getPrivateWSKeys(): WsKey[] {
     return [
       WS_KEY_MAP.spotPrivateV2,
+      WS_KEY_MAP.spotL3V2,
       WS_KEY_MAP.spotBetaPrivateV2,
       WS_KEY_MAP.derivativesPrivateV1,
     ];
@@ -694,6 +769,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       switch (wsKey) {
         case WS_KEY_MAP.spotPublicV2:
         case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotL3V2:
         case WS_KEY_MAP.spotBetaPublicV2:
         case WS_KEY_MAP.spotBetaPrivateV2: {
           const wsEvent: WSRequestOperationKraken<WSTopic> = {
@@ -708,6 +784,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           if (
             this.options.authPrivateRequests &&
             (wsKey === WS_KEY_MAP.spotPrivateV2 ||
+              wsKey === WS_KEY_MAP.spotL3V2 ||
               wsKey === WS_KEY_MAP.spotBetaPrivateV2)
           ) {
             // Get token from REST client cache
@@ -891,6 +968,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     try {
       switch (wsKey) {
         case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotL3V2:
         case WS_KEY_MAP.spotBetaPrivateV2: {
           // Not needed here, handled automatically with request during subscribe
           this.logger.trace(

@@ -15,6 +15,7 @@ export const WS_KEY_MAP = {
    */
   spotPublicV2: 'spotPublicV2',
   spotPrivateV2: 'spotPrivateV2',
+  spotL3V2: 'spotL3V2',
   spotBetaPublicV2: 'spotBetaPublicV2',
   spotBetaPrivateV2: 'spotBetaPrivateV2',
   /**
