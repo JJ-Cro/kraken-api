@@ -316,6 +316,9 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       case WS_KEY_MAP.spotPrivateV2: {
         return 'wss://ws-auth.kraken.com/v2';
       }
+      case WS_KEY_MAP.spotL3V2: {
+        return 'wss://ws-l3.kraken.com/v2';
+      }
       case WS_KEY_MAP.spotBetaPublicV2: {
         return 'wss://beta-ws.kraken.com/v2';
       }
@@ -350,6 +353,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       }
       case WS_KEY_MAP.spotPublicV2:
       case WS_KEY_MAP.spotPrivateV2:
+      case WS_KEY_MAP.spotL3V2:
       case WS_KEY_MAP.spotBetaPublicV2:
       case WS_KEY_MAP.spotBetaPrivateV2: {
         // Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
@@ -649,6 +653,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
   protected getPrivateWSKeys(): WsKey[] {
     return [
       WS_KEY_MAP.spotPrivateV2,
+      WS_KEY_MAP.spotL3V2,
       WS_KEY_MAP.spotBetaPrivateV2,
       WS_KEY_MAP.derivativesPrivateV1,
     ];
@@ -694,6 +699,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
       switch (wsKey) {
         case WS_KEY_MAP.spotPublicV2:
         case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotL3V2:
         case WS_KEY_MAP.spotBetaPublicV2:
         case WS_KEY_MAP.spotBetaPrivateV2: {
           const wsEvent: WSRequestOperationKraken<WSTopic> = {
@@ -708,6 +714,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
           if (
             this.options.authPrivateRequests &&
             (wsKey === WS_KEY_MAP.spotPrivateV2 ||
+              wsKey === WS_KEY_MAP.spotL3V2 ||
               wsKey === WS_KEY_MAP.spotBetaPrivateV2)
           ) {
             // Get token from REST client cache
@@ -891,6 +898,7 @@ export class WebsocketClient extends BaseWebsocketClient<WsKey, any> {
     try {
       switch (wsKey) {
         case WS_KEY_MAP.spotPrivateV2:
+        case WS_KEY_MAP.spotL3V2:
         case WS_KEY_MAP.spotBetaPrivateV2: {
           // Not needed here, handled automatically with request during subscribe
           this.logger.trace(
