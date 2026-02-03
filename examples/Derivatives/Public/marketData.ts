@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DerivativesClient } from '../../../src/index.js';
 
 // This example shows how to call Kraken API endpoint with either node.js,
