@@ -14,6 +14,7 @@ import { WSTopic } from '../types/websockets/ws-subscriptions.js';
 import { checkWebCryptoAPISupported } from './webCryptoAPI.js';
 import { DefaultLogger } from './websocket/logger.js';
 import {
+  getNormalisedTopicRequests,
   safeTerminateWs,
   WSOperation,
   WSTopicRequest,
@@ -155,33 +156,6 @@ function getFinalEmittable(
   };
 }
 
-/**
- * Users can conveniently pass topics as strings or objects (object has topic name + optional params).
- *
- * This method normalises topics into objects (object has topic name + optional params).
- */
-function getNormalisedTopicRequests(
-  wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
-): WSTopicRequest<WSTopic>[] {
-  const normalisedTopicRequests: WSTopicRequest<WSTopic>[] = [];
-
-  for (const wsTopicRequest of wsTopicRequests) {
-    // passed as string, convert to object
-    if (typeof wsTopicRequest === 'string') {
-      const topicRequest: WSTopicRequest<WSTopic> = {
-        topic: wsTopicRequest as WSTopic,
-        payload: undefined,
-      };
-      normalisedTopicRequests.push(topicRequest);
-      continue;
-    }
-
-    // already a normalised object, thanks to user
-    normalisedTopicRequests.push(wsTopicRequest);
-  }
-  return normalisedTopicRequests;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export abstract class BaseWebsocketClient<
   TWSKey extends string,
@@ -218,15 +192,20 @@ export abstract class BaseWebsocketClient<
       pingInterval: 10000,
       reconnectTimeout: 500,
       recvWindow: 5000,
+
       // Requires a confirmation "response" from the ws connection before assuming it is ready
       requireConnectionReadyConfirmation: false,
+
       // Automatically auth after opening a connection?
       authPrivateConnectionsOnConnect: false,
+
       // Automatically include auth/sign/token with every WS request.
       // Automatically handled during getWsRequestEvents.
       authPrivateRequests: true,
+
       // Automatically re-auth WS API, if we were auth'd before and get reconnected
       reauthWSAPIOnReconnect: true,
+
       // Whether to use native heartbeats (depends on the exchange)
       useNativeHeartbeats: true,
 
@@ -1112,6 +1091,7 @@ export abstract class BaseWebsocketClient<
     } catch (e) {
       this.logger.error(
         'Exception trying to resolve "connectionInProgress" promise',
+        e,
       );
     }
   }
