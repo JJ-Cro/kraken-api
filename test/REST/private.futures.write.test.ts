@@ -375,7 +375,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected - validates signature is correct
-        //console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
