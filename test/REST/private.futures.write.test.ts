@@ -375,11 +375,17 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         });
       } catch (e: any) {
         // Expected - validates signature is correct
-        //console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
+        // console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
         const responseBody = e?.body;
+
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('invalidArgument'),
+        });
+
+        const firstError = responseBody?.errors?.[0];
+        expect(firstError).toMatchObject({
+          code: expect.any(Number),
+          message: expect.stringContaining('Invalid UUID'),
         });
       }
     });
