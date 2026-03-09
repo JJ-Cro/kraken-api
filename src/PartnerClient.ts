@@ -1,12 +1,16 @@
 import { BaseRestClient } from './lib/BaseRestClient.js';
 import { REST_CLIENT_TYPE_ENUM, RestClientType } from './lib/requestUtils.js';
 import {
+  PartnerCancelCustomOrderParams,
+  PartnerCreateCustomOrderParams,
   PartnerCreateUserParams,
   PartnerExecuteQuoteParams,
   PartnerGetAssetParams,
+  PartnerGetCustomOrderParams,
   PartnerGetEarnSummaryParams,
   PartnerGetPortfolioHistoryParams,
   PartnerGetPortfolioSummaryParams,
+  PartnerGetQuoteLimitsParams,
   PartnerGetQuoteParams,
   PartnerGetRampCheckoutUrlParams,
   PartnerGetRampLimitsParams,
@@ -14,11 +18,13 @@ import {
   PartnerGetSettlementReportParams,
   PartnerListAssetRatesParams,
   PartnerListAssetsParams,
+  PartnerListCustomOrdersParams,
   PartnerListEarnAssetsParams,
   PartnerListFundingTransactionsParams,
   PartnerListPortfolioDetailsParams,
   PartnerListPortfolioTransactionsParams,
   PartnerListSettlementReportsParams,
+  PartnerRequestProspectiveQuoteParams,
   PartnerRequestQuoteParams,
   PartnerSubmitVerificationParams,
   PartnerToggleAutoEarnParams,
@@ -26,12 +32,16 @@ import {
   PartnerWithdrawFundsParams,
 } from './types/request/partner.types.js';
 import {
+  PartnerCancelCustomOrderResponse,
+  PartnerCreateCustomOrderResponse,
   PartnerCreateUserResponse,
   PartnerExecuteQuoteResponse,
   PartnerGetAssetResponse,
+  PartnerGetCustomOrderResponse,
   PartnerGetEarnSummaryResponse,
   PartnerGetPortfolioHistoryResponse,
   PartnerGetPortfolioSummaryResponse,
+  PartnerGetQuoteLimitsResponse,
   PartnerGetQuoteResponse,
   PartnerGetRampCheckoutUrlResponse,
   PartnerGetRampLimitsResponse,
@@ -40,6 +50,7 @@ import {
   PartnerGetUserResponse,
   PartnerListAssetRatesResponse,
   PartnerListAssetsResponse,
+  PartnerListCustomOrdersResponse,
   PartnerListEarnAssetsResponse,
   PartnerListFundingTransactionsResponse,
   PartnerListPortfolioDetailsResponse,
@@ -49,6 +60,7 @@ import {
   PartnerListRampFiatCurrenciesResponse,
   PartnerListRampPaymentMethodsResponse,
   PartnerListSettlementReportsResponse,
+  PartnerRequestProspectiveQuoteResponse,
   PartnerRequestQuoteResponse,
   PartnerSubmitVerificationResponse,
   PartnerToggleAutoEarnResponse,
@@ -219,6 +231,90 @@ export class PartnerClient extends BaseRestClient {
     const { quote_id, ...queryParams } = params;
     return this.putPrivate(`b2b/quotes/${quote_id}`, {
       query: queryParams,
+    });
+  }
+
+  /**
+   * Get Quote Limits (RFQ)
+   *
+   * Request minimum, maximum and precision for trade using a given asset pair.
+   */
+  getEmbedQuoteLimits(
+    params: PartnerGetQuoteLimitsParams,
+  ): Promise<PartnerGetQuoteLimitsResponse> {
+    return this.getPrivate('b2b/quotes/limits', params);
+  }
+
+  /**
+   * Request Prospective Quote (RFQ)
+   *
+   * Request a prospective quote for an asset pair, to receive an indicative price and fee.
+   */
+  requestEmbedProspectiveQuote(
+    params: PartnerRequestProspectiveQuoteParams,
+  ): Promise<PartnerRequestProspectiveQuoteResponse> {
+    const { user, ...bodyParams } = params;
+    return this.postPrivate('b2b/quotes/prospective', {
+      query: { user },
+      body: bodyParams,
+    });
+  }
+
+  /**
+   *
+   * Partner REST API - Embed API - Custom Orders
+   *
+   */
+
+  /**
+   * Create Custom Order
+   *
+   * Submit a custom order with a specified trigger condition (e.g. price-triggered).
+   */
+  createEmbedCustomOrder(
+    params: PartnerCreateCustomOrderParams,
+  ): Promise<PartnerCreateCustomOrderResponse> {
+    const { user, ...bodyParams } = params;
+    return this.postPrivate('b2b/custom-orders', {
+      query: { user },
+      body: bodyParams,
+    });
+  }
+
+  /**
+   * List Custom Orders
+   *
+   * Get a list of custom orders that were previously submitted.
+   */
+  listEmbedCustomOrders(
+    params: PartnerListCustomOrdersParams,
+  ): Promise<PartnerListCustomOrdersResponse> {
+    return this.getPrivate('b2b/custom-orders', params);
+  }
+
+  /**
+   * Get Custom Order
+   *
+   * Get a single custom order by ID.
+   */
+  getEmbedCustomOrder(
+    params: PartnerGetCustomOrderParams,
+  ): Promise<PartnerGetCustomOrderResponse> {
+    const { user, order_id } = params;
+    return this.getPrivate(`b2b/custom-orders/${order_id}`, { user });
+  }
+
+  /**
+   * Cancel Custom Order
+   *
+   * Cancels a custom order that was previously submitted but not yet completed.
+   */
+  cancelEmbedCustomOrder(
+    params: PartnerCancelCustomOrderParams,
+  ): Promise<PartnerCancelCustomOrderResponse> {
+    const { user, id } = params;
+    return this.postPrivate(`b2b/custom-orders/${id}/cancel`, {
+      query: { user },
     });
   }
 

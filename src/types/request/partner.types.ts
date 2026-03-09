@@ -366,6 +366,99 @@ export interface PartnerGetRampProspectiveQuoteParams {
 }
 
 /**
+ * Embed Custom Orders - Create Custom Order request parameters
+ * Price-triggered custom orders. User in query, body has trigger, action, name.
+ */
+export interface PartnerCreateCustomOrderParams {
+  user: string; // IIBAN, 14-42 chars
+  trigger: {
+    type: 'price';
+    base_asset: string; // <= 16 chars
+    quote_asset: string; // <= 16 chars
+    target_price: string;
+    condition: 'gte' | 'lte';
+  };
+  action: {
+    type: 'receive' | 'spend';
+    amount: {
+      asset_class?: 'currency';
+      asset: string; // <= 16 chars
+      amount: string;
+    };
+    quote: {
+      asset: string; // <= 16 chars
+      fee_bps: string; // 1-5 digits
+      spread_bps: string; // 1-5 digits
+    };
+  };
+  name: string;
+}
+
+/**
+ * Embed Custom Orders - List Custom Orders request parameters
+ */
+export interface PartnerListCustomOrdersParams {
+  user: string; // IIBAN, 14-42 chars
+  statuses?: Array<'active' | 'cancelled' | 'completed'>;
+  cursor?: string;
+}
+
+/**
+ * Embed Custom Orders - Get Custom Order request parameters
+ */
+export interface PartnerGetCustomOrderParams {
+  user: string; // IIBAN, 14-42 chars
+  order_id: string;
+}
+
+/**
+ * Embed Custom Orders - Cancel Custom Order request parameters
+ */
+export interface PartnerCancelCustomOrderParams {
+  user: string; // IIBAN, 14-42 chars
+  id: string; // order id
+}
+
+/**
+ * Embed Quotes (RFQ) - Get Quote Limits request parameters
+ */
+export interface PartnerGetQuoteLimitsParams {
+  user: string; // IIBAN, 14-42 chars
+  base_asset: string; // <= 16 chars
+  quote_asset: string; // <= 16 chars
+  type: 'receive' | 'spend';
+  quote_currency?: string; // <= 16 chars
+}
+
+/**
+ * Embed Quotes (RFQ) - Request Prospective Quote request parameters
+ */
+export interface PartnerRequestProspectiveQuoteParams {
+  user: string; // IIBAN, 14-42 chars
+  action: {
+    type: 'receive' | 'spend';
+    amount: {
+      asset_class?: 'currency';
+      asset: string; // <= 16 chars
+      amount: string;
+    };
+    quote: {
+      asset: string; // <= 16 chars
+      fee_bps: string; // 1-5 digits
+      spread_bps: string; // 1-5 digits
+    };
+  };
+  trigger?: {
+    type: 'price';
+    base_asset: string;
+    quote_asset: string;
+    target_price: string;
+    condition: 'gte' | 'lte';
+  };
+  quote_currency?: string; // <= 16 chars
+}
+
+/**
  * Get Ramp Checkout URL request parameters
  */
 export interface PartnerGetRampCheckoutUrlParams {
