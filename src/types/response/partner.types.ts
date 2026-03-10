@@ -365,3 +365,134 @@ export interface PartnerGetRampCheckoutUrlResponse {
     request_data: any; // Simplified - original request payload object
   };
 }
+
+/** Shared price trigger for custom orders (Embed) */
+export interface PartnerCustomOrderPriceTrigger {
+  type: 'price';
+  base_asset: string;
+  quote_asset: string;
+  target_price: string;
+  condition: 'gte' | 'lte';
+}
+
+/** Shared action object for custom orders (Embed) */
+export interface PartnerCustomOrderAction {
+  type: 'receive' | 'spend';
+  amount: {
+    asset_class?: 'currency';
+    asset: string;
+    amount: string;
+  };
+  quote: {
+    asset: string;
+    fee_bps: string;
+    spread_bps: string;
+  };
+}
+
+/** Single custom order in responses */
+export interface PartnerCustomOrder {
+  id: string;
+  name: string;
+  action: PartnerCustomOrderAction;
+  trigger: PartnerCustomOrderPriceTrigger;
+  created_at: string; // date-time
+  updated_at: string; // date-time
+  status:
+    | { status: 'active' }
+    | { status: 'completed' }
+    | { status: 'cancelled' }
+    | { status: 'paused' };
+}
+
+/**
+ * Create Custom Order response
+ */
+export interface PartnerCreateCustomOrderResponse {
+  result?: {
+    order: PartnerCustomOrder;
+  };
+}
+
+/**
+ * List Custom Orders response
+ */
+export interface PartnerListCustomOrdersResponse {
+  result?: {
+    orders: PartnerCustomOrder[];
+    next_cursor?: string;
+  };
+}
+
+/**
+ * Get Custom Order response
+ */
+export interface PartnerGetCustomOrderResponse {
+  result?: {
+    order: PartnerCustomOrder;
+  };
+}
+
+/**
+ * Cancel Custom Order response
+ */
+export interface PartnerCancelCustomOrderResponse {
+  result?: {
+    order: PartnerCustomOrder;
+  };
+}
+
+/** Asset amount object used in quote limits/limits response */
+export interface PartnerQuoteLimitAmount {
+  asset: string;
+  amount: string;
+}
+
+/**
+ * Get Quote Limits response (RFQ)
+ */
+export interface PartnerGetQuoteLimitsResponse {
+  result?: {
+    asset: string;
+    minimum: string;
+    maximum: string;
+    precision: number;
+    minimum_tradable_amount?: string | null;
+    minimum_in_display?: PartnerQuoteLimitAmount | null;
+    maximum_in_display?: PartnerQuoteLimitAmount | null;
+    minimum_tradable_amount_in_display?: PartnerQuoteLimitAmount | null;
+  };
+}
+
+/** Spend/receive breakdown in prospective quote */
+export interface PartnerProspectiveQuoteBreakdown {
+  asset: string;
+  asset_class?: 'currency' | null;
+  total: string;
+  fee: string;
+  subtotal: string;
+}
+
+/** Unit price in prospective quote */
+export interface PartnerProspectiveQuoteUnitPrice {
+  asset: string;
+  asset_class?: 'currency' | null;
+  unit_price: string;
+  denomination_asset: string;
+  denomination_asset_class?: 'currency' | null;
+}
+
+/**
+ * Request Prospective Quote response (RFQ)
+ */
+export interface PartnerRequestProspectiveQuoteResponse {
+  result?: {
+    type: 'receive' | 'spend';
+    spend: PartnerProspectiveQuoteBreakdown;
+    receive: PartnerProspectiveQuoteBreakdown;
+    unit_price: PartnerProspectiveQuoteUnitPrice;
+    quoted_spend?: PartnerProspectiveQuoteBreakdown | null;
+    quoted_receive?: PartnerProspectiveQuoteBreakdown | null;
+    quoted_unit_price?: PartnerProspectiveQuoteUnitPrice | null;
+  };
+}
