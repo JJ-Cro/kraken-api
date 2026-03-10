@@ -236,7 +236,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: expect.stringContaining('rfqNotFound'),
+          error: expect.stringContaining('notFound'),
         });
       }
     });
@@ -434,7 +434,7 @@ describe('REST PRIVATE FUTURES WRITE', () => {
         const responseBody = e?.body;
         expect(responseBody).toMatchObject({
           result: 'error',
-          error: 'rfqNotFound',
+          error: 'notFound',
         });
       }
     });
