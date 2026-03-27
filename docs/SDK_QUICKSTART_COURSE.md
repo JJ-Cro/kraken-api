@@ -1,20 +1,58 @@
 # Master `@siebly/kraken-api` — quickstart lessons
 
-A short, practical path through the **JavaScript/TypeScript SDK** for Kraken REST APIs and WebSockets. It mirrors the idea of structured lessons (like [Kraken’s Insilico Terminal course](https://www.kraken.com/pro/insilico-terminal)), but focused on **this SDK**: typed clients, unified WebSockets, reconnect + resubscribe, and **Spot** + **Derivatives (Futures)**.
+Below is a short, practical path through this SDK—structured like a mini-course (similar in spirit to [Kraken’s Insilico Terminal course](https://www.kraken.com/pro/insilico-terminal)), but for **code**: clients, streams, and orders in **Node.js / TypeScript**.
 
 **Package:** [`@siebly/kraken-api`](https://www.npmjs.com/package/@siebly/kraken-api)  
 **Official API references:** [Spot REST](https://docs.kraken.com/api/), [Futures](https://docs.futures.kraken.com/), [WebSocket guides](https://docs.kraken.com/api/docs/guides/spot-ws-intro)
 
 ---
 
-## What this SDK gives you
+## What is `@siebly/kraken-api`?
 
-- **REST:** `SpotClient`, `DerivativesClient`, plus `InstitutionalClient` and `PartnerClient` for those products.
-- **WebSocket subscriptions:** one `WebsocketClient` for public/private streams (Spot v2 + Futures v1), with heartbeats, reconnect, and **automatic resubscribe**.
-- **WebSocket API (Spot):** `WebsocketAPIClient` — request/response style trading over a persistent connection (lower latency than REST for many workflows).
-- **TypeScript** types for most requests/responses; **ESM + CJS**; optional **custom logger**; **proxy** via axios.
+`@siebly/kraken-api` is a **complete JavaScript and Node.js SDK** for Kraken’s REST APIs and WebSockets. It connects your applications to Kraken the same way an advanced terminal connects via API: you get a **typed, production-oriented layer** to stream data and to **structure, execute, and manage orders**—through REST, through WebSocket **subscriptions**, or through Kraken’s **WebSocket API** (Spot trading over a persistent connection)—without rebuilding signing, connection lifecycle, and wire formats from scratch.
 
-Runnable demos live under [`examples/`](../examples/) in the repo.
+---
+
+## Who is `@siebly/kraken-api` for?
+
+### Active traders
+
+Traders who already work with **limit, stop, and structured order types** and want **fine-grained control** in code—how orders are submitted, amended, batched, and cancelled—while staying aligned with Kraken’s API semantics.
+
+### API traders
+
+Developers who use **API-based workflows on other exchanges** and want to **connect and execute on Kraken** from **Node.js or TypeScript**: one ecosystem of clients, consistent patterns for Spot and Derivatives, and a unified WebSocket story across markets.
+
+### Algorithmic and systematic traders
+
+Teams running **rule-based or automated strategies** that need **dependable connectivity**: promise-driven REST, **configurable WebSocket heartbeats**, **automatic reconnect and resubscribe**, and an emitted **`reconnected`** signal when a dropped connection is restored—so bots can recover without manual rewiring.
+
+---
+
+## What you get
+
+A **complete and robust** JavaScript and Node.js SDK for Kraken REST and WebSockets. In practice that means:
+
+- **Battle-tested in real trading** — Professional, robust, and performant; built for extensive production use in live environments.
+- **Full API surface** — Complete integration with Kraken REST APIs and WebSockets.
+  - **Dedicated REST clients** for **Spot**, **Derivatives (Futures)**, **Institutional**, and **Partner** flows.
+  - **One unified `WebsocketClient`** for public and private streams across markets.
+- **TypeScript-first** — Declarations for most requests and responses; strongly typed inputs and outputs; **automated end-to-end tests** for reliability.
+- **Modern async API** — Actively maintained, **promise-driven** interface.
+- **Production-grade WebSockets** — Configurable heartbeats; **automatic reconnect then resubscribe**; event-driven messaging; smart persistence; **`reconnected`** when the socket is back; **public and private** streams supported.
+- **Flexible deployment** — **Browser-friendly HMAC** signing; **ESM and CJS**; **proxy support** via axios.
+- **Quality and community** — Heavy **E2E testing** against real APIs; discussion on Telegram: [Node.js Algo Traders](https://t.me/nodetraders).
+
+**SDK building blocks (quick map):**
+
+| Area | What to use |
+|------|-------------|
+| Spot / Futures REST | `SpotClient`, `DerivativesClient`; also `InstitutionalClient`, `PartnerClient` where applicable |
+| Stream: ticker, book, balances, … | `WebsocketClient` + `WS_KEY_MAP` (Spot v2, Futures v1; includes L3 endpoint for Spot level 3) |
+| Spot trading over WebSocket (request/response) | `WebsocketAPIClient` — lower latency than REST for many trading workflows |
+| Types & tooling | Most params/responses typed; optional **custom logger** on WebSocket clients |
+
+Runnable demos: [`examples/`](../examples/) in the repo.
 
 ---
 
