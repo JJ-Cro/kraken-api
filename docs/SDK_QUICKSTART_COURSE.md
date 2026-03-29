@@ -1,11 +1,3 @@
-# Master `@siebly/kraken-api` — quickstart lessons
-
-Below is a short, practical path through this SDK—structured like a mini-course (similar in spirit to [Kraken’s Insilico Terminal course](https://www.kraken.com/pro/insilico-terminal)), but for **code**: clients, streams, and orders in **Node.js / TypeScript**.
-
-**Package:** [`@siebly/kraken-api`](https://www.npmjs.com/package/@siebly/kraken-api)  
-**Official API references:** [Spot REST](https://docs.kraken.com/api/), [Futures](https://docs.futures.kraken.com/), [WebSocket guides](https://docs.kraken.com/api/docs/guides/spot-ws-intro)
-
----
 
 ## What is `@siebly/kraken-api`?
 
@@ -43,17 +35,6 @@ A **complete and robust** JavaScript and Node.js SDK for Kraken REST and WebSock
 - **Flexible deployment** — **Browser-friendly HMAC** signing; **ESM and CJS**; **proxy support** via axios.
 - **Quality and community** — Heavy **E2E testing** against real APIs; discussion on Telegram: [Node.js Algo Traders](https://t.me/nodetraders).
 
-**SDK building blocks (quick map):**
-
-| Area | What to use |
-|------|-------------|
-| Spot / Futures REST | `SpotClient`, `DerivativesClient`; also `InstitutionalClient`, `PartnerClient` where applicable |
-| Stream: ticker, book, balances, … | `WebsocketClient` + `WS_KEY_MAP` (Spot v2, Futures v1; includes L3 endpoint for Spot level 3) |
-| Spot trading over WebSocket (request/response) | `WebsocketAPIClient` — lower latency than REST for many trading workflows |
-| Types & tooling | Most params/responses typed; optional **custom logger** on WebSocket clients |
-
-Runnable demos: [`examples/`](../examples/) in the repo.
-
 ---
 
 ## Before you start: install & API keys
@@ -67,7 +48,7 @@ Create keys where Kraken documents them:
 - Spot: [API Key Management](https://www.kraken.com/u/security/api)
 - Futures: [Futures API keys](https://futures.kraken.com/settings/api)
 
-Spot private REST expects **API key + private key (base64)**. Futures use **API key + secret** string. Enable only the permissions you need (trading does **not** require withdrawal, same idea as Kraken’s own FAQ on Insilico).
+Spot private REST expects **API key + private key (base64)**. Futures use **API key + secret** string. Enable only the permissions you need (trading does **not** require withdrawal).
 
 ---
 
@@ -417,8 +398,8 @@ const order = await wsApi.submitSpotOrder({
   symbol: 'BTC/USD',
 });
 
-await wsApi.amendSpotOrder({ order_id: 'OAIYAU-LGI3M-PFM5VW', order_qty: 1.5, limit_price: 27000 });
-await wsApi.cancelSpotOrder({ order_id: ['OM5CRX-N2HAL-GFGWE9'] });
+await wsApi.amendSpotOrder({ order_id: 'TEST-ORDER-ID', order_qty: 1.5, limit_price: 27000 });
+await wsApi.cancelSpotOrder({ order_id: ['TEST-ORDER-ID'] });
 await wsApi.cancelAllSpotOrders();
 ```
 
