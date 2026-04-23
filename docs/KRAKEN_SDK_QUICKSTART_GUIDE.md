@@ -114,7 +114,7 @@ Or, if preferred, use your favourite npm-compatible package manager:
 
 ```bash
 # or pnpm:
-pnpm add @siebly/kraken-api
+pnpm install @siebly/kraken-api
 # or yarn:
 yarn add @siebly/kraken-api
 ```
