@@ -2,7 +2,7 @@
 
 Build Kraken integrations in JavaScript or TypeScript without hand-rolling raw HTTP requests, Kraken JWTs/request signing for authenticated APIs, WebSocket authentication, heartbeats, reconnects, or exchange-specific payload handling.
 
-This free Kraken JavaScript tutorial uses [`@siebly/kraken-api`](https://www.npmjs.com/package/@siebly/kraken-api), the [Kraken JavaScript SDK by Siebly.io](https://siebly.io/sdk/kraken/javascript), to walk through the API surfaces most developers need in production:
+This Kraken JavaScript tutorial uses [`@siebly/kraken-api`](https://www.npmjs.com/package/@siebly/kraken-api), the [Kraken JavaScript SDK by Siebly.io](https://siebly.io/sdk/kraken/javascript), to walk through the API surfaces most developers need:
 
 - Kraken Spot REST API
 - Kraken Futures REST API
@@ -79,7 +79,7 @@ This guide is written for JavaScript developers (& LLMs) who:
 - Are working with exchange REST APIs & WebSockets for the first time
 - Are already using exchange APIs elsewhere and are looking to integrate Kraken
 - Need dependable connectivity for systematic trading
-- Are comparing raw Kraken integration against a production-oriented SDK
+- Are comparing raw Kraken integration against a maintained SDK
 
 ---
 
@@ -143,6 +143,8 @@ export API_SPOT_SECRET='your-spot-api-secret'
 export API_FUTURES_KEY='your-futures-api-key'
 export API_FUTURES_SECRET='your-futures-api-secret'
 ```
+
+For local Node.js examples that use a `.env` file, make `.env` loading automatic before reading `process.env`. Prefer Node.js built-in `--env-file` or `--env-file-if-exists` in package scripts when supported; otherwise use `process.loadEnvFile`, `dotenv/config`, or the repo's existing loader. Real process environment variables should override `.env`.
 
 If you are only testing public endpoints, you do not need any keys at all.
 
@@ -481,7 +483,7 @@ The Siebly Kraken JavaScript SDK's WebsocketClient handles most of the complexit
 - Provide read-only API keys, if private topics are required. Market data does not require API keys.
 - Ask the WebsocketClient to subscribe to the topics you're interested in.
 
-That's it! The complexity is handled for you. The SDK will automatically:
+The SDK handles the connection work for you:
 
 - Open WebSocket connections to the correct domains & endpoints.
 - Use your provided proxy, if desired & configured.
@@ -512,7 +514,7 @@ That's it! The complexity is handled for you. The SDK will automatically:
 
 ### Understanding `WS_KEY_MAP`
 
-`WS_KEY_MAP` tells the SDK which Kraken WebSocket endpoint family to use:
+[`WS_KEY_MAP`](/reference/glossary#ws-key) tells the SDK which Kraken WebSocket endpoint family to use:
 
 - `spotPublicV2`
 - `spotPrivateV2`
@@ -938,7 +940,7 @@ If you are evaluating SDKs rather than just copying a few snippets, these are th
 - Faster integration than building raw API connectivity with correctly crafted request signatures.
 - Faster iteration when moving from public data to private trading flows.
 - Better fit for bots, dashboards, and internal trading tools than raw request signing examples.
-- A maintained & heavily used SDK with examples, complete API coverage, and a wider SDK ecosystem from [Siebly.io](https://siebly.io)
+- A maintained SDK with examples, endpoint references, and a wider SDK ecosystem from [Siebly.io](https://siebly.io)
 
 ---
 
