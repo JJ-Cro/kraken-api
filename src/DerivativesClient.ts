@@ -514,6 +514,8 @@ export class DerivativesClient extends BaseRestClient {
    * Get fee schedules
    *
    * This endpoint lists all fee schedules.
+   *
+   * @deprecated Effective 2026-06-22. Use SpotClient.getTradingVolume() with a Spot API key instead.
    */
   getFeeSchedules(): Promise<
     DerivativesAPISuccessResponse<{ feeSchedules: FuturesFeeSchedule[] }>
@@ -525,6 +527,8 @@ export class DerivativesClient extends BaseRestClient {
    * Get fee schedule volumes
    *
    * Returns your fee schedule volumes for each fee schedule.
+   *
+   * @deprecated Effective 2026-06-22. Use SpotClient.getTradingVolume() with a Spot API key instead.
    */
   getFeeScheduleVolumes(): Promise<
     DerivativesAPISuccessResponse<{

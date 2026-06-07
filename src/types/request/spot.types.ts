@@ -7,6 +7,7 @@ export interface SpotGetAssetPairsParams {
   aclass_base?: 'currency' | 'tokenized_asset';
   info?: 'info' | 'leverage' | 'fees' | 'margin';
   country_code?: string;
+  execution_venue?: string;
 }
 
 export interface SpotGetOHLCParams {
@@ -166,7 +167,7 @@ export interface SpotSubmitOrderParams {
   reduce_only?: boolean;
   stptype?: 'cancel-newest' | 'cancel-oldest' | 'cancel-both';
   oflags?: string;
-  timeinforce?: 'GTC' | 'IOC' | 'GTD';
+  timeinforce?: 'GTC' | 'IOC' | 'GTD' | 'FOK';
   starttm?: string;
   expiretm?: string;
   'close[ordertype]'?: string;
@@ -212,7 +213,7 @@ export interface SpotBatchOrderItem {
   reduce_only?: boolean;
   stptype?: 'cancel-newest' | 'cancel-oldest' | 'cancel-both';
   oflags?: string;
-  timeinforce?: 'GTC' | 'IOC' | 'GTD';
+  timeinforce?: 'GTC' | 'IOC' | 'GTD' | 'FOK';
   starttm?: string;
   expiretm?: string;
   close?: {
@@ -226,6 +227,7 @@ export interface SpotSubmitOrderBatchParams {
   orders: SpotBatchOrderItem[];
   pair: string;
   asset_class?: 'tokenized_asset';
+  broker?: string;
   deadline?: string;
   validate?: boolean;
 }

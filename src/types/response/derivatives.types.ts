@@ -106,6 +106,7 @@ export interface FuturesInstrument {
   retailMarginLevels?: FuturesMarginLevel[];
   marginLevels?: FuturesMarginLevel[];
   postOnly?: boolean;
+  /** @deprecated Effective 2026-06-22. Fee schedules are deprecated; use Spot GetTradeVolume instead. */
   feeScheduleUid?: string;
   tags?: string[];
   underlyingFuture?: string;
@@ -136,9 +137,10 @@ export interface FuturesOrderJson {
     | 'stp'
     | 'unwind'
     | 'block'
-    | 'fok';
+    | 'fok'
+    | 'unknown';
   symbol: string;
-  side: 'buy' | 'sell';
+  side: 'buy' | 'sell' | 'unknown';
   quantity: number;
   filled: number;
   limitPrice: number;
@@ -159,14 +161,15 @@ export interface FuturesOrderTriggerJson {
     | 'assignment'
     | 'stp'
     | 'unwind'
-    | 'fok';
+    | 'fok'
+    | 'unknown';
   symbol: string;
-  side: 'buy' | 'sell';
+  side: 'buy' | 'sell' | 'unknown';
   quantity: number | null;
   limitPrice: number | null;
   triggerPrice: number | null;
-  triggerSide: 'trigger_above' | 'trigger_below' | null;
-  triggerSignal: 'mark_price' | 'last_price' | 'spot_price' | null;
+  triggerSide: 'trigger_above' | 'trigger_below' | 'unknown' | null;
+  triggerSignal: 'mark_price' | 'last_price' | 'spot_price' | 'unknown' | null;
   reduceOnly: boolean;
   timestamp: string;
   lastUpdateTimestamp: string;
@@ -353,15 +356,15 @@ export interface FuturesOpenOrder {
   order_id: string;
   cliOrdId?: string;
   status: 'untouched' | 'partiallyFilled';
-  side: 'buy' | 'sell';
-  orderType: 'lmt' | 'stop' | 'take_profit';
+  side: 'buy' | 'sell' | 'unknown';
+  orderType: 'lmt' | 'stop' | 'take_profit' | 'unknown';
   symbol: string;
   limitPrice?: number;
   stopPrice?: number;
   filledSize: number;
   unfilledSize?: number;
   reduceOnly: boolean;
-  triggerSignal?: 'mark' | 'last' | 'spot';
+  triggerSignal?: 'mark' | 'last' | 'spot' | 'unknown';
   lastUpdateTime: string;
   receivedTime: string;
 }
@@ -407,8 +410,8 @@ export interface FuturesSendOrderStatus {
 
 export interface FuturesTriggerOptions {
   triggerPrice: number;
-  triggerSide: 'TRIGGER_ABOVE' | 'TRIGGER_BELOW';
-  triggerSignal: 'MARK_PRICE' | 'LAST_PRICE' | 'SPOT_PRICE';
+  triggerSide: 'TRIGGER_ABOVE' | 'TRIGGER_BELOW' | 'unknown';
+  triggerSignal: 'MARK_PRICE' | 'LAST_PRICE' | 'SPOT_PRICE' | 'unknown';
   triggerTime: string | null;
 }
 
@@ -456,7 +459,8 @@ export interface FuturesOrderStatusInfo {
     | 'ORDER_FOR_EDIT_NOT_FOUND_REASON'
     | 'EXPIRED'
     | 'TRAILING_STOP_PRICE_UPDATED'
-    | 'TRAILING_STOP_CANCELLED_AND_REPLACED_BY_ADMIN';
+    | 'TRAILING_STOP_CANCELLED_AND_REPLACED_BY_ADMIN'
+    | 'unknown';
   error?: string; // OrderError type - reusing the same errors as FuturesRejectTriggerEvent
 }
 
@@ -654,6 +658,8 @@ export interface FuturesAssignmentProgramHistory {
 
 /**
  * Fee Schedules
+ *
+ * @deprecated Effective 2026-06-22. Use Spot GetTradeVolume (SpotClient.getTradingVolume) instead.
  */
 
 export interface FuturesFeeTier {
@@ -705,7 +711,7 @@ export interface FuturesFill {
   fill_id: string;
   order_id: string;
   price: number;
-  side: 'buy' | 'sell';
+  side: 'buy' | 'sell' | 'unknown';
   size: number;
   symbol: string;
 }
@@ -839,16 +845,22 @@ export interface FuturesPositionUpdateEvent {
     | 'increase'
     | 'decrease'
     | 'reverse'
-    | 'noChange';
+    | 'noChange'
+    | 'unknown';
   executionUid?: string;
   executionPrice?: string;
   executionSize?: string;
-  tradeType?: 'userExecution' | 'liquidation' | 'assignment' | 'unwind';
+  tradeType?:
+    | 'userExecution'
+    | 'liquidation'
+    | 'assignment'
+    | 'unwind'
+    | 'unknown';
   fundingRealizationTime?: number;
   realizedFunding?: string;
   settlementPrice?: string;
   timestamp: number;
-  updateReason: 'trade' | 'fundingRealisation' | 'settlement';
+  updateReason: 'trade' | 'fundingRealisation' | 'settlement' | 'unknown';
 }
 
 export interface FuturesAccountLogEntry {

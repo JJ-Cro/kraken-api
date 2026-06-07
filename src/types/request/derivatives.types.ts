@@ -23,7 +23,7 @@ export interface FuturesBatchOrderSend {
   triggerSignal?: 'mark' | 'index' | 'last';
   reduceOnly?: boolean;
   trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
 }
 
 export interface FuturesBatchOrderEdit {
@@ -34,7 +34,7 @@ export interface FuturesBatchOrderEdit {
   limitPrice?: number;
   stopPrice?: number;
   trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
   qtyMode?: 'ABSOLUTE' | 'RELATIVE';
 }
 
@@ -69,7 +69,7 @@ export interface FuturesEditOrderParams {
   limitPrice?: number;
   stopPrice?: number;
   trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
   qtyMode?: 'ABSOLUTE' | 'RELATIVE';
 }
 
@@ -93,7 +93,7 @@ export interface FuturesSendOrderParams {
   triggerSignal?: 'mark' | 'index' | 'last';
   reduceOnly?: boolean;
   trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
   limitPriceOffsetValue?: number;
   limitPriceOffsetUnit?: 'QUOTE_CURRENCY' | 'PERCENT';
   broker?: string;

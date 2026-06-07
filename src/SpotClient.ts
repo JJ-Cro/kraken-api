@@ -383,6 +383,7 @@ export class SpotClient extends BaseRestClient {
    * Get Trade Volume
    *
    * Returns 30 day USD trading volume and resulting fee schedule for any asset pair(s) provided.
+   * Also use this endpoint (with a Spot API key) to determine Futures fee rates as of 2026-06-22.
    */
   getTradingVolume(params?: {
     pair?: string;
