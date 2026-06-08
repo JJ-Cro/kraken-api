@@ -1,6 +1,6 @@
 {
   "name": "@siebly/kraken-api",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Complete & robust Node.js SDK for Kraken's REST APIs and WebSockets, with TypeScript & strong end to end tests.",
   "scripts": {
     "clean": "rm -rf dist",
@@ -50,9 +50,7 @@
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
-  },
-  "optionalDependencies": {
+    "typescript": "^5.7.3",
     "webpack": "^5.0.0",
     "webpack-cli": "^4.0.0",
     "webpack-bundle-analyzer": "^4.10.2"

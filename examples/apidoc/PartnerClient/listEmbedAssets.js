@@ -1,4 +1,6 @@
-const { PartnerClient } = require('@siebly/kraken-api');
+import { PartnerClient } from '@siebly/kraken-api';
+// or, if require is preferred:
+// const { PartnerClient } = require('@siebly/kraken-api');
 
 // This example shows how to call this Kraken API endpoint with either node.js, javascript (js) or typescript (ts) with the npm module "@siebly/kraken-api" for Kraken exchange
 // This Kraken API SDK is available on npm via "npm install @siebly/kraken-api"

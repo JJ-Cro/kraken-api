@@ -41,6 +41,7 @@ export interface SpotAssetPair {
   status?: string;
   long_position_limit?: number;
   short_position_limit?: number;
+  execution_venue?: string;
 }
 
 export interface SpotAssetTickerInfo {
