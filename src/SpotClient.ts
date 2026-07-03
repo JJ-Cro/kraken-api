@@ -6,12 +6,15 @@ import {
   OauthUpdateFastApiKeyParams,
   SpotAccountTransferParams,
   SpotAmendOrderParams,
+  SpotGetApiKeyInfoParams,
   SpotGetAssetPairsParams,
   SpotGetClosedOrdersParams,
   SpotGetDepositAddressesParams,
   SpotGetDepositMethodsParams,
   SpotGetDepositStatusParams,
+  SpotGetGroupedBookParams,
   SpotGetLedgersInfoParams,
+  SpotGetLevel3Params,
   SpotGetOHLCParams,
   SpotGetOpenOrdersParams,
   SpotGetOpenPositionsParams,
@@ -20,6 +23,7 @@ import {
   SpotGetRecentSpreadsParams,
   SpotGetRecentTradesParams,
   SpotGetTradesHistoryParams,
+  SpotGetTradingVolumeParams,
   SpotGetWithdrawalAddressesParams,
   SpotGetWithdrawalInfoParams,
   SpotGetWithdrawalMethodsParams,
@@ -43,6 +47,7 @@ import {
   OauthGetUserInfoResponse,
   SpotAccountBalance,
   SpotAccountTransferResponse,
+  SpotApiKeyInfo,
   SpotAssetInfo,
   SpotAssetPair,
   SpotAssetTickerInfo,
@@ -56,7 +61,9 @@ import {
   SpotEarnStrategy,
   SpotExportReportStatus,
   SpotExtendedBalance,
+  SpotGroupedBookResponse,
   SpotLedgersInfoResponse,
+  SpotLevel3OrderBookResponse,
   SpotListEarnAllocationsResponse,
   SpotOHLCResponse,
   SpotOpenOrdersResponse,
@@ -205,6 +212,28 @@ export class SpotClient extends BaseRestClient {
   }
 
   /**
+   * Get Grouped Order Book
+   *
+   * Aggregates order book volume over a configurable tick grouping.
+   */
+  getGroupedBook(
+    params: SpotGetGroupedBookParams,
+  ): Promise<SpotAPISuccessResponse<SpotGroupedBookResponse>> {
+    return this.get('0/public/GroupedBook', params);
+  }
+
+  /**
+   * Get Level 3 Order Book
+   *
+   * Individual order-level book data. Requires authentication.
+   */
+  getLevel3OrderBook(
+    params: SpotGetLevel3Params,
+  ): Promise<SpotAPISuccessResponse<SpotLevel3OrderBookResponse>> {
+    return this.postPrivate('0/private/Level3', { body: params });
+  }
+
+  /**
    * Get Recent Trades
    *
    * Returns the last 1000 trades by default
@@ -241,6 +270,17 @@ export class SpotClient extends BaseRestClient {
     rebase_multiplier?: 'rebased' | 'base';
   }): Promise<SpotAPISuccessResponse<SpotAccountBalance>> {
     return this.postPrivate('0/private/Balance', { body: params });
+  }
+
+  /**
+   * Get API Key Info
+   *
+   * Retrieve configuration and usage details for the API key used in the request.
+   */
+  getApiKeyInfo(
+    params?: SpotGetApiKeyInfoParams,
+  ): Promise<SpotAPISuccessResponse<SpotApiKeyInfo>> {
+    return this.postPrivate('0/private/GetApiKeyInfo', { body: params });
   }
 
   /**
@@ -385,10 +425,9 @@ export class SpotClient extends BaseRestClient {
    * Returns 30 day USD trading volume and resulting fee schedule for any asset pair(s) provided.
    * Also use this endpoint (with a Spot API key) to determine Futures fee rates as of 2026-06-22.
    */
-  getTradingVolume(params?: {
-    pair?: string;
-    rebase_multiplier?: 'rebased' | 'base';
-  }): Promise<SpotAPISuccessResponse<SpotTradeVolume>> {
+  getTradingVolume(
+    params?: SpotGetTradingVolumeParams,
+  ): Promise<SpotAPISuccessResponse<SpotTradeVolume>> {
     return this.postPrivate('0/private/TradeVolume', { body: params });
   }
 

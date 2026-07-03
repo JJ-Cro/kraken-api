@@ -85,6 +85,31 @@ export interface SpotOrderBookResponse {
   [pairName: string]: SpotOrderBook;
 }
 
+export interface SpotGroupedBookLevel {
+  price: string;
+  qty: string;
+}
+
+export interface SpotGroupedBookResponse {
+  pair: string;
+  grouping: number;
+  bids: SpotGroupedBookLevel[];
+  asks: SpotGroupedBookLevel[];
+}
+
+export interface SpotLevel3OrderEntry {
+  price: string;
+  qty: string;
+  order_id: string;
+  timestamp: number;
+}
+
+export interface SpotLevel3OrderBookResponse {
+  pair: string;
+  bids: SpotLevel3OrderEntry[];
+  asks: SpotLevel3OrderEntry[];
+}
+
 // [price, volume, time, buy/sell, market/limit, miscellaneous, trade_id]
 export type SpotTradeData = [
   string,
@@ -113,6 +138,7 @@ export interface SpotRecentSpreadsResponse {
  * Account Data
  */
 
+/** @deprecated Kraken deprecated `.F` suffixed balance assets */
 export interface SpotAccountBalance {
   [assetName: string]: string;
 }
@@ -369,15 +395,79 @@ export interface SpotFeeTierInfo {
   next_volume: string | null;
 }
 
+export interface SpotTradeVolumeInputs {
+  domain_spot_volume_30d: string;
+  domain_futures_volume_30d: string;
+  domain_assets_on_platform: string;
+}
+
+export interface SpotTradeVolumeFeeScheduleTier {
+  maker_fee: string;
+  taker_fee: string;
+  min_spot_volume?: string | null;
+  min_futures_volume?: string | null;
+  min_assets_on_platform?: string | null;
+  active?: boolean | null;
+}
+
+export interface SpotTradeVolumeFeeSchedule {
+  pair: string;
+  class:
+    | 'currency'
+    | 'forex'
+    | 'equity'
+    | 'equity_pair'
+    | 'nft'
+    | 'derivatives'
+    | 'tokenized_asset'
+    | 'futures_contract'
+    | 'volume';
+  tiers: SpotTradeVolumeFeeScheduleTier[];
+}
+
+export interface SpotTradeVolumeSubaccount {
+  iiban: string;
+  volume: string;
+}
+
 export interface SpotTradeVolume {
   currency: string;
+  asset_class?:
+    | 'currency'
+    | 'forex'
+    | 'equity'
+    | 'equity_pair'
+    | 'nft'
+    | 'derivatives'
+    | 'tokenized_asset'
+    | 'futures_contract'
+    | null;
   volume: string;
+  inputs: SpotTradeVolumeInputs;
   fees?: {
     [pairName: string]: SpotFeeTierInfo;
-  };
+  } | null;
   fees_maker?: {
     [pairName: string]: SpotFeeTierInfo;
-  };
+  } | null;
+  volume_subaccounts?: SpotTradeVolumeSubaccount[];
+  schedules?: SpotTradeVolumeFeeSchedule[] | null;
+}
+
+export interface SpotApiKeyInfo {
+  apiKeyName: string;
+  apiKey: string;
+  nonce: string;
+  nonceWindow: number;
+  permissions: string[];
+  iban: string;
+  validUntil: string;
+  queryFrom: string;
+  queryTo: string;
+  createdTime: string;
+  modifiedTime: string;
+  ipAllowlist: string[];
+  lastUsed: string | null;
 }
 
 export interface SpotRequestExportReportResponse {

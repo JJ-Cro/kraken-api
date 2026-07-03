@@ -23,6 +23,36 @@ export interface SpotGetOrderBookParams {
   asset_class?: 'tokenized_asset';
 }
 
+export interface SpotGetGroupedBookParams {
+  pair: string;
+  depth?: 10 | 25 | 100 | 250 | 1000;
+  grouping?: 1 | 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
+}
+
+export interface SpotGetLevel3Params {
+  pair: string;
+  depth?: 0 | 10 | 25 | 100 | 250 | 1000;
+}
+
+export interface SpotTradeVolumePairInput {
+  asset: string;
+  aclass:
+    | 'currency'
+    | 'forex'
+    | 'equity'
+    | 'equity_pair'
+    | 'nft'
+    | 'derivatives'
+    | 'tokenized_asset'
+    | 'futures_contract';
+}
+
+export interface SpotGetTradingVolumeParams {
+  pair?: string | SpotTradeVolumePairInput[];
+  fee_schedule?: boolean;
+  rebase_multiplier?: 'rebased' | 'base';
+}
+
 export interface SpotGetRecentTradesParams {
   pair: string;
   since?: string;
@@ -39,6 +69,10 @@ export interface SpotGetRecentSpreadsParams {
 /**
  * Account Data
  */
+
+export interface SpotGetApiKeyInfoParams {
+  otp?: string;
+}
 
 export interface SpotGetOpenOrdersParams {
   trades?: boolean;

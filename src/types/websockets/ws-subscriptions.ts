@@ -46,3 +46,20 @@ export type WSDerivativesTopic =
   | WSDerivativesPrivateTopic;
 
 export type WSTopic = WSSpotTopic | WSDerivativesTopic;
+
+export interface WSSpotInstrumentSubscribeParams {
+  execution_venue?: 'international' | 'bitnomial-exchange';
+  snapshot?: boolean;
+}
+
+export interface WSSpotExecutionsSubscribeParams {
+  symbol?: string[];
+  snap_trades?: boolean;
+  snapshot?: boolean;
+  rebased?: boolean;
+}
+
+export interface WSSpotBalancesSubscribeParams {
+  snapshot?: boolean;
+  rebased?: boolean;
+}

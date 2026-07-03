@@ -1679,6 +1679,187 @@ export interface WsConnectionInfo {
 }
 
 ================
+File: src/types/response/wsapi.types.ts
+================
+/**
+ * Websocket API v2 Spot Response Types
+ */
+⋮----
+export interface WSAPIAddSpotOrderResult {
+  order_id: string;
+  cl_ord_id?: string;
+  order_userref?: number;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPIAmendSpotOrderResult {
+  amend_id: string;
+  order_id?: string;
+  cl_ord_id?: string;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPICancelSpotOrderResult {
+  order_id: string;
+  cl_ord_id?: string;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPICancelAllSpotOrdersResult {
+  count: number;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPICancelAllSpotOrdersAfterResult {
+  currentTime: string;
+  triggerTime: string;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPIBatchAddSpotOrdersResult {
+  order_id: string;
+  cl_ord_id?: string;
+  order_userref?: number;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPIBatchCancelSpotOrdersResult {
+  count: number;
+  warnings?: string[];
+}
+⋮----
+export interface WSAPIEditSpotOrderResult {
+  order_id: string;
+  original_order_id: string;
+  warnings?: string[];
+}
+
+================
+File: src/types/websockets/ws-api.ts
+================
+import { WS_KEY_MAP, WSOperation } from '../../lib/websocket/websocket-util.js';
+import {
+  WSAPIAddSpotOrderParams,
+  WSAPIAmendSpotOrderParams,
+  WSAPIBatchAddSpotOrdersParams,
+  WSAPIBatchCancelSpotOrdersParams,
+  WSAPICancelAllSpotOrdersAfterParams,
+  WSAPICancelSpotOrderParams,
+  WSAPIEditSpotOrderParams,
+} from '../request/wsapi.types.js';
+import {
+  WSAPIAddSpotOrderResult,
+  WSAPIAmendSpotOrderResult,
+  WSAPIBatchAddSpotOrdersResult,
+  WSAPIBatchCancelSpotOrdersResult,
+  WSAPICancelAllSpotOrdersAfterResult,
+  WSAPICancelAllSpotOrdersResult,
+  WSAPICancelSpotOrderResult,
+  WSAPIEditSpotOrderResult,
+} from '../response/wsapi.types.js';
+⋮----
+export type Exact<T> = {
+  // This part says: if there's any key that's not in T, it's an error
+  // This conflicts sometimes for some reason...
+  // [K: string]: never;
+} & {
+  [K in keyof T]: T[K];
+};
+⋮----
+// This part says: if there's any key that's not in T, it's an error
+// This conflicts sometimes for some reason...
+// [K: string]: never;
+⋮----
+export interface WsRequestOperation<TWSTopic extends string> {
+  id: number;
+  type: WSOperation;
+  topic: TWSTopic;
+  privateChannel: boolean;
+  response: boolean;
+}
+⋮----
+export interface WSAPIAuthenticationRequestFromServer {
+  timestamp: number;
+  sessionId: string;
+}
+⋮----
+export interface WSAPIAuthenticationConfirmedFromServer {
+  pingInterval: number;
+  sessionId: string;
+  pingTimeout: number;
+  data: 'welcome';
+}
+⋮----
+/**
+ * WS API commands (for sending requests via WS)
+ */
+⋮----
+export type WSAPIOperation = (typeof WS_API_Operations)[number];
+⋮----
+export interface WSAPIRequestOperationKrakenSpot<
+  TWSOperation extends WSAPIOperation = WSAPIOperation,
+  TWSParams extends object = any,
+> {
+  method: TWSOperation;
+  params?: TWSParams;
+  req_id: number;
+}
+⋮----
+export interface WSAPIWsKeyTopicMap {
+  [WS_KEY_MAP.spotPrivateV2]: WSAPIOperation;
+  [WS_KEY_MAP.spotBetaPrivateV2]: WSAPIOperation;
+}
+⋮----
+export type WSAPIWsKey = keyof WSAPIWsKeyTopicMap;
+⋮----
+export interface WSAPISpotResponse<
+  TResponseData extends object = object,
+  TWSAPIOperation = WSAPIOperation,
+> {
+  wsKey: WSAPIWsKey;
+  error?: string;
+  method: TWSAPIOperation;
+  req_id: number;
+  success: boolean;
+  time_in: string;
+  time_out: string;
+  result: TResponseData;
+  request: any;
+}
+⋮----
+export interface WSAPITopicRequestParamMap {
+  [key: string]: unknown;
+
+  add_order: WSAPIAddSpotOrderParams;
+  amend_order: WSAPIAmendSpotOrderParams;
+  cancel_order: WSAPICancelSpotOrderParams;
+  cancel_all: never;
+  cancel_all_orders_after: WSAPICancelAllSpotOrdersAfterParams;
+  batch_add: WSAPIBatchAddSpotOrdersParams;
+  batch_cancel: WSAPIBatchCancelSpotOrdersParams;
+  edit_order: WSAPIEditSpotOrderParams;
+}
+⋮----
+export interface WSAPITopicResponseMap {
+  [k: string]: unknown;
+
+  add_order: WSAPISpotResponse<WSAPIAddSpotOrderResult, 'add_order'>;
+  amend_order: WSAPISpotResponse<WSAPIAmendSpotOrderResult, 'amend_order'>;
+  cancel_order: WSAPISpotResponse<WSAPICancelSpotOrderResult, 'cancel_order'>;
+  cancel_all: WSAPISpotResponse<WSAPICancelAllSpotOrdersResult, 'cancel_all'>;
+  cancel_all_orders_after: WSAPISpotResponse<
+    WSAPICancelAllSpotOrdersAfterResult,
+    'cancel_all_orders_after'
+  >;
+  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>;
+  batch_cancel: WSAPISpotResponse<
+    WSAPIBatchCancelSpotOrdersResult,
+    'batch_cancel'
+  >;
+  edit_order: WSAPISpotResponse<WSAPIEditSpotOrderResult, 'edit_order'>;
+}
+
+================
 File: src/types/websockets/ws-events.ts
 ================
 export interface WsDataEvent<TData = any, TWSKey = string> {
@@ -1696,9 +1877,239 @@ export interface MessageEventLike {
 export function isMessageEvent(msg: unknown): msg is MessageEventLike
 
 ================
+File: src/types/websockets/ws-subscriptions.ts
+================
+] as const; // Note: Admin topics (Status, Heartbeat & Ping are automatically used internally and can't be subscribed to manually).
+⋮----
+export type WSSpotPublicTopic = (typeof WS_SPOT_PUBLIC_TOPICS)[number];
+⋮----
+export type WSSpotPrivateTopic = (typeof WS_SPOT_PRIVATE_TOPICS)[number];
+⋮----
+export type WSSpotTopic = WSSpotPublicTopic | WSSpotPrivateTopic;
+⋮----
+export type WSDerivativesPublicTopic =
+  (typeof WS_DERIVATIVES_PUBLIC_TOPICS)[number];
+⋮----
+export type WSDerivativesPrivateTopic =
+  (typeof WS_DERIVATIVES_PRIVATE_TOPICS)[number];
+⋮----
+export type WSDerivativesTopic =
+  | WSDerivativesPublicTopic
+  | WSDerivativesPrivateTopic;
+⋮----
+export type WSTopic = WSSpotTopic | WSDerivativesTopic;
+⋮----
+export interface WSSpotInstrumentSubscribeParams {
+  execution_venue?: 'international' | 'bitnomial-exchange';
+  snapshot?: boolean;
+}
+⋮----
+export interface WSSpotExecutionsSubscribeParams {
+  symbol?: string[];
+  snap_trades?: boolean;
+  snapshot?: boolean;
+  rebased?: boolean;
+}
+⋮----
+export interface WSSpotBalancesSubscribeParams {
+  snapshot?: boolean;
+  rebased?: boolean;
+}
+
+================
 File: src/index.ts
 ================
 
+
+================
+File: src/WebsocketAPIClient.ts
+================
+import { DefaultLogger } from './lib/websocket/logger.js';
+import { WS_KEY_MAP } from './lib/websocket/websocket-util.js';
+import {
+  WSAPIAddSpotOrderParams,
+  WSAPIAmendSpotOrderParams,
+  WSAPIBatchAddSpotOrdersParams,
+  WSAPIBatchCancelSpotOrdersParams,
+  WSAPICancelAllSpotOrdersAfterParams,
+  WSAPICancelSpotOrderParams,
+  WSAPIEditSpotOrderParams,
+} from './types/request/wsapi.types.js';
+import {
+  WSAPIAddSpotOrderResult,
+  WSAPIAmendSpotOrderResult,
+  WSAPIBatchAddSpotOrdersResult,
+  WSAPIBatchCancelSpotOrdersResult,
+  WSAPICancelAllSpotOrdersAfterResult,
+  WSAPICancelAllSpotOrdersResult,
+  WSAPICancelSpotOrderResult,
+  WSAPIEditSpotOrderResult,
+} from './types/response/wsapi.types.js';
+import { WSAPISpotResponse, WSAPIWsKey } from './types/websockets/ws-api.js';
+import { WSClientConfigurableOptions } from './types/websockets/ws-general.js';
+import { WebsocketClient } from './WebsocketClient.js';
+⋮----
+/**
+ * Configurable options specific to only the REST-like WebsocketAPIClient
+ */
+export interface WSAPIClientConfigurableOptions {
+  /**
+   * Default: true
+   *
+   * Attach default event listeners, which will console log any high level
+   * events (opened/reconnecting/reconnected/etc).
+   *
+   * If you disable this, you should set your own event listeners
+   * on the embedded WS Client `wsApiClient.getWSClient().on(....)`.
+   */
+  attachEventListeners: boolean;
+}
+⋮----
+/**
+   * Default: true
+   *
+   * Attach default event listeners, which will console log any high level
+   * events (opened/reconnecting/reconnected/etc).
+   *
+   * If you disable this, you should set your own event listeners
+   * on the embedded WS Client `wsApiClient.getWSClient().on(....)`.
+   */
+⋮----
+/**
+ * This is a minimal Websocket API wrapper around the WebsocketClient.
+ *
+ * Some methods support passing in a custom "wsKey". This is a reference to which WS connection should
+ * be used to transmit that message. This is only useful if you wish to use an alternative wss
+ * domain that is supported by the SDK. E.g. WS_API_KEY_MAP.spotBetaPrivateV2.
+ *
+ * Note: You can also directly use the sendWSAPIRequest() method to make WS API calls, but some
+ * may find the below methods slightly more intuitive.
+ *
+ * Refer to the WS API promises example for a more detailed example on using sendWSAPIRequest() directly:
+ * https://github.com/sieblyio/kraken-api/blob/main/examples/WebSockets/Spot/wsAPI.RAW.ts#L105
+ *
+ * Docs:
+ * - Spot WS API: https://docs.kraken.com/api/docs/websocket-v2/add_order/
+ */
+export class WebsocketAPIClient
+⋮----
+constructor(
+    options?: WSClientConfigurableOptions &
+      Partial<WSAPIClientConfigurableOptions>,
+    logger?: DefaultLogger,
+)
+⋮----
+public getWSClient(): WebsocketClient
+⋮----
+/**
+   * Add a spot order
+   */
+submitSpotOrder(
+    params: Omit<WSAPIAddSpotOrderParams, 'token' | 'req_id'>,
+    wsKey?: WSAPIWsKey,
+): Promise<WSAPISpotResponse<WSAPIAddSpotOrderResult, 'add_order'>>
+⋮----
+/**
+   * Amend an existing order
+   */
+amendSpotOrder(
+    params: WSAPIAmendSpotOrderParams,
+    wsKey?: WSAPIWsKey,
+): Promise<WSAPISpotResponse<WSAPIAmendSpotOrderResult, 'amend_order'>>
+⋮----
+/**
+   * Cancel one or more orders
+   */
+cancelSpotOrder(
+    params: WSAPICancelSpotOrderParams,
+    wsKey?: WSAPIWsKey,
+): Promise<WSAPISpotResponse<WSAPICancelSpotOrderResult, 'cancel_order'>>
+⋮----
+/**
+   * Cancel all open orders
+   */
+cancelAllSpotOrders(
+    wsKey?: WSAPIWsKey,
+): Promise<WSAPISpotResponse<WSAPICancelAllSpotOrdersResult, 'cancel_all'>>
+⋮----
+/**
+   * Cancel all orders after a timeout (Dead Man's Switch)
+   */
+cancelAllSpotOrdersAfter(
+    params: WSAPICancelAllSpotOrdersAfterParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<
+    WSAPISpotResponse<
+      WSAPICancelAllSpotOrdersAfterResult,
+      'cancel_all_orders_after'
+    >
+  > {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'cancel_all_orders_after',
+      params,
+    );
+⋮----
+/**
+   * Add multiple orders in a single batch (2-15 orders)
+   */
+batchSubmitSpotOrders(
+    params: WSAPIBatchAddSpotOrdersParams,
+    wsKey?: WSAPIWsKey,
+): Promise<WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>>
+⋮----
+/**
+   * Cancel multiple orders in a single batch (2-50 orders)
+   */
+batchCancelSpotOrders(
+    params: WSAPIBatchCancelSpotOrdersParams,
+    wsKey?: WSAPIWsKey,
+  ): Promise<
+    WSAPISpotResponse<WSAPIBatchCancelSpotOrdersResult, 'batch_cancel'>
+  > {
+    return this.wsClient.sendWSAPIRequest(
+      wsKey || WS_KEY_MAP.spotPrivateV2,
+      'batch_cancel',
+      params,
+    );
+⋮----
+/**
+   * Edit an existing order (legacy method, use amendSpotOrder instead)
+   * @deprecated Use amendSpotOrder for better performance and features
+   */
+editSpotOrder(
+    params: WSAPIEditSpotOrderParams,
+    wsKey?: WSAPIWsKey,
+): Promise<WSAPISpotResponse<WSAPIEditSpotOrderResult, 'edit_order'>>
+/**
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   * Private methods for handling some of the convenience/automation provided by the WS API Client
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   */
+⋮----
+public connectWSAPI(wsKey: WSAPIWsKey)
+⋮----
+private setupDefaultEventListeners()
+⋮----
+/**
+       * General event handlers for monitoring the WebsocketClient
+       */
+⋮----
+// Blind JSON.stringify can fail on circular references
+⋮----
+// JSON.stringify({ ...data, target: 'WebSocket' }),
 
 ================
 File: .eslintrc.cjs
@@ -2055,6 +2466,583 @@ async function start()
 // Account Log: https://docs.kraken.com/api/docs/futures-api/websocket/account_log
 ⋮----
 // Notification: https://docs.kraken.com/api/docs/futures-api/websocket/notifications
+
+================
+File: src/lib/BaseWSClient.ts
+================
+import { EventEmitter } from 'events';
+import WebSocket from 'isomorphic-ws';
+⋮----
+import {
+  isMessageEvent,
+  MessageEventLike,
+} from '../types/websockets/ws-events.js';
+import {
+  WebsocketClientOptions,
+  WSClientConfigurableOptions,
+  WsEventInternalSrc,
+} from '../types/websockets/ws-general.js';
+import { WSTopic } from '../types/websockets/ws-subscriptions.js';
+import { checkWebCryptoAPISupported } from './webCryptoAPI.js';
+import { DefaultLogger } from './websocket/logger.js';
+import {
+  getNormalisedTopicRequests,
+  safeTerminateWs,
+  WSOperation,
+  WSTopicRequest,
+  WSTopicRequestOrStringTopic,
+} from './websocket/websocket-util.js';
+import { WsStore } from './websocket/WsStore.js';
+import {
+  WSConnectedResult,
+  WsConnectionStateEnum,
+} from './websocket/WsStore.types.js';
+⋮----
+type UseTheExceptionEventInstead = never;
+⋮----
+interface WSClientEventMap<WsKey extends string> {
+  /** Connection opened. If this connection was previously opened and reconnected, expect the reconnected event instead */
+  open: (evt: {
+    wsKey: WsKey;
+    event: any;
+    wsUrl: string;
+    ws: WebSocket;
+  }) => void;
+
+  /** Reconnecting a dropped connection */
+  reconnecting: (evt: { wsKey: WsKey; event: any }) => void;
+
+  /** Successfully reconnected a connection that dropped */
+  reconnected: (evt: {
+    wsKey: WsKey;
+    event: any;
+    wsUrl: string;
+    ws: WebSocket;
+  }) => void;
+
+  /** Connection closed */
+  close: (evt: { wsKey: WsKey; event: any }) => void;
+
+  /** Received reply to websocket command (e.g. after subscribing to topics) */
+  response: (response: any & { wsKey: WsKey }) => void;
+
+  /** Received data for topic */
+  message: (response: any & { wsKey: WsKey }) => void;
+
+  /** Exception from ws client OR custom listeners (e.g. if you throw inside your event handler) */
+  exception: (response: any & { wsKey: WsKey }) => void;
+
+  /**
+   * See for more information: https://github.com/tiagosiebler/bybit-api/issues/413
+   * @deprecated Use the 'exception' event instead. The 'error' event had the unintended consequence of throwing an unhandled promise rejection.
+   */
+  error: UseTheExceptionEventInstead;
+
+  /** Confirmation that a connection successfully authenticated */
+  authenticated: (event: { wsKey: WsKey; event: any }) => void;
+}
+⋮----
+/** Connection opened. If this connection was previously opened and reconnected, expect the reconnected event instead */
+⋮----
+/** Reconnecting a dropped connection */
+⋮----
+/** Successfully reconnected a connection that dropped */
+⋮----
+/** Connection closed */
+⋮----
+/** Received reply to websocket command (e.g. after subscribing to topics) */
+⋮----
+/** Received data for topic */
+⋮----
+/** Exception from ws client OR custom listeners (e.g. if you throw inside your event handler) */
+⋮----
+/**
+   * See for more information: https://github.com/tiagosiebler/bybit-api/issues/413
+   * @deprecated Use the 'exception' event instead. The 'error' event had the unintended consequence of throwing an unhandled promise rejection.
+   */
+⋮----
+/** Confirmation that a connection successfully authenticated */
+⋮----
+export interface EmittableEvent<
+  TEventType extends
+    keyof WSClientEventMap<string> = keyof WSClientEventMap<string>,
+> {
+  eventType:
+    | TEventType
+    | 'pong'
+    | 'connectionReady' // tied to "requireConnectionReadyConfirmation";
+    | 'connectionReadyForAuth'; // tied to specific events we need to wait for, before we can begin post-connect auth
+  event: Parameters<WSClientEventMap<string>[TEventType]>[0];
+  isWSAPIResponse?: boolean;
+}
+⋮----
+| 'connectionReady' // tied to "requireConnectionReadyConfirmation";
+| 'connectionReadyForAuth'; // tied to specific events we need to wait for, before we can begin post-connect auth
+⋮----
+// Type safety for on and emit handlers: https://stackoverflow.com/a/61609010/880837
+export interface BaseWebsocketClient<
+  TWSKey extends string,
+  TWSRequestEvent extends object,
+> {
+  on<U extends keyof WSClientEventMap<TWSKey>>(
+    event: U,
+    listener: WSClientEventMap<TWSKey>[U],
+  ): this;
+
+  emit<U extends keyof WSClientEventMap<TWSKey>>(
+    event: U,
+    ...args: Parameters<WSClientEventMap<TWSKey>[U]>
+  ): boolean;
+}
+⋮----
+on<U extends keyof WSClientEventMap<TWSKey>>(
+    event: U,
+    listener: WSClientEventMap<TWSKey>[U],
+  ): this;
+⋮----
+emit<U extends keyof WSClientEventMap<TWSKey>>(
+    event: U,
+    ...args: Parameters<WSClientEventMap<TWSKey>[U]>
+  ): boolean;
+⋮----
+/**
+ * A midflight WS request event (e.g. subscribe to these topics).
+ *
+ * - requestKey: unique identifier for this request, if available. Can be anything as a string.
+ * - requestEvent: the raw request, as an object, that will be sent on the ws connection. This may contain multiple topics/requests in one object, if the exchange supports it.
+ */
+export interface MidflightWsRequestEvent<TEvent = object> {
+  requestKey: string | number;
+  requestEvent: TEvent;
+}
+⋮----
+/**
+ * Appends wsKey and isWSAPIResponse to all events.
+ * Some events are arrays, this handles that nested scenario too.
+ */
+function getFinalEmittable(
+  emittable: EmittableEvent | EmittableEvent[],
+  wsKey: any,
+  isWSAPIResponse?: boolean,
+): any
+⋮----
+// Some topics just emit an array.
+// This is consistent with how it was before the WS API upgrade:
+⋮----
+// const { event, ...others } = emittable;
+// return {
+//   ...others,
+//   event: event.map((subEvent) =>
+//     getFinalEmittable(subEvent, wsKey, isWSAPIResponse),
+//   ),
+// };
+⋮----
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
+export abstract class BaseWebsocketClient<
+TWSKey extends string,
+⋮----
+constructor(
+    options?: WSClientConfigurableOptions & { wsLoggerCategory: string },
+    logger?: DefaultLogger,
+)
+⋮----
+// Requires a confirmation "response" from the ws connection before assuming it is ready
+⋮----
+// Automatically auth after opening a connection?
+⋮----
+// Automatically include auth/sign/token with every WS request.
+// Automatically handled during getWsRequestEvents.
+⋮----
+// Automatically re-auth WS API, if we were auth'd before and get reconnected
+⋮----
+// Whether to use native heartbeats (depends on the exchange)
+⋮----
+// Check Web Crypto API support when credentials are provided and no custom sign function is used
+⋮----
+/**
+   * Return true if this wsKey connection should automatically authenticate immediately after connecting
+   */
+protected abstract isAuthOnConnectWsKey(wsKey: TWSKey): boolean;
+⋮----
+protected abstract isCustomReconnectionNeeded(wsKey: TWSKey): boolean;
+⋮----
+protected abstract triggerCustomReconnectionWorkflow(
+    wsKey: TWSKey,
+  ): Promise<void>;
+⋮----
+protected abstract sendPingEvent(wsKey: TWSKey, ws: WebSocket): void;
+⋮----
+protected abstract sendPongEvent(wsKey: TWSKey, ws: WebSocket): void;
+⋮----
+protected abstract isWsPing(data: any): boolean;
+⋮----
+protected abstract isWsPong(data: any): boolean;
+⋮----
+protected abstract authPrivateConnectionsOnConnect(_wsKey: TWSKey): boolean;
+⋮----
+/**
+   * Return the event sent to the server to trigger authentication. If the event requires waiting for another event first (e.g. a challenge), return 'waitForEvent' and the library will wait for that event before calling this method again.
+   *
+   * Usually only called once per connection, unless the connection drops/is reset.
+   */
+protected abstract getWsAuthRequestEvent(
+    wsKey: TWSKey,
+    eventToAuth?: object,
+  ): Promise<object | string | 'waitForEvent' | void>;
+⋮----
+protected abstract isPrivateTopicRequest(
+    request: WSTopicRequest<WSTopic>,
+    wsKey: TWSKey,
+  ): boolean;
+⋮----
+/**
+   * Returns a list of string events that can be individually sent upstream to complete subscribing/unsubscribing/etc to these topics
+   */
+// protected abstract getWsOperationEventsForTopics(
+//   topics: WsTopicRequest<WSTopic>[],
+//   wsKey: TWSKey,
+//   operation: WsOperation,
+// ): Promise<string[]>;
+⋮----
+protected abstract getPrivateWSKeys(): TWSKey[];
+⋮----
+protected abstract getWsUrl(wsKey: TWSKey): Promise<string>;
+⋮----
+protected abstract getMaxTopicsPerSubscribeEvent(
+    wsKey: TWSKey,
+  ): number | null;
+⋮----
+/**
+   * @returns one or more correctly structured request events for performing a operations over WS. This can vary per exchange spec.
+   */
+protected abstract getWsRequestEvents(
+    wsKey: TWSKey,
+    operation: WSOperation,
+    requests: WSTopicRequest<WSTopic>[],
+  ): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]>;
+⋮----
+/**
+   * Abstraction called to sort ws events into emittable event types (response to a request, data update, etc)
+   */
+protected abstract resolveEmittableEvents(
+    wsKey: TWSKey,
+    event: MessageEventLike,
+  ): EmittableEvent[];
+⋮----
+/**
+   * Request connection of all dependent (public & private) websockets, instead of waiting for automatic connection by library
+   */
+protected abstract connectAll(): Promise<WSConnectedResult | undefined>[];
+⋮----
+protected isPrivateWsKey(wsKey: TWSKey): boolean
+⋮----
+/** Returns auto-incrementing request ID, used to track promise references for async requests */
+protected getNewRequestId(): number
+⋮----
+protected abstract sendWSAPIRequest(
+    wsKey: TWSKey,
+    operation: string,
+    params?: any,
+  ): Promise<unknown>;
+⋮----
+protected abstract sendWSAPIRequest(
+    wsKey: TWSKey,
+    channel: string,
+    params: any,
+  ): Promise<unknown>;
+⋮----
+public getTimeOffsetMs()
+⋮----
+public setTimeOffsetMs(newOffset: number)
+⋮----
+/**
+   * Don't call directly! Use subscribe() instead!
+   *
+   * Subscribe to one or more topics on a WS connection (identified by WS Key).
+   *
+   * - Topics are automatically cached
+   * - Connections are automatically opened, if not yet connected
+   * - Authentication is automatically handled
+   * - Topics are automatically resubscribed to, if something happens to the connection, unless you call unsubsribeTopicsForWsKey(topics, key).
+   *
+   * @param wsTopicRequests array of topics to subscribe to
+   * @param wsKey ws key referring to the ws connection these topics should be subscribed on
+   */
+protected async subscribeTopicsForWsKey(
+    wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
+    wsKey: TWSKey,
+)
+⋮----
+// Store topics, so future automation (post-auth, post-reconnect) has everything needed to resubscribe automatically
+⋮----
+// start connection process if it hasn't yet begun. Topics are automatically subscribed to on-connect
+⋮----
+// Subscribe should happen automatically once connected, nothing to do here after topics are added to wsStore.
+⋮----
+/**
+       * Are we in the process of connection? Nothing to send yet.
+       */
+⋮----
+// We're connected. Check if auth is needed and if already authenticated
+⋮----
+/**
+       * If not authenticated yet and auth is required, don't request topics yet.
+       *
+       * Auth should already automatically be in progress, so no action needed from here. Topics will automatically subscribe post-auth success.
+       */
+⋮----
+// Finally, request subscription to topics if the connection is healthy and ready
+⋮----
+protected async unsubscribeTopicsForWsKey(
+    wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
+    wsKey: TWSKey,
+): Promise<unknown>
+⋮----
+// Store topics, so future automation (post-auth, post-reconnect) has everything needed to resubscribe automatically
+⋮----
+// If not connected, don't need to do anything.
+// Removing the topic from the store is enough to stop it from being resubscribed to on reconnect.
+⋮----
+// We're connected. Check if auth is needed and if already authenticated
+⋮----
+/**
+       * If not authenticated yet and auth is required, don't need to do anything.
+       * We don't subscribe to topics until auth is complete anyway.
+       */
+⋮----
+// Finally, request subscription to topics if the connection is healthy and ready
+⋮----
+/**
+   * Splits topic requests into two groups, public & private topic requests
+   */
+private sortTopicRequestsIntoPublicPrivate(
+    wsTopicRequests: WSTopicRequest<WSTopic>[],
+    wsKey: TWSKey,
+):
+⋮----
+/** Get the WsStore that tracks websockets & topics */
+public getWsStore(): WsStore<TWSKey, WSTopicRequest<WSTopic>>
+⋮----
+public close(wsKey: TWSKey, force?: boolean)
+⋮----
+public closeAll(force?: boolean)
+⋮----
+public isConnected(wsKey: TWSKey): boolean
+⋮----
+/**
+   * Request connection to a specific websocket, instead of waiting for automatic connection.
+   */
+public async connect(
+    wsKey: TWSKey,
+    customUrl?: string | undefined,
+    throwOnError?: boolean,
+): Promise<WSConnectedResult | undefined>
+⋮----
+// Important: don't check for RECONNECTING here, or this clashes with reconnectWithDelay()!
+⋮----
+private connectToWsUrl(url: string, wsKey: TWSKey): WebSocket
+⋮----
+//
+⋮----
+private parseWsError(context: string, error: any, wsKey: TWSKey): boolean
+⋮----
+// Allow retry by default (in some places that call this). Prevent deadloop in hard failure (401)
+⋮----
+/** Get a signature, build the auth request and send it */
+private async sendAuthRequest(
+    wsKey: TWSKey,
+    eventToAuth?: object,
+): Promise<unknown>
+⋮----
+// If not required, this won't return anything
+⋮----
+// Short-circuit this for the next time it's called
+⋮----
+private reconnectWithDelay(wsKey: TWSKey, connectionDelayMs: number)
+⋮----
+// Some streams need a specialist reconnection workflow.
+// E.g. the user data stream can't just be reconnected as is.
+⋮----
+private ping(wsKey: TWSKey)
+⋮----
+/**
+   * Closes a connection, if it's even open. If open, this will trigger a reconnect asynchronously.
+   * If closed, trigger a reconnect immediately
+   */
+protected executeReconnectableClose(wsKey: TWSKey, reason: string)
+⋮----
+private clearTimers(wsKey: TWSKey)
+⋮----
+// Send a ping at intervals
+private clearPingTimer(wsKey: TWSKey)
+⋮----
+// Expect a pong within a time limit
+private clearPongTimer(wsKey: TWSKey)
+⋮----
+// this.logger.trace(`Cleared pong timeout for "${wsKey}"`);
+⋮----
+// this.logger.trace(`No active pong timer for "${wsKey}"`);
+⋮----
+private clearReconnectTimer(wsKey: TWSKey)
+⋮----
+/**
+   * Returns a list of string events that can be individually sent upstream to complete subscribing/unsubscribing/etc to these topics
+   *
+   * If events are an object, these should be stringified (`return JSON.stringify(event);`)
+   * Each event returned by this will be sent one at a time
+   *
+   * Events are automatically split into smaller batches, by this method, if needed.
+   */
+protected async getWsOperationEventsForTopics(
+    topics: WSTopicRequest<WSTopic>[],
+    wsKey: TWSKey,
+    operation: WSOperation,
+): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]>
+⋮----
+// Events that are ready to send (usually stringified JSON)
+⋮----
+/**
+   * Simply builds and sends subscribe events for a list of topics for a ws key
+   *
+   * @private Use the `subscribe(topics)` or `subscribeTopicsForWsKey(topics, wsKey)` method to subscribe to topics. Send WS message to subscribe to topics.
+   */
+private async requestSubscribeTopics(
+    wsKey: TWSKey,
+    wsTopicRequests: WSTopicRequest<WSTopic>[],
+)
+⋮----
+// Automatically splits requests into smaller batches, if needed
+⋮----
+`Subscribing to ${wsTopicRequests.length} "${wsKey}" topics in ${subscribeWsMessages.length} batches.`, // Events: "${JSON.stringify(topics)}"
+⋮----
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+⋮----
+/**
+   * Simply builds and sends unsubscribe events for a list of topics for a ws key
+   *
+   * @private Use the `unsubscribe(topics)` method to unsubscribe from topics. Send WS message to unsubscribe from topics.
+   */
+private async requestUnsubscribeTopics(
+    wsKey: TWSKey,
+    wsTopicRequests: WSTopicRequest<WSTopic>[],
+)
+⋮----
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+⋮----
+/**
+   * Try sending a string event on a WS connection (identified by the WS Key)
+   */
+public tryWsSend(
+    wsKey: TWSKey,
+    wsMessage: string,
+    throwExceptions?: boolean,
+)
+⋮----
+private async onWsOpen(
+    event: WebSocket.Event,
+    wsKey: TWSKey,
+    url: string,
+    ws: WebSocket,
+)
+⋮----
+private resolveConnectionInProgressPromise(wsKey: TWSKey)
+⋮----
+// Resolve & cleanup deferred "connection attempt in progress" promise
+⋮----
+/**
+   * Called automatically once a connection is ready.
+   * - Some exchanges are ready immediately after the connections open.
+   * - Some exchanges send an event to confirm the connection is ready for us.
+   *
+   * This method is called to act when the connection is ready. Use `requireConnectionReadyConfirmation` to control how this is called.
+   */
+private async onWsReadyForEvents(wsKey: TWSKey)
+⋮----
+// Some websockets require an auth packet to be sent after opening the connection
+⋮----
+// Reconnect to topics known before it connected
+⋮----
+// Request sub to public topics, if any
+⋮----
+// Request sub to private topics, if auth on connect isn't needed
+⋮----
+/**
+   * Handle subscription to private topics _after_ authentication successfully completes asynchronously.
+   *
+   * Only used for exchanges that require auth before sending private topic subscription requests
+   */
+private onWsAuthenticated(
+    wsKey: TWSKey,
+    event: { isWSAPI?: boolean; WSAPIAuthChannel?: string },
+)
+⋮----
+// Resolve & cleanup deferred "auth attempt in progress" promise
+⋮----
+// Remove before continuing, in case there's more requests queued
+⋮----
+private onWsPing(
+    event: any,
+    wsKey: TWSKey,
+    ws: WebSocket,
+    source: WsEventInternalSrc,
+)
+⋮----
+private onWsPong(event: any, wsKey: TWSKey, source: WsEventInternalSrc)
+⋮----
+// Necessary when native heartbeats are used
+⋮----
+private onWsMessage(event: unknown, wsKey: TWSKey, ws: WebSocket)
+⋮----
+// console.log('onMessageRaw: ', (event as any).data);
+// any message can clear the pong timer - wouldn't get a message if the ws wasn't working
+⋮----
+// console.log(`raw event: `, { data, dataType, emittableEvents });
+⋮----
+// Not used for kraken. At least for spot, auth is included per req during subscribe
+⋮----
+// Not used for kraken. At least for spot, auth is included per req during subscribe
+⋮----
+// Other event types are automatically emitted here
+⋮----
+// this.logger.trace(
+//   `onWsMessage().emit(${emittable.eventType}).done()`,
+//   emittableFinalEvent,
+// );
+⋮----
+private onWsClose(event: unknown, wsKey: TWSKey)
+⋮----
+// unintentional close, attempt recovery
+⋮----
+// clean up any pending promises for this connection
+⋮----
+// this.clearTopicsPendingSubscriptions(wsKey, true, 'WS Closed');
+⋮----
+// intentional close - clean up
+// clean up any pending promises for this connection
+⋮----
+// This was an intentional close, delete all state for this connection, as if it never existed:
+⋮----
+private getWs(wsKey: TWSKey)
+⋮----
+private setWsState(wsKey: TWSKey, state: WsConnectionStateEnum)
+⋮----
+/**
+   * Promise-driven method to assert that a ws has successfully connected (will await until connection is open)
+   */
+protected async assertIsConnected(wsKey: TWSKey): Promise<unknown>
+⋮----
+// Already in progress? Await shared promise and retry
+⋮----
+// Start connection, it should automatically store/return a promise.
+⋮----
+/**
+   * Promise-driven method to assert that a ws has been successfully authenticated (will await until auth is confirmed)
+   */
+public async assertIsAuthenticated(wsKey: TWSKey): Promise<unknown>
+⋮----
+// Already in progress? Await shared promise and retry
+⋮----
+// Start authentication, it should automatically store/return a promise.
 
 ================
 File: src/types/request/partner.types.ts
@@ -2734,6 +3722,36 @@ export interface SpotGetOrderBookParams {
   asset_class?: 'tokenized_asset';
 }
 ⋮----
+export interface SpotGetGroupedBookParams {
+  pair: string;
+  depth?: 10 | 25 | 100 | 250 | 1000;
+  grouping?: 1 | 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
+}
+⋮----
+export interface SpotGetLevel3Params {
+  pair: string;
+  depth?: 0 | 10 | 25 | 100 | 250 | 1000;
+}
+⋮----
+export interface SpotTradeVolumePairInput {
+  asset: string;
+  aclass:
+    | 'currency'
+    | 'forex'
+    | 'equity'
+    | 'equity_pair'
+    | 'nft'
+    | 'derivatives'
+    | 'tokenized_asset'
+    | 'futures_contract';
+}
+⋮----
+export interface SpotGetTradingVolumeParams {
+  pair?: string | SpotTradeVolumePairInput[];
+  fee_schedule?: boolean;
+  rebase_multiplier?: 'rebased' | 'base';
+}
+⋮----
 export interface SpotGetRecentTradesParams {
   pair: string;
   since?: string;
@@ -2750,6 +3768,10 @@ export interface SpotGetRecentSpreadsParams {
 /**
  * Account Data
  */
+⋮----
+export interface SpotGetApiKeyInfoParams {
+  otp?: string;
+}
 ⋮----
 export interface SpotGetOpenOrdersParams {
   trades?: boolean;
@@ -4958,6 +5980,31 @@ export interface SpotOrderBookResponse {
   [pairName: string]: SpotOrderBook;
 }
 ⋮----
+export interface SpotGroupedBookLevel {
+  price: string;
+  qty: string;
+}
+⋮----
+export interface SpotGroupedBookResponse {
+  pair: string;
+  grouping: number;
+  bids: SpotGroupedBookLevel[];
+  asks: SpotGroupedBookLevel[];
+}
+⋮----
+export interface SpotLevel3OrderEntry {
+  price: string;
+  qty: string;
+  order_id: string;
+  timestamp: number;
+}
+⋮----
+export interface SpotLevel3OrderBookResponse {
+  pair: string;
+  bids: SpotLevel3OrderEntry[];
+  asks: SpotLevel3OrderEntry[];
+}
+⋮----
 // [price, volume, time, buy/sell, market/limit, miscellaneous, trade_id]
 export type SpotTradeData = [
   string,
@@ -4986,6 +6033,7 @@ export interface SpotRecentSpreadsResponse {
  * Account Data
  */
 ⋮----
+/** @deprecated Kraken deprecated `.F` suffixed balance assets (Nov 2025). Keys may still appear until removed server-side. */
 export interface SpotAccountBalance {
   [assetName: string]: string;
 }
@@ -5253,15 +6301,79 @@ export interface SpotFeeTierInfo {
   next_volume: string | null;
 }
 ⋮----
+export interface SpotTradeVolumeInputs {
+  domain_spot_volume_30d: string;
+  domain_futures_volume_30d: string;
+  domain_assets_on_platform: string;
+}
+⋮----
+export interface SpotTradeVolumeFeeScheduleTier {
+  maker_fee: string;
+  taker_fee: string;
+  min_spot_volume?: string | null;
+  min_futures_volume?: string | null;
+  min_assets_on_platform?: string | null;
+  active?: boolean | null;
+}
+⋮----
+export interface SpotTradeVolumeFeeSchedule {
+  pair: string;
+  class:
+    | 'currency'
+    | 'forex'
+    | 'equity'
+    | 'equity_pair'
+    | 'nft'
+    | 'derivatives'
+    | 'tokenized_asset'
+    | 'futures_contract'
+    | 'volume';
+  tiers: SpotTradeVolumeFeeScheduleTier[];
+}
+⋮----
+export interface SpotTradeVolumeSubaccount {
+  iiban: string;
+  volume: string;
+}
+⋮----
 export interface SpotTradeVolume {
   currency: string;
+  asset_class?:
+    | 'currency'
+    | 'forex'
+    | 'equity'
+    | 'equity_pair'
+    | 'nft'
+    | 'derivatives'
+    | 'tokenized_asset'
+    | 'futures_contract'
+    | null;
   volume: string;
+  inputs: SpotTradeVolumeInputs;
   fees?: {
     [pairName: string]: SpotFeeTierInfo;
-  };
+  } | null;
   fees_maker?: {
     [pairName: string]: SpotFeeTierInfo;
-  };
+  } | null;
+  volume_subaccounts?: SpotTradeVolumeSubaccount[];
+  schedules?: SpotTradeVolumeFeeSchedule[] | null;
+}
+⋮----
+export interface SpotApiKeyInfo {
+  apiKeyName: string;
+  apiKey: string;
+  nonce: string;
+  nonceWindow: number;
+  permissions: string[];
+  iban: string;
+  validUntil: string;
+  queryFrom: string;
+  queryTo: string;
+  createdTime: string;
+  modifiedTime: string;
+  ipAllowlist: string[];
+  lastUsed: string | null;
 }
 ⋮----
 export interface SpotRequestExportReportResponse {
@@ -5599,85 +6711,6 @@ export interface OauthCreateFastApiKeyResponse {
 }
 ⋮----
 secret: string; // Only returned on creation
-
-================
-File: src/types/response/wsapi.types.ts
-================
-/**
- * Websocket API v2 Spot Response Types
- */
-⋮----
-export interface WSAPIAddSpotOrderResult {
-  order_id: string;
-  cl_ord_id?: string;
-  order_userref?: number;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPIAmendSpotOrderResult {
-  amend_id: string;
-  order_id?: string;
-  cl_ord_id?: string;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPICancelSpotOrderResult {
-  order_id: string;
-  cl_ord_id?: string;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPICancelAllSpotOrdersResult {
-  count: number;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPICancelAllSpotOrdersAfterResult {
-  currentTime: string;
-  triggerTime: string;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPIBatchAddSpotOrdersResult {
-  order_id: string;
-  cl_ord_id?: string;
-  order_userref?: number;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPIBatchCancelSpotOrdersResult {
-  count: number;
-  warnings?: string[];
-}
-⋮----
-export interface WSAPIEditSpotOrderResult {
-  order_id: string;
-  original_order_id: string;
-  warnings?: string[];
-}
-
-================
-File: src/types/websockets/ws-subscriptions.ts
-================
-] as const; // Note: Admin topics (Status, Heartbeat & Ping are automatically used internally and can't be subscribed to manually).
-⋮----
-export type WSSpotPublicTopic = (typeof WS_SPOT_PUBLIC_TOPICS)[number];
-⋮----
-export type WSSpotPrivateTopic = (typeof WS_SPOT_PRIVATE_TOPICS)[number];
-⋮----
-export type WSSpotTopic = WSSpotPublicTopic | WSSpotPrivateTopic;
-⋮----
-export type WSDerivativesPublicTopic =
-  (typeof WS_DERIVATIVES_PUBLIC_TOPICS)[number];
-⋮----
-export type WSDerivativesPrivateTopic =
-  (typeof WS_DERIVATIVES_PRIVATE_TOPICS)[number];
-⋮----
-export type WSDerivativesTopic =
-  | WSDerivativesPublicTopic
-  | WSDerivativesPrivateTopic;
-⋮----
-export type WSTopic = WSSpotTopic | WSDerivativesTopic;
 
 ================
 File: src/InstitutionalClient.ts
@@ -6573,6 +7606,129 @@ async function start()
    */
 
 ================
+File: src/lib/websocket/websocket-util.ts
+================
+import WebSocket from 'isomorphic-ws';
+⋮----
+import { WSAPIRequestOperationKrakenSpot } from '../../types/websockets/ws-api.js';
+import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
+⋮----
+/** Should be one WS key per unique URL */
+⋮----
+/**
+   * Public WebSocket subscriptions for Kraken Spot products, via the V2 API
+   *
+   * - Ref: https://docs.kraken.com/api/docs/guides/spot-ws-intro
+   * - Channels: https://docs.kraken.com/api/docs/websocket-v2/add_order
+   *
+   * Note: Use spotPrivateV2 for private channels (requires API keys).
+   */
+⋮----
+/**
+   * Public WebSocket subscriptions for Kraken Derivatives products, via the V1 API:
+   *
+   * - Ref: https://docs.kraken.com/api/docs/guides/futures-websockets
+   * - Channels: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
+   *
+   * Note: While both Public and Private channels use the same WebSocket URL, we will actually maintain separate connections for easier management. Private channels require authentication and the connection is authenticated automatically.
+   */
+⋮----
+/** This is used to differentiate between each of the available websocket streams */
+export type WsKey = (typeof WS_KEY_MAP)[keyof typeof WS_KEY_MAP];
+⋮----
+export type WSOperation = 'subscribe' | 'unsubscribe';
+⋮----
+/**
+ * Normalised internal format for a request (subscribe/unsubscribe/etc) on a topic, with optional parameters.
+ *
+ * - Topic: the topic this event is for
+ * - Payload: the parameters to include, optional. E.g. auth requires key + sign. Some topics allow configurable parameters.
+ */
+export interface WSTopicRequest<
+  TWSTopic extends WSTopic = WSTopic,
+  TWSPayload = any,
+> {
+  topic: TWSTopic;
+  payload?: TWSPayload;
+}
+⋮----
+/**
+ * Conveniently allow users to request a topic either as string topics or objects (containing string topic + params)
+ */
+export type WSTopicRequestOrStringTopic<
+  TWSTopic extends WSTopic,
+  TWSPayload = any,
+> = WSTopicRequest<TWSTopic, TWSPayload> | string;
+⋮----
+export interface WSRequestOperationKraken<
+  TWSTopic extends string,
+  TWSParams extends object = any,
+> {
+  // spot only
+  method?: WSOperation;
+  // futures only
+  event?: WSOperation;
+  params:
+    | {
+        channel: (TWSTopic | string | number)[];
+        symbol?: string[];
+        event_trigger?: string;
+        snapshot?: boolean;
+      }
+    | TWSParams;
+  req_id: number;
+  /**
+   * The following are needed for futures/derivatives requests
+   */
+  feed?: TWSTopic;
+  api_key?: string;
+  original_challenge?: string;
+  signed_challenge?: string;
+}
+⋮----
+// spot only
+⋮----
+// futures only
+⋮----
+/**
+   * The following are needed for futures/derivatives requests
+   */
+⋮----
+/**
+ * #305: ws.terminate() is undefined in browsers.
+ * This only works in node.js, not in browsers.
+ * Does nothing if `ws` is undefined. Does nothing in browsers.
+ */
+export function safeTerminateWs(
+  ws?: WebSocket | any,
+  fallbackToClose?: boolean,
+): boolean
+⋮----
+/**
+ * WS API promises are stored using a primary key. This key is constructed using
+ * properties found in every request & reply.
+ *
+ * The counterpart to this is in resolveEmittableEvents
+ */
+export function getPromiseRefForWSAPIRequest(
+  wsKey: WsKey,
+  requestEvent: WSAPIRequestOperationKrakenSpot,
+): string
+⋮----
+/**
+ * Users can conveniently pass topics as strings or objects (object has topic name + optional params).
+ *
+ * This method normalises topics into objects (object has topic name + optional params).
+ */
+export function getNormalisedTopicRequests(
+  wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
+): WSTopicRequest<WSTopic>[]
+⋮----
+// passed as string, convert to object
+⋮----
+// already a normalised object, thanks to user
+
+================
 File: src/lib/websocket/WsStore.ts
 ================
 import WebSocket from 'isomorphic-ws';
@@ -6752,590 +7908,6 @@ addTopic(key: WsKey, topic: TWSTopicSubscribeEventArgs)
 deleteTopic(key: WsKey, topic: TWSTopicSubscribeEventArgs)
 ⋮----
 // Check if we're subscribed to a topic like this
-
-================
-File: src/types/request/derivatives.types.ts
-================
-/**
- * Order Management
- */
-⋮----
-export interface FuturesBatchOrderSend {
-  order: 'send';
-  order_tag: string;
-  orderType:
-    | 'lmt'
-    | 'post'
-    | 'ioc'
-    | 'mkt'
-    | 'stp'
-    | 'take_profit'
-    | 'trailing_stop'
-    | 'fok';
-  symbol: string;
-  side: 'buy' | 'sell';
-  size: number;
-  limitPrice?: number;
-  stopPrice?: number;
-  cliOrdId?: string;
-  triggerSignal?: 'mark' | 'index' | 'last';
-  reduceOnly?: boolean;
-  trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
-}
-⋮----
-export interface FuturesBatchOrderEdit {
-  order: 'edit';
-  order_id: string;
-  cliOrdId?: string | null;
-  size?: number;
-  limitPrice?: number;
-  stopPrice?: number;
-  trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
-  qtyMode?: 'ABSOLUTE' | 'RELATIVE';
-}
-⋮----
-export interface FuturesBatchOrderCancel {
-  order: 'cancel';
-  order_id?: string;
-  cliOrdId?: string;
-}
-⋮----
-export interface FuturesBatchOrderParams {
-  ProcessBefore?: string;
-  json: {
-    batchOrder: (
-      | FuturesBatchOrderSend
-      | FuturesBatchOrderEdit
-      | FuturesBatchOrderCancel
-    )[];
-  };
-}
-⋮----
-export interface FuturesCancelOrderParams {
-  processBefore?: string;
-  order_id?: string;
-  cliOrdId?: string;
-}
-⋮----
-export interface FuturesEditOrderParams {
-  processBefore?: string;
-  orderId?: string;
-  cliOrdId?: string;
-  size?: number;
-  limitPrice?: number;
-  stopPrice?: number;
-  trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
-  qtyMode?: 'ABSOLUTE' | 'RELATIVE';
-}
-⋮----
-export interface FuturesSendOrderParams {
-  processBefore?: string;
-  orderType:
-    | 'lmt'
-    | 'post'
-    | 'ioc'
-    | 'mkt'
-    | 'stp'
-    | 'take_profit'
-    | 'trailing_stop'
-    | 'fok';
-  symbol: string;
-  side: 'buy' | 'sell';
-  size: number;
-  limitPrice?: number;
-  stopPrice?: number;
-  cliOrdId?: string;
-  triggerSignal?: 'mark' | 'index' | 'last';
-  reduceOnly?: boolean;
-  trailingStopMaxDeviation?: number;
-  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY' | 'unknown';
-  limitPriceOffsetValue?: number;
-  limitPriceOffsetUnit?: 'QUOTE_CURRENCY' | 'PERCENT';
-  broker?: string;
-}
-⋮----
-/**
- * Assignment Program
- */
-⋮----
-export interface FuturesAddAssignmentPreferenceParams {
-  contractType: string;
-  contract?: string;
-  maxSize?: number;
-  maxPosition?: number;
-  acceptLong: boolean;
-  acceptShort: boolean;
-  timeFrame: 'all' | 'weekdays' | 'weekends';
-  enabled: boolean;
-}
-⋮----
-/**
- * Trading Settings
- */
-⋮----
-export interface FuturesUpdateSelfTradeStrategyParams {
-  strategy:
-    | 'REJECT_TAKER'
-    | 'CANCEL_MAKER_SELF'
-    | 'CANCEL_MAKER_CHILD'
-    | 'CANCEL_MAKER_ANY';
-}
-⋮----
-/**
- * Transfers
- */
-⋮----
-export interface FuturesInitiateWalletTransferParams {
-  fromAccount: string;
-  toAccount: string;
-  unit: string;
-  amount: number;
-}
-⋮----
-export interface FuturesInitiateSubaccountTransferParams {
-  fromUser: string;
-  toUser: string;
-  fromAccount: string;
-  toAccount: string;
-  unit: string;
-  amount: string;
-}
-⋮----
-export interface FuturesSubmitToSpotParams {
-  currency: string;
-  amount: string;
-  sourceWallet?: string;
-}
-⋮----
-/**
- * Account History
- */
-⋮----
-export interface FuturesHistoryBaseParams {
-  since?: number; // Timestamp in milliseconds
-  before?: number; // Timestamp in milliseconds
-  sort?: 'asc' | 'desc';
-  continuation_token?: string; // base64
-  count?: number;
-  tradeable?: string;
-}
-⋮----
-since?: number; // Timestamp in milliseconds
-before?: number; // Timestamp in milliseconds
-⋮----
-continuation_token?: string; // base64
-⋮----
-export interface FuturesGetOrderEventsParams extends FuturesHistoryBaseParams {
-  opened?: boolean;
-  closed?: boolean;
-}
-⋮----
-export interface FuturesGetTriggerEventsParams
-  extends FuturesHistoryBaseParams {
-  opened?: boolean;
-  closed?: boolean;
-}
-⋮----
-export interface FuturesGetPositionEventsParams
-  extends FuturesHistoryBaseParams {
-  opened?: boolean;
-  closed?: boolean;
-  increased?: boolean;
-  decreased?: boolean;
-  reversed?: boolean;
-  no_change?: boolean;
-  trades?: boolean;
-  funding_realization?: boolean;
-  settlement?: boolean;
-}
-⋮----
-export interface FuturesGetAccountLogParams {
-  since?: number; // Timestamp in milliseconds
-  before?: number; // Timestamp in milliseconds
-  from?: number; // ID of the first entry (inclusive)
-  to?: number; // ID of the last entry (inclusive)
-  sort?: 'asc' | 'desc';
-  info?: string[]; // Types of entry to filter by
-  count?: number;
-  conversion_details?: boolean;
-}
-⋮----
-since?: number; // Timestamp in milliseconds
-before?: number; // Timestamp in milliseconds
-from?: number; // ID of the first entry (inclusive)
-to?: number; // ID of the last entry (inclusive)
-⋮----
-info?: string[]; // Types of entry to filter by
-⋮----
-/**
- * Market History
- */
-⋮----
-export interface FuturesMarketHistoryBaseParams {
-  tradeable: string; // Symbol of the contract
-  since?: number; // Timestamp in milliseconds
-  before?: number; // Timestamp in milliseconds
-  sort?: 'asc' | 'desc';
-  continuation_token?: string; // base64
-  count?: number;
-}
-⋮----
-tradeable: string; // Symbol of the contract
-since?: number; // Timestamp in milliseconds
-before?: number; // Timestamp in milliseconds
-⋮----
-continuation_token?: string; // base64
-⋮----
-/**
- * Charts - Candles
- */
-⋮----
-export interface FuturesGetCandlesParams {
-  tickType: 'spot' | 'mark' | 'trade';
-  symbol: string;
-  resolution: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '12h' | '1d' | '1w';
-  from?: number; // From date in epoch seconds
-  to?: number; // To date in epoch seconds
-  count?: number; // Number of candles to return
-}
-⋮----
-from?: number; // From date in epoch seconds
-to?: number; // To date in epoch seconds
-count?: number; // Number of candles to return
-⋮----
-/**
- * Charts - Analytics
- */
-⋮----
-export interface FuturesGetAnalyticsParams {
-  symbol: string;
-  analyticsType: string;
-  since: number; // Epoch time in seconds (required)
-  interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
-  to?: number; // Epoch time in seconds, default now
-}
-⋮----
-since: number; // Epoch time in seconds (required)
-interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
-to?: number; // Epoch time in seconds, default now
-
-================
-File: src/types/websockets/ws-api.ts
-================
-import { WS_KEY_MAP, WSOperation } from '../../lib/websocket/websocket-util.js';
-import {
-  WSAPIAddSpotOrderParams,
-  WSAPIAmendSpotOrderParams,
-  WSAPIBatchAddSpotOrdersParams,
-  WSAPIBatchCancelSpotOrdersParams,
-  WSAPICancelAllSpotOrdersAfterParams,
-  WSAPICancelSpotOrderParams,
-  WSAPIEditSpotOrderParams,
-} from '../request/wsapi.types.js';
-import {
-  WSAPIAddSpotOrderResult,
-  WSAPIAmendSpotOrderResult,
-  WSAPIBatchAddSpotOrdersResult,
-  WSAPIBatchCancelSpotOrdersResult,
-  WSAPICancelAllSpotOrdersAfterResult,
-  WSAPICancelAllSpotOrdersResult,
-  WSAPICancelSpotOrderResult,
-  WSAPIEditSpotOrderResult,
-} from '../response/wsapi.types.js';
-⋮----
-export type Exact<T> = {
-  // This part says: if there's any key that's not in T, it's an error
-  // This conflicts sometimes for some reason...
-  // [K: string]: never;
-} & {
-  [K in keyof T]: T[K];
-};
-⋮----
-// This part says: if there's any key that's not in T, it's an error
-// This conflicts sometimes for some reason...
-// [K: string]: never;
-⋮----
-export interface WsRequestOperation<TWSTopic extends string> {
-  id: number;
-  type: WSOperation;
-  topic: TWSTopic;
-  privateChannel: boolean;
-  response: boolean;
-}
-⋮----
-export interface WSAPIAuthenticationRequestFromServer {
-  timestamp: number;
-  sessionId: string;
-}
-⋮----
-export interface WSAPIAuthenticationConfirmedFromServer {
-  pingInterval: number;
-  sessionId: string;
-  pingTimeout: number;
-  data: 'welcome';
-}
-⋮----
-/**
- * WS API commands (for sending requests via WS)
- */
-⋮----
-export type WSAPIOperation = (typeof WS_API_Operations)[number];
-⋮----
-export interface WSAPIRequestOperationKrakenSpot<
-  TWSOperation extends WSAPIOperation = WSAPIOperation,
-  TWSParams extends object = any,
-> {
-  method: TWSOperation;
-  params?: TWSParams;
-  req_id: number;
-}
-⋮----
-export interface WSAPIWsKeyTopicMap {
-  [WS_KEY_MAP.spotPrivateV2]: WSAPIOperation;
-  [WS_KEY_MAP.spotBetaPrivateV2]: WSAPIOperation;
-}
-⋮----
-export type WSAPIWsKey = keyof WSAPIWsKeyTopicMap;
-⋮----
-export interface WSAPISpotResponse<
-  TResponseData extends object = object,
-  TWSAPIOperation = WSAPIOperation,
-> {
-  wsKey: WSAPIWsKey;
-  error?: string;
-  method: TWSAPIOperation;
-  req_id: number;
-  success: boolean;
-  time_in: string;
-  time_out: string;
-  result: TResponseData;
-  request: any;
-}
-⋮----
-export interface WSAPITopicRequestParamMap {
-  [key: string]: unknown;
-
-  add_order: WSAPIAddSpotOrderParams;
-  amend_order: WSAPIAmendSpotOrderParams;
-  cancel_order: WSAPICancelSpotOrderParams;
-  cancel_all: never;
-  cancel_all_orders_after: WSAPICancelAllSpotOrdersAfterParams;
-  batch_add: WSAPIBatchAddSpotOrdersParams;
-  batch_cancel: WSAPIBatchCancelSpotOrdersParams;
-  edit_order: WSAPIEditSpotOrderParams;
-}
-⋮----
-export interface WSAPITopicResponseMap {
-  [k: string]: unknown;
-
-  add_order: WSAPISpotResponse<WSAPIAddSpotOrderResult, 'add_order'>;
-  amend_order: WSAPISpotResponse<WSAPIAmendSpotOrderResult, 'amend_order'>;
-  cancel_order: WSAPISpotResponse<WSAPICancelSpotOrderResult, 'cancel_order'>;
-  cancel_all: WSAPISpotResponse<WSAPICancelAllSpotOrdersResult, 'cancel_all'>;
-  cancel_all_orders_after: WSAPISpotResponse<
-    WSAPICancelAllSpotOrdersAfterResult,
-    'cancel_all_orders_after'
-  >;
-  batch_add: WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>;
-  batch_cancel: WSAPISpotResponse<
-    WSAPIBatchCancelSpotOrdersResult,
-    'batch_cancel'
-  >;
-  edit_order: WSAPISpotResponse<WSAPIEditSpotOrderResult, 'edit_order'>;
-}
-
-================
-File: src/WebsocketAPIClient.ts
-================
-import { DefaultLogger } from './lib/websocket/logger.js';
-import { WS_KEY_MAP } from './lib/websocket/websocket-util.js';
-import {
-  WSAPIAddSpotOrderParams,
-  WSAPIAmendSpotOrderParams,
-  WSAPIBatchAddSpotOrdersParams,
-  WSAPIBatchCancelSpotOrdersParams,
-  WSAPICancelAllSpotOrdersAfterParams,
-  WSAPICancelSpotOrderParams,
-  WSAPIEditSpotOrderParams,
-} from './types/request/wsapi.types.js';
-import {
-  WSAPIAddSpotOrderResult,
-  WSAPIAmendSpotOrderResult,
-  WSAPIBatchAddSpotOrdersResult,
-  WSAPIBatchCancelSpotOrdersResult,
-  WSAPICancelAllSpotOrdersAfterResult,
-  WSAPICancelAllSpotOrdersResult,
-  WSAPICancelSpotOrderResult,
-  WSAPIEditSpotOrderResult,
-} from './types/response/wsapi.types.js';
-import { WSAPISpotResponse, WSAPIWsKey } from './types/websockets/ws-api.js';
-import { WSClientConfigurableOptions } from './types/websockets/ws-general.js';
-import { WebsocketClient } from './WebsocketClient.js';
-⋮----
-/**
- * Configurable options specific to only the REST-like WebsocketAPIClient
- */
-export interface WSAPIClientConfigurableOptions {
-  /**
-   * Default: true
-   *
-   * Attach default event listeners, which will console log any high level
-   * events (opened/reconnecting/reconnected/etc).
-   *
-   * If you disable this, you should set your own event listeners
-   * on the embedded WS Client `wsApiClient.getWSClient().on(....)`.
-   */
-  attachEventListeners: boolean;
-}
-⋮----
-/**
-   * Default: true
-   *
-   * Attach default event listeners, which will console log any high level
-   * events (opened/reconnecting/reconnected/etc).
-   *
-   * If you disable this, you should set your own event listeners
-   * on the embedded WS Client `wsApiClient.getWSClient().on(....)`.
-   */
-⋮----
-/**
- * This is a minimal Websocket API wrapper around the WebsocketClient.
- *
- * Some methods support passing in a custom "wsKey". This is a reference to which WS connection should
- * be used to transmit that message. This is only useful if you wish to use an alternative wss
- * domain that is supported by the SDK. E.g. WS_API_KEY_MAP.spotBetaPrivateV2.
- *
- * Note: You can also directly use the sendWSAPIRequest() method to make WS API calls, but some
- * may find the below methods slightly more intuitive.
- *
- * Refer to the WS API promises example for a more detailed example on using sendWSAPIRequest() directly:
- * https://github.com/sieblyio/kraken-api/blob/main/examples/WebSockets/Spot/wsAPI.RAW.ts#L105
- *
- * Docs:
- * - Spot WS API: https://docs.kraken.com/api/docs/websocket-v2/add_order/
- */
-export class WebsocketAPIClient
-⋮----
-constructor(
-    options?: WSClientConfigurableOptions &
-      Partial<WSAPIClientConfigurableOptions>,
-    logger?: DefaultLogger,
-)
-⋮----
-public getWSClient(): WebsocketClient
-⋮----
-/**
-   * Add a spot order
-   */
-submitSpotOrder(
-    params: Omit<WSAPIAddSpotOrderParams, 'token' | 'req_id'>,
-    wsKey?: WSAPIWsKey,
-): Promise<WSAPISpotResponse<WSAPIAddSpotOrderResult, 'add_order'>>
-⋮----
-/**
-   * Amend an existing order
-   */
-amendSpotOrder(
-    params: WSAPIAmendSpotOrderParams,
-    wsKey?: WSAPIWsKey,
-): Promise<WSAPISpotResponse<WSAPIAmendSpotOrderResult, 'amend_order'>>
-⋮----
-/**
-   * Cancel one or more orders
-   */
-cancelSpotOrder(
-    params: WSAPICancelSpotOrderParams,
-    wsKey?: WSAPIWsKey,
-): Promise<WSAPISpotResponse<WSAPICancelSpotOrderResult, 'cancel_order'>>
-⋮----
-/**
-   * Cancel all open orders
-   */
-cancelAllSpotOrders(
-    wsKey?: WSAPIWsKey,
-): Promise<WSAPISpotResponse<WSAPICancelAllSpotOrdersResult, 'cancel_all'>>
-⋮----
-/**
-   * Cancel all orders after a timeout (Dead Man's Switch)
-   */
-cancelAllSpotOrdersAfter(
-    params: WSAPICancelAllSpotOrdersAfterParams,
-    wsKey?: WSAPIWsKey,
-  ): Promise<
-    WSAPISpotResponse<
-      WSAPICancelAllSpotOrdersAfterResult,
-      'cancel_all_orders_after'
-    >
-  > {
-    return this.wsClient.sendWSAPIRequest(
-      wsKey || WS_KEY_MAP.spotPrivateV2,
-      'cancel_all_orders_after',
-      params,
-    );
-⋮----
-/**
-   * Add multiple orders in a single batch (2-15 orders)
-   */
-batchSubmitSpotOrders(
-    params: WSAPIBatchAddSpotOrdersParams,
-    wsKey?: WSAPIWsKey,
-): Promise<WSAPISpotResponse<WSAPIBatchAddSpotOrdersResult[], 'batch_add'>>
-⋮----
-/**
-   * Cancel multiple orders in a single batch (2-50 orders)
-   */
-batchCancelSpotOrders(
-    params: WSAPIBatchCancelSpotOrdersParams,
-    wsKey?: WSAPIWsKey,
-  ): Promise<
-    WSAPISpotResponse<WSAPIBatchCancelSpotOrdersResult, 'batch_cancel'>
-  > {
-    return this.wsClient.sendWSAPIRequest(
-      wsKey || WS_KEY_MAP.spotPrivateV2,
-      'batch_cancel',
-      params,
-    );
-⋮----
-/**
-   * Edit an existing order (legacy method, use amendSpotOrder instead)
-   * @deprecated Use amendSpotOrder for better performance and features
-   */
-editSpotOrder(
-    params: WSAPIEditSpotOrderParams,
-    wsKey?: WSAPIWsKey,
-): Promise<WSAPISpotResponse<WSAPIEditSpotOrderResult, 'edit_order'>>
-/**
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   * Private methods for handling some of the convenience/automation provided by the WS API Client
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   */
-⋮----
-public connectWSAPI(wsKey: WSAPIWsKey)
-⋮----
-private setupDefaultEventListeners()
-⋮----
-/**
-       * General event handlers for monitoring the WebsocketClient
-       */
-⋮----
-// Blind JSON.stringify can fail on circular references
-⋮----
-// JSON.stringify({ ...data, target: 'WebSocket' }),
 
 ================
 File: docs/KRAKEN_SDK_QUICKSTART_GUIDE.md
@@ -8905,706 +9477,6 @@ include_tokenized_assets: true, // default: false
      */
 
 ================
-File: src/lib/websocket/websocket-util.ts
-================
-import WebSocket from 'isomorphic-ws';
-⋮----
-import { WSAPIRequestOperationKrakenSpot } from '../../types/websockets/ws-api.js';
-import { WSTopic } from '../../types/websockets/ws-subscriptions.js';
-⋮----
-/** Should be one WS key per unique URL */
-⋮----
-/**
-   * Public WebSocket subscriptions for Kraken Spot products, via the V2 API
-   *
-   * - Ref: https://docs.kraken.com/api/docs/guides/spot-ws-intro
-   * - Channels: https://docs.kraken.com/api/docs/websocket-v2/add_order
-   *
-   * Note: Use spotPrivateV2 for private channels (requires API keys).
-   */
-⋮----
-/**
-   * Public WebSocket subscriptions for Kraken Derivatives products, via the V1 API:
-   *
-   * - Ref: https://docs.kraken.com/api/docs/guides/futures-websockets
-   * - Channels: https://docs.kraken.com/api/docs/futures-api/websocket/open_orders
-   *
-   * Note: While both Public and Private channels use the same WebSocket URL, we will actually maintain separate connections for easier management. Private channels require authentication and the connection is authenticated automatically.
-   */
-⋮----
-/** This is used to differentiate between each of the available websocket streams */
-export type WsKey = (typeof WS_KEY_MAP)[keyof typeof WS_KEY_MAP];
-⋮----
-export type WSOperation = 'subscribe' | 'unsubscribe';
-⋮----
-/**
- * Normalised internal format for a request (subscribe/unsubscribe/etc) on a topic, with optional parameters.
- *
- * - Topic: the topic this event is for
- * - Payload: the parameters to include, optional. E.g. auth requires key + sign. Some topics allow configurable parameters.
- */
-export interface WSTopicRequest<
-  TWSTopic extends WSTopic = WSTopic,
-  TWSPayload = any,
-> {
-  topic: TWSTopic;
-  payload?: TWSPayload;
-}
-⋮----
-/**
- * Conveniently allow users to request a topic either as string topics or objects (containing string topic + params)
- */
-export type WSTopicRequestOrStringTopic<
-  TWSTopic extends WSTopic,
-  TWSPayload = any,
-> = WSTopicRequest<TWSTopic, TWSPayload> | string;
-⋮----
-export interface WSRequestOperationKraken<
-  TWSTopic extends string,
-  TWSParams extends object = any,
-> {
-  // spot only
-  method?: WSOperation;
-  // futures only
-  event?: WSOperation;
-  params:
-    | {
-        channel: (TWSTopic | string | number)[];
-        symbol?: string[];
-        event_trigger?: string;
-        snapshot?: boolean;
-      }
-    | TWSParams;
-  req_id: number;
-  /**
-   * The following are needed for futures/derivatives requests
-   */
-  feed?: TWSTopic;
-  api_key?: string;
-  original_challenge?: string;
-  signed_challenge?: string;
-}
-⋮----
-// spot only
-⋮----
-// futures only
-⋮----
-/**
-   * The following are needed for futures/derivatives requests
-   */
-⋮----
-/**
- * #305: ws.terminate() is undefined in browsers.
- * This only works in node.js, not in browsers.
- * Does nothing if `ws` is undefined. Does nothing in browsers.
- */
-export function safeTerminateWs(
-  ws?: WebSocket | any,
-  fallbackToClose?: boolean,
-): boolean
-⋮----
-/**
- * WS API promises are stored using a primary key. This key is constructed using
- * properties found in every request & reply.
- *
- * The counterpart to this is in resolveEmittableEvents
- */
-export function getPromiseRefForWSAPIRequest(
-  wsKey: WsKey,
-  requestEvent: WSAPIRequestOperationKrakenSpot,
-): string
-⋮----
-/**
- * Users can conveniently pass topics as strings or objects (object has topic name + optional params).
- *
- * This method normalises topics into objects (object has topic name + optional params).
- */
-export function getNormalisedTopicRequests(
-  wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
-): WSTopicRequest<WSTopic>[]
-⋮----
-// passed as string, convert to object
-⋮----
-// already a normalised object, thanks to user
-
-================
-File: src/lib/BaseWSClient.ts
-================
-import { EventEmitter } from 'events';
-import WebSocket from 'isomorphic-ws';
-⋮----
-import {
-  isMessageEvent,
-  MessageEventLike,
-} from '../types/websockets/ws-events.js';
-import {
-  WebsocketClientOptions,
-  WSClientConfigurableOptions,
-  WsEventInternalSrc,
-} from '../types/websockets/ws-general.js';
-import { WSTopic } from '../types/websockets/ws-subscriptions.js';
-import { checkWebCryptoAPISupported } from './webCryptoAPI.js';
-import { DefaultLogger } from './websocket/logger.js';
-import {
-  getNormalisedTopicRequests,
-  safeTerminateWs,
-  WSOperation,
-  WSTopicRequest,
-  WSTopicRequestOrStringTopic,
-} from './websocket/websocket-util.js';
-import { WsStore } from './websocket/WsStore.js';
-import {
-  WSConnectedResult,
-  WsConnectionStateEnum,
-} from './websocket/WsStore.types.js';
-⋮----
-type UseTheExceptionEventInstead = never;
-⋮----
-interface WSClientEventMap<WsKey extends string> {
-  /** Connection opened. If this connection was previously opened and reconnected, expect the reconnected event instead */
-  open: (evt: {
-    wsKey: WsKey;
-    event: any;
-    wsUrl: string;
-    ws: WebSocket;
-  }) => void;
-
-  /** Reconnecting a dropped connection */
-  reconnecting: (evt: { wsKey: WsKey; event: any }) => void;
-
-  /** Successfully reconnected a connection that dropped */
-  reconnected: (evt: {
-    wsKey: WsKey;
-    event: any;
-    wsUrl: string;
-    ws: WebSocket;
-  }) => void;
-
-  /** Connection closed */
-  close: (evt: { wsKey: WsKey; event: any }) => void;
-
-  /** Received reply to websocket command (e.g. after subscribing to topics) */
-  response: (response: any & { wsKey: WsKey }) => void;
-
-  /** Received data for topic */
-  message: (response: any & { wsKey: WsKey }) => void;
-
-  /** Exception from ws client OR custom listeners (e.g. if you throw inside your event handler) */
-  exception: (response: any & { wsKey: WsKey }) => void;
-
-  /**
-   * See for more information: https://github.com/tiagosiebler/bybit-api/issues/413
-   * @deprecated Use the 'exception' event instead. The 'error' event had the unintended consequence of throwing an unhandled promise rejection.
-   */
-  error: UseTheExceptionEventInstead;
-
-  /** Confirmation that a connection successfully authenticated */
-  authenticated: (event: { wsKey: WsKey; event: any }) => void;
-}
-⋮----
-/** Connection opened. If this connection was previously opened and reconnected, expect the reconnected event instead */
-⋮----
-/** Reconnecting a dropped connection */
-⋮----
-/** Successfully reconnected a connection that dropped */
-⋮----
-/** Connection closed */
-⋮----
-/** Received reply to websocket command (e.g. after subscribing to topics) */
-⋮----
-/** Received data for topic */
-⋮----
-/** Exception from ws client OR custom listeners (e.g. if you throw inside your event handler) */
-⋮----
-/**
-   * See for more information: https://github.com/tiagosiebler/bybit-api/issues/413
-   * @deprecated Use the 'exception' event instead. The 'error' event had the unintended consequence of throwing an unhandled promise rejection.
-   */
-⋮----
-/** Confirmation that a connection successfully authenticated */
-⋮----
-export interface EmittableEvent<
-  TEventType extends
-    keyof WSClientEventMap<string> = keyof WSClientEventMap<string>,
-> {
-  eventType:
-    | TEventType
-    | 'pong'
-    | 'connectionReady' // tied to "requireConnectionReadyConfirmation";
-    | 'connectionReadyForAuth'; // tied to specific events we need to wait for, before we can begin post-connect auth
-  event: Parameters<WSClientEventMap<string>[TEventType]>[0];
-  isWSAPIResponse?: boolean;
-}
-⋮----
-| 'connectionReady' // tied to "requireConnectionReadyConfirmation";
-| 'connectionReadyForAuth'; // tied to specific events we need to wait for, before we can begin post-connect auth
-⋮----
-// Type safety for on and emit handlers: https://stackoverflow.com/a/61609010/880837
-export interface BaseWebsocketClient<
-  TWSKey extends string,
-  TWSRequestEvent extends object,
-> {
-  on<U extends keyof WSClientEventMap<TWSKey>>(
-    event: U,
-    listener: WSClientEventMap<TWSKey>[U],
-  ): this;
-
-  emit<U extends keyof WSClientEventMap<TWSKey>>(
-    event: U,
-    ...args: Parameters<WSClientEventMap<TWSKey>[U]>
-  ): boolean;
-}
-⋮----
-on<U extends keyof WSClientEventMap<TWSKey>>(
-    event: U,
-    listener: WSClientEventMap<TWSKey>[U],
-  ): this;
-⋮----
-emit<U extends keyof WSClientEventMap<TWSKey>>(
-    event: U,
-    ...args: Parameters<WSClientEventMap<TWSKey>[U]>
-  ): boolean;
-⋮----
-/**
- * A midflight WS request event (e.g. subscribe to these topics).
- *
- * - requestKey: unique identifier for this request, if available. Can be anything as a string.
- * - requestEvent: the raw request, as an object, that will be sent on the ws connection. This may contain multiple topics/requests in one object, if the exchange supports it.
- */
-export interface MidflightWsRequestEvent<TEvent = object> {
-  requestKey: string | number;
-  requestEvent: TEvent;
-}
-⋮----
-/**
- * Appends wsKey and isWSAPIResponse to all events.
- * Some events are arrays, this handles that nested scenario too.
- */
-function getFinalEmittable(
-  emittable: EmittableEvent | EmittableEvent[],
-  wsKey: any,
-  isWSAPIResponse?: boolean,
-): any
-⋮----
-// Some topics just emit an array.
-// This is consistent with how it was before the WS API upgrade:
-⋮----
-// const { event, ...others } = emittable;
-// return {
-//   ...others,
-//   event: event.map((subEvent) =>
-//     getFinalEmittable(subEvent, wsKey, isWSAPIResponse),
-//   ),
-// };
-⋮----
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export abstract class BaseWebsocketClient<
-TWSKey extends string,
-⋮----
-constructor(
-    options?: WSClientConfigurableOptions & { wsLoggerCategory: string },
-    logger?: DefaultLogger,
-)
-⋮----
-// Requires a confirmation "response" from the ws connection before assuming it is ready
-⋮----
-// Automatically auth after opening a connection?
-⋮----
-// Automatically include auth/sign/token with every WS request.
-// Automatically handled during getWsRequestEvents.
-⋮----
-// Automatically re-auth WS API, if we were auth'd before and get reconnected
-⋮----
-// Whether to use native heartbeats (depends on the exchange)
-⋮----
-// Check Web Crypto API support when credentials are provided and no custom sign function is used
-⋮----
-/**
-   * Return true if this wsKey connection should automatically authenticate immediately after connecting
-   */
-protected abstract isAuthOnConnectWsKey(wsKey: TWSKey): boolean;
-⋮----
-protected abstract isCustomReconnectionNeeded(wsKey: TWSKey): boolean;
-⋮----
-protected abstract triggerCustomReconnectionWorkflow(
-    wsKey: TWSKey,
-  ): Promise<void>;
-⋮----
-protected abstract sendPingEvent(wsKey: TWSKey, ws: WebSocket): void;
-⋮----
-protected abstract sendPongEvent(wsKey: TWSKey, ws: WebSocket): void;
-⋮----
-protected abstract isWsPing(data: any): boolean;
-⋮----
-protected abstract isWsPong(data: any): boolean;
-⋮----
-protected abstract authPrivateConnectionsOnConnect(_wsKey: TWSKey): boolean;
-⋮----
-/**
-   * Return the event sent to the server to trigger authentication. If the event requires waiting for another event first (e.g. a challenge), return 'waitForEvent' and the library will wait for that event before calling this method again.
-   *
-   * Usually only called once per connection, unless the connection drops/is reset.
-   */
-protected abstract getWsAuthRequestEvent(
-    wsKey: TWSKey,
-    eventToAuth?: object,
-  ): Promise<object | string | 'waitForEvent' | void>;
-⋮----
-protected abstract isPrivateTopicRequest(
-    request: WSTopicRequest<WSTopic>,
-    wsKey: TWSKey,
-  ): boolean;
-⋮----
-/**
-   * Returns a list of string events that can be individually sent upstream to complete subscribing/unsubscribing/etc to these topics
-   */
-// protected abstract getWsOperationEventsForTopics(
-//   topics: WsTopicRequest<WSTopic>[],
-//   wsKey: TWSKey,
-//   operation: WsOperation,
-// ): Promise<string[]>;
-⋮----
-protected abstract getPrivateWSKeys(): TWSKey[];
-⋮----
-protected abstract getWsUrl(wsKey: TWSKey): Promise<string>;
-⋮----
-protected abstract getMaxTopicsPerSubscribeEvent(
-    wsKey: TWSKey,
-  ): number | null;
-⋮----
-/**
-   * @returns one or more correctly structured request events for performing a operations over WS. This can vary per exchange spec.
-   */
-protected abstract getWsRequestEvents(
-    wsKey: TWSKey,
-    operation: WSOperation,
-    requests: WSTopicRequest<WSTopic>[],
-  ): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]>;
-⋮----
-/**
-   * Abstraction called to sort ws events into emittable event types (response to a request, data update, etc)
-   */
-protected abstract resolveEmittableEvents(
-    wsKey: TWSKey,
-    event: MessageEventLike,
-  ): EmittableEvent[];
-⋮----
-/**
-   * Request connection of all dependent (public & private) websockets, instead of waiting for automatic connection by library
-   */
-protected abstract connectAll(): Promise<WSConnectedResult | undefined>[];
-⋮----
-protected isPrivateWsKey(wsKey: TWSKey): boolean
-⋮----
-/** Returns auto-incrementing request ID, used to track promise references for async requests */
-protected getNewRequestId(): number
-⋮----
-protected abstract sendWSAPIRequest(
-    wsKey: TWSKey,
-    operation: string,
-    params?: any,
-  ): Promise<unknown>;
-⋮----
-protected abstract sendWSAPIRequest(
-    wsKey: TWSKey,
-    channel: string,
-    params: any,
-  ): Promise<unknown>;
-⋮----
-public getTimeOffsetMs()
-⋮----
-public setTimeOffsetMs(newOffset: number)
-⋮----
-/**
-   * Don't call directly! Use subscribe() instead!
-   *
-   * Subscribe to one or more topics on a WS connection (identified by WS Key).
-   *
-   * - Topics are automatically cached
-   * - Connections are automatically opened, if not yet connected
-   * - Authentication is automatically handled
-   * - Topics are automatically resubscribed to, if something happens to the connection, unless you call unsubsribeTopicsForWsKey(topics, key).
-   *
-   * @param wsTopicRequests array of topics to subscribe to
-   * @param wsKey ws key referring to the ws connection these topics should be subscribed on
-   */
-protected async subscribeTopicsForWsKey(
-    wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
-    wsKey: TWSKey,
-)
-⋮----
-// Store topics, so future automation (post-auth, post-reconnect) has everything needed to resubscribe automatically
-⋮----
-// start connection process if it hasn't yet begun. Topics are automatically subscribed to on-connect
-⋮----
-// Subscribe should happen automatically once connected, nothing to do here after topics are added to wsStore.
-⋮----
-/**
-       * Are we in the process of connection? Nothing to send yet.
-       */
-⋮----
-// We're connected. Check if auth is needed and if already authenticated
-⋮----
-/**
-       * If not authenticated yet and auth is required, don't request topics yet.
-       *
-       * Auth should already automatically be in progress, so no action needed from here. Topics will automatically subscribe post-auth success.
-       */
-⋮----
-// Finally, request subscription to topics if the connection is healthy and ready
-⋮----
-protected async unsubscribeTopicsForWsKey(
-    wsTopicRequests: WSTopicRequestOrStringTopic<WSTopic>[],
-    wsKey: TWSKey,
-): Promise<unknown>
-⋮----
-// Store topics, so future automation (post-auth, post-reconnect) has everything needed to resubscribe automatically
-⋮----
-// If not connected, don't need to do anything.
-// Removing the topic from the store is enough to stop it from being resubscribed to on reconnect.
-⋮----
-// We're connected. Check if auth is needed and if already authenticated
-⋮----
-/**
-       * If not authenticated yet and auth is required, don't need to do anything.
-       * We don't subscribe to topics until auth is complete anyway.
-       */
-⋮----
-// Finally, request subscription to topics if the connection is healthy and ready
-⋮----
-/**
-   * Splits topic requests into two groups, public & private topic requests
-   */
-private sortTopicRequestsIntoPublicPrivate(
-    wsTopicRequests: WSTopicRequest<WSTopic>[],
-    wsKey: TWSKey,
-):
-⋮----
-/** Get the WsStore that tracks websockets & topics */
-public getWsStore(): WsStore<TWSKey, WSTopicRequest<WSTopic>>
-⋮----
-public close(wsKey: TWSKey, force?: boolean)
-⋮----
-public closeAll(force?: boolean)
-⋮----
-public isConnected(wsKey: TWSKey): boolean
-⋮----
-/**
-   * Request connection to a specific websocket, instead of waiting for automatic connection.
-   */
-public async connect(
-    wsKey: TWSKey,
-    customUrl?: string | undefined,
-    throwOnError?: boolean,
-): Promise<WSConnectedResult | undefined>
-⋮----
-// Important: don't check for RECONNECTING here, or this clashes with reconnectWithDelay()!
-⋮----
-private connectToWsUrl(url: string, wsKey: TWSKey): WebSocket
-⋮----
-//
-⋮----
-private parseWsError(context: string, error: any, wsKey: TWSKey): boolean
-⋮----
-// Allow retry by default (in some places that call this). Prevent deadloop in hard failure (401)
-⋮----
-/** Get a signature, build the auth request and send it */
-private async sendAuthRequest(
-    wsKey: TWSKey,
-    eventToAuth?: object,
-): Promise<unknown>
-⋮----
-// If not required, this won't return anything
-⋮----
-// Short-circuit this for the next time it's called
-⋮----
-private reconnectWithDelay(wsKey: TWSKey, connectionDelayMs: number)
-⋮----
-// Some streams need a specialist reconnection workflow.
-// E.g. the user data stream can't just be reconnected as is.
-⋮----
-private ping(wsKey: TWSKey)
-⋮----
-/**
-   * Closes a connection, if it's even open. If open, this will trigger a reconnect asynchronously.
-   * If closed, trigger a reconnect immediately
-   */
-protected executeReconnectableClose(wsKey: TWSKey, reason: string)
-⋮----
-private clearTimers(wsKey: TWSKey)
-⋮----
-// Send a ping at intervals
-private clearPingTimer(wsKey: TWSKey)
-⋮----
-// Expect a pong within a time limit
-private clearPongTimer(wsKey: TWSKey)
-⋮----
-// this.logger.trace(`Cleared pong timeout for "${wsKey}"`);
-⋮----
-// this.logger.trace(`No active pong timer for "${wsKey}"`);
-⋮----
-private clearReconnectTimer(wsKey: TWSKey)
-⋮----
-/**
-   * Returns a list of string events that can be individually sent upstream to complete subscribing/unsubscribing/etc to these topics
-   *
-   * If events are an object, these should be stringified (`return JSON.stringify(event);`)
-   * Each event returned by this will be sent one at a time
-   *
-   * Events are automatically split into smaller batches, by this method, if needed.
-   */
-protected async getWsOperationEventsForTopics(
-    topics: WSTopicRequest<WSTopic>[],
-    wsKey: TWSKey,
-    operation: WSOperation,
-): Promise<MidflightWsRequestEvent<TWSRequestEvent>[]>
-⋮----
-// Events that are ready to send (usually stringified JSON)
-⋮----
-/**
-   * Simply builds and sends subscribe events for a list of topics for a ws key
-   *
-   * @private Use the `subscribe(topics)` or `subscribeTopicsForWsKey(topics, wsKey)` method to subscribe to topics. Send WS message to subscribe to topics.
-   */
-private async requestSubscribeTopics(
-    wsKey: TWSKey,
-    wsTopicRequests: WSTopicRequest<WSTopic>[],
-)
-⋮----
-// Automatically splits requests into smaller batches, if needed
-⋮----
-`Subscribing to ${wsTopicRequests.length} "${wsKey}" topics in ${subscribeWsMessages.length} batches.`, // Events: "${JSON.stringify(topics)}"
-⋮----
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-⋮----
-/**
-   * Simply builds and sends unsubscribe events for a list of topics for a ws key
-   *
-   * @private Use the `unsubscribe(topics)` method to unsubscribe from topics. Send WS message to unsubscribe from topics.
-   */
-private async requestUnsubscribeTopics(
-    wsKey: TWSKey,
-    wsTopicRequests: WSTopicRequest<WSTopic>[],
-)
-⋮----
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-⋮----
-/**
-   * Try sending a string event on a WS connection (identified by the WS Key)
-   */
-public tryWsSend(
-    wsKey: TWSKey,
-    wsMessage: string,
-    throwExceptions?: boolean,
-)
-⋮----
-private async onWsOpen(
-    event: WebSocket.Event,
-    wsKey: TWSKey,
-    url: string,
-    ws: WebSocket,
-)
-⋮----
-private resolveConnectionInProgressPromise(wsKey: TWSKey)
-⋮----
-// Resolve & cleanup deferred "connection attempt in progress" promise
-⋮----
-/**
-   * Called automatically once a connection is ready.
-   * - Some exchanges are ready immediately after the connections open.
-   * - Some exchanges send an event to confirm the connection is ready for us.
-   *
-   * This method is called to act when the connection is ready. Use `requireConnectionReadyConfirmation` to control how this is called.
-   */
-private async onWsReadyForEvents(wsKey: TWSKey)
-⋮----
-// Some websockets require an auth packet to be sent after opening the connection
-⋮----
-// Reconnect to topics known before it connected
-⋮----
-// Request sub to public topics, if any
-⋮----
-// Request sub to private topics, if auth on connect isn't needed
-⋮----
-/**
-   * Handle subscription to private topics _after_ authentication successfully completes asynchronously.
-   *
-   * Only used for exchanges that require auth before sending private topic subscription requests
-   */
-private onWsAuthenticated(
-    wsKey: TWSKey,
-    event: { isWSAPI?: boolean; WSAPIAuthChannel?: string },
-)
-⋮----
-// Resolve & cleanup deferred "auth attempt in progress" promise
-⋮----
-// Remove before continuing, in case there's more requests queued
-⋮----
-private onWsPing(
-    event: any,
-    wsKey: TWSKey,
-    ws: WebSocket,
-    source: WsEventInternalSrc,
-)
-⋮----
-private onWsPong(event: any, wsKey: TWSKey, source: WsEventInternalSrc)
-⋮----
-// Necessary when native heartbeats are used
-⋮----
-private onWsMessage(event: unknown, wsKey: TWSKey, ws: WebSocket)
-⋮----
-// console.log('onMessageRaw: ', (event as any).data);
-// any message can clear the pong timer - wouldn't get a message if the ws wasn't working
-⋮----
-// console.log(`raw event: `, { data, dataType, emittableEvents });
-⋮----
-// Not used for kraken. At least for spot, auth is included per req during subscribe
-⋮----
-// Not used for kraken. At least for spot, auth is included per req during subscribe
-⋮----
-// Other event types are automatically emitted here
-⋮----
-// this.logger.trace(
-//   `onWsMessage().emit(${emittable.eventType}).done()`,
-//   emittableFinalEvent,
-// );
-⋮----
-private onWsClose(event: unknown, wsKey: TWSKey)
-⋮----
-// unintentional close, attempt recovery
-⋮----
-// clean up any pending promises for this connection
-⋮----
-// this.clearTopicsPendingSubscriptions(wsKey, true, 'WS Closed');
-⋮----
-// intentional close - clean up
-// clean up any pending promises for this connection
-⋮----
-// This was an intentional close, delete all state for this connection, as if it never existed:
-⋮----
-private getWs(wsKey: TWSKey)
-⋮----
-private setWsState(wsKey: TWSKey, state: WsConnectionStateEnum)
-⋮----
-/**
-   * Promise-driven method to assert that a ws has successfully connected (will await until connection is open)
-   */
-protected async assertIsConnected(wsKey: TWSKey): Promise<unknown>
-⋮----
-// Already in progress? Await shared promise and retry
-⋮----
-// Start connection, it should automatically store/return a promise.
-⋮----
-/**
-   * Promise-driven method to assert that a ws has been successfully authenticated (will await until auth is confirmed)
-   */
-public async assertIsAuthenticated(wsKey: TWSKey): Promise<unknown>
-⋮----
-// Already in progress? Await shared promise and retry
-⋮----
-// Start authentication, it should automatically store/return a promise.
-
-================
 File: src/lib/requestUtils.ts
 ================
 /**
@@ -9742,6 +9614,275 @@ export function getRestBaseUrl(
   restClientOptions: RestClientOptions,
   restClientType: RestClientType,
 ): string
+
+================
+File: src/types/request/derivatives.types.ts
+================
+/**
+ * Order Management
+ */
+⋮----
+export interface FuturesBatchOrderSend {
+  order: 'send';
+  order_tag: string;
+  orderType:
+    | 'lmt'
+    | 'post'
+    | 'ioc'
+    | 'mkt'
+    | 'stp'
+    | 'take_profit'
+    | 'trailing_stop'
+    | 'fok';
+  symbol: string;
+  side: 'buy' | 'sell';
+  size: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  cliOrdId?: string;
+  triggerSignal?: 'mark' | 'index' | 'last';
+  reduceOnly?: boolean;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+}
+⋮----
+export interface FuturesBatchOrderEdit {
+  order: 'edit';
+  order_id: string;
+  cliOrdId?: string | null;
+  size?: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  qtyMode?: 'ABSOLUTE' | 'RELATIVE';
+}
+⋮----
+export interface FuturesBatchOrderCancel {
+  order: 'cancel';
+  order_id?: string;
+  cliOrdId?: string;
+}
+⋮----
+export interface FuturesBatchOrderParams {
+  ProcessBefore?: string;
+  json: {
+    batchOrder: (
+      | FuturesBatchOrderSend
+      | FuturesBatchOrderEdit
+      | FuturesBatchOrderCancel
+    )[];
+  };
+}
+⋮----
+export interface FuturesCancelOrderParams {
+  processBefore?: string;
+  order_id?: string;
+  cliOrdId?: string;
+}
+⋮----
+export interface FuturesEditOrderParams {
+  processBefore?: string;
+  orderId?: string;
+  cliOrdId?: string;
+  size?: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  qtyMode?: 'ABSOLUTE' | 'RELATIVE';
+}
+⋮----
+export interface FuturesSendOrderParams {
+  processBefore?: string;
+  orderType:
+    | 'lmt'
+    | 'post'
+    | 'ioc'
+    | 'mkt'
+    | 'stp'
+    | 'take_profit'
+    | 'trailing_stop'
+    | 'fok';
+  symbol: string;
+  side: 'buy' | 'sell';
+  size: number;
+  limitPrice?: number;
+  stopPrice?: number;
+  cliOrdId?: string;
+  triggerSignal?: 'mark' | 'index' | 'last';
+  reduceOnly?: boolean;
+  trailingStopMaxDeviation?: number;
+  trailingStopDeviationUnit?: 'PERCENT' | 'QUOTE_CURRENCY';
+  limitPriceOffsetValue?: number;
+  limitPriceOffsetUnit?: 'QUOTE_CURRENCY' | 'PERCENT';
+  broker?: string;
+}
+⋮----
+/**
+ * Assignment Program
+ */
+⋮----
+export interface FuturesAddAssignmentPreferenceParams {
+  contractType: string;
+  contract?: string;
+  maxSize?: number;
+  maxPosition?: number;
+  acceptLong: boolean;
+  acceptShort: boolean;
+  timeFrame: 'all' | 'weekdays' | 'weekends';
+  enabled: boolean;
+}
+⋮----
+/**
+ * Trading Settings
+ */
+⋮----
+export interface FuturesUpdateSelfTradeStrategyParams {
+  strategy:
+    | 'REJECT_TAKER'
+    | 'CANCEL_MAKER_SELF'
+    | 'CANCEL_MAKER_CHILD'
+    | 'CANCEL_MAKER_ANY';
+}
+⋮----
+/**
+ * Transfers
+ */
+⋮----
+export interface FuturesInitiateWalletTransferParams {
+  fromAccount: string;
+  toAccount: string;
+  unit: string;
+  amount: number;
+}
+⋮----
+export interface FuturesInitiateSubaccountTransferParams {
+  fromUser: string;
+  toUser: string;
+  fromAccount: string;
+  toAccount: string;
+  unit: string;
+  amount: string;
+}
+⋮----
+export interface FuturesSubmitToSpotParams {
+  currency: string;
+  amount: string;
+  sourceWallet?: string;
+}
+⋮----
+/**
+ * Account History
+ */
+⋮----
+export interface FuturesHistoryBaseParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  sort?: 'asc' | 'desc';
+  continuation_token?: string; // base64
+  count?: number;
+  tradeable?: string;
+}
+⋮----
+since?: number; // Timestamp in milliseconds
+before?: number; // Timestamp in milliseconds
+⋮----
+continuation_token?: string; // base64
+⋮----
+export interface FuturesGetOrderEventsParams extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+}
+⋮----
+export interface FuturesGetTriggerEventsParams
+  extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+}
+⋮----
+export interface FuturesGetPositionEventsParams
+  extends FuturesHistoryBaseParams {
+  opened?: boolean;
+  closed?: boolean;
+  increased?: boolean;
+  decreased?: boolean;
+  reversed?: boolean;
+  no_change?: boolean;
+  trades?: boolean;
+  funding_realization?: boolean;
+  settlement?: boolean;
+}
+⋮----
+export interface FuturesGetAccountLogParams {
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  from?: number; // ID of the first entry (inclusive)
+  to?: number; // ID of the last entry (inclusive)
+  sort?: 'asc' | 'desc';
+  info?: string[]; // Types of entry to filter by
+  count?: number;
+  conversion_details?: boolean;
+}
+⋮----
+since?: number; // Timestamp in milliseconds
+before?: number; // Timestamp in milliseconds
+from?: number; // ID of the first entry (inclusive)
+to?: number; // ID of the last entry (inclusive)
+⋮----
+info?: string[]; // Types of entry to filter by
+⋮----
+/**
+ * Market History
+ */
+⋮----
+export interface FuturesMarketHistoryBaseParams {
+  tradeable: string; // Symbol of the contract
+  since?: number; // Timestamp in milliseconds
+  before?: number; // Timestamp in milliseconds
+  sort?: 'asc' | 'desc';
+  continuation_token?: string; // base64
+  count?: number;
+}
+⋮----
+tradeable: string; // Symbol of the contract
+since?: number; // Timestamp in milliseconds
+before?: number; // Timestamp in milliseconds
+⋮----
+continuation_token?: string; // base64
+⋮----
+/**
+ * Charts - Candles
+ */
+⋮----
+export interface FuturesGetCandlesParams {
+  tickType: 'spot' | 'mark' | 'trade';
+  symbol: string;
+  resolution: '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '12h' | '1d' | '1w';
+  from?: number; // From date in epoch seconds
+  to?: number; // To date in epoch seconds
+  count?: number; // Number of candles to return
+}
+⋮----
+from?: number; // From date in epoch seconds
+to?: number; // To date in epoch seconds
+count?: number; // Number of candles to return
+⋮----
+/**
+ * Charts - Analytics
+ */
+⋮----
+export interface FuturesGetAnalyticsParams {
+  symbol: string;
+  analyticsType: string;
+  since: number; // Epoch time in seconds (required)
+  interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
+  to?: number; // Epoch time in seconds, default now
+}
+⋮----
+since: number; // Epoch time in seconds (required)
+interval: 60 | 300 | 900 | 1800 | 3600 | 14400 | 43200 | 86400 | 604800; // Resolution in seconds (required)
+to?: number; // Epoch time in seconds, default now
 
 ================
 File: src/types/websockets/ws-general.ts
@@ -10355,12 +10496,15 @@ import {
   OauthUpdateFastApiKeyParams,
   SpotAccountTransferParams,
   SpotAmendOrderParams,
+  SpotGetApiKeyInfoParams,
   SpotGetAssetPairsParams,
   SpotGetClosedOrdersParams,
   SpotGetDepositAddressesParams,
   SpotGetDepositMethodsParams,
   SpotGetDepositStatusParams,
+  SpotGetGroupedBookParams,
   SpotGetLedgersInfoParams,
+  SpotGetLevel3Params,
   SpotGetOHLCParams,
   SpotGetOpenOrdersParams,
   SpotGetOpenPositionsParams,
@@ -10369,6 +10513,7 @@ import {
   SpotGetRecentSpreadsParams,
   SpotGetRecentTradesParams,
   SpotGetTradesHistoryParams,
+  SpotGetTradingVolumeParams,
   SpotGetWithdrawalAddressesParams,
   SpotGetWithdrawalInfoParams,
   SpotGetWithdrawalMethodsParams,
@@ -10392,6 +10537,7 @@ import {
   OauthGetUserInfoResponse,
   SpotAccountBalance,
   SpotAccountTransferResponse,
+  SpotApiKeyInfo,
   SpotAssetInfo,
   SpotAssetPair,
   SpotAssetTickerInfo,
@@ -10405,7 +10551,9 @@ import {
   SpotEarnStrategy,
   SpotExportReportStatus,
   SpotExtendedBalance,
+  SpotGroupedBookResponse,
   SpotLedgersInfoResponse,
+  SpotLevel3OrderBookResponse,
   SpotListEarnAllocationsResponse,
   SpotOHLCResponse,
   SpotOpenOrdersResponse,
@@ -10535,6 +10683,24 @@ getOrderBook(
 ): Promise<SpotAPISuccessResponse<SpotOrderBookResponse>>
 ⋮----
 /**
+   * Get Grouped Order Book
+   *
+   * Aggregates order book volume over a configurable tick grouping.
+   */
+getGroupedBook(
+    params: SpotGetGroupedBookParams,
+): Promise<SpotAPISuccessResponse<SpotGroupedBookResponse>>
+⋮----
+/**
+   * Get Level 3 Order Book
+   *
+   * Individual order-level book data. Requires authentication.
+   */
+getLevel3OrderBook(
+    params: SpotGetLevel3Params,
+): Promise<SpotAPISuccessResponse<SpotLevel3OrderBookResponse>>
+⋮----
+/**
    * Get Recent Trades
    *
    * Returns the last 1000 trades by default
@@ -10566,6 +10732,15 @@ getRecentSpreads(
 getAccountBalance(params?: {
     rebase_multiplier?: 'rebased' | 'base';
 }): Promise<SpotAPISuccessResponse<SpotAccountBalance>>
+⋮----
+/**
+   * Get API Key Info
+   *
+   * Retrieve configuration and usage details for the API key used in the request.
+   */
+getApiKeyInfo(
+    params?: SpotGetApiKeyInfoParams,
+): Promise<SpotAPISuccessResponse<SpotApiKeyInfo>>
 ⋮----
 /**
    * Get Extended Balance
@@ -10685,10 +10860,9 @@ getLedgers(
    * Returns 30 day USD trading volume and resulting fee schedule for any asset pair(s) provided.
    * Also use this endpoint (with a Spot API key) to determine Futures fee rates as of 2026-06-22.
    */
-getTradingVolume(params?: {
-    pair?: string;
-    rebase_multiplier?: 'rebased' | 'base';
-}): Promise<SpotAPISuccessResponse<SpotTradeVolume>>
+getTradingVolume(
+    params?: SpotGetTradingVolumeParams,
+): Promise<SpotAPISuccessResponse<SpotTradeVolume>>
 ⋮----
 /**
    * Request Export Report
@@ -11143,6 +11317,357 @@ updateOAuthFastApiKey(params: OauthUpdateFastApiKeyParams): Promise<
 listOAuthFastApiKeys(): Promise<
 
 ================
+File: src/WebsocketClient.ts
+================
+import {
+  BaseWebsocketClient,
+  EmittableEvent,
+  MidflightWsRequestEvent,
+} from './lib/BaseWSClient.js';
+import { neverGuard } from './lib/misc-util.js';
+import { RestClientOptions } from './lib/requestUtils.js';
+import {
+  hashMessage,
+  SignAlgorithm,
+  SignEncodeMethod,
+  signMessage,
+  SignMessageOptions,
+} from './lib/webCryptoAPI.js';
+import { DefaultLogger } from './lib/websocket/logger.js';
+import { RestClientCache } from './lib/websocket/rest-client-cache.js';
+import {
+  getPromiseRefForWSAPIRequest,
+  WS_KEY_MAP,
+  WsKey,
+  WSOperation,
+  WSRequestOperationKraken,
+  WSTopicRequest,
+} from './lib/websocket/websocket-util.js';
+import { WSConnectedResult } from './lib/websocket/WsStore.types.js';
+import {
+  Exact,
+  WS_API_Operations,
+  WSAPIAuthenticationRequestFromServer,
+  WSAPIRequestOperationKrakenSpot,
+  WSAPITopicRequestParamMap,
+  WSAPITopicResponseMap,
+  WSAPIWsKey,
+  WSAPIWsKeyTopicMap,
+} from './types/websockets/ws-api.js';
+import { MessageEventLike } from './types/websockets/ws-events.js';
+import {
+  WSClientConfigurableOptions,
+  WsMarket,
+} from './types/websockets/ws-general.js';
+import {
+  WS_DERIVATIVES_PRIVATE_TOPICS,
+  WS_SPOT_PRIVATE_TOPICS,
+  WSTopic,
+} from './types/websockets/ws-subscriptions.js';
+⋮----
+export interface WSAPIRequestFlags {
+  /** If true, will skip auth requirement for WS API connection */
+  authIsOptional?: boolean | undefined;
+}
+⋮----
+/** If true, will skip auth requirement for WS API connection */
+⋮----
+export class WebsocketClient extends BaseWebsocketClient<WsKey, any>
+⋮----
+constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger)
+⋮----
+/**
+   * Request connection of all dependent (public & private) websockets, instead of waiting for automatic connection by library.
+   *
+   * Returns array of promises that individually resolve when each connection is successfully opened.
+   */
+public connectAll(): Promise<WSConnectedResult | undefined>[]
+⋮----
+/**
+   * Ensures the WS API connection is active and ready.
+   *
+   * You do not need to call this, but if you call this before making any WS API requests,
+   * it can accelerate the first request (by preparing the connection in advance).
+   */
+public connectWSAPI(wsKey: WSAPIWsKey, skipAuth?: boolean): Promise<unknown>
+⋮----
+/** This call automatically ensures the connection is active AND authenticated before resolving */
+⋮----
+/**
+   * Request subscription to one or more topics. Pass topics as either an array of strings, or array of objects (if the topic has parameters).
+   * Objects should be formatted as {topic: string, params: object}.
+   *
+   * - Subscriptions are automatically routed to the correct websocket connection.
+   * - Authentication/connection is automatic.
+   * - Resubscribe after network issues is automatic.
+   *
+   * Call `unsubscribe(topics)` to remove topics
+   */
+public subscribe(
+    requests:
+      | (WSTopicRequest<WSTopic> | WSTopic)
+      | (WSTopicRequest<WSTopic> | WSTopic)[],
+    wsKey: WsKey,
+)
+⋮----
+/**
+   * Unsubscribe from one or more topics. Similar to subscribe() but in reverse.
+   *
+   * - Requests are automatically routed to the correct websocket connection.
+   * - These topics will be removed from the topic cache, so they won't be subscribed to again.
+   */
+public unsubscribe(
+    requests:
+      | (WSTopicRequest<WSTopic> | WSTopic)
+      | (WSTopicRequest<WSTopic> | WSTopic)[],
+    wsKey: WsKey,
+)
+⋮----
+/**
+   * WS API Methods - similar to the REST API, but via WebSockets
+   */
+⋮----
+/**
+   * Send a Websocket API event on a connection. Returns a promise that resolves on reply.
+   *
+   * Returned promise is rejected if an exception is detected in the reply OR the connection disconnects for any reason (even if automatic reconnect will happen).
+   *
+   * After a fresh connection, you should always send a login request first.
+   *
+   * If you authenticated once and you're reconnected later (e.g. connection temporarily lost), the SDK will by default automatically:
+   * - Detect you were authenticated to the WS API before
+   * - Try to re-authenticate (up to 5 times, in case something (bad timestamp) goes wrong)
+   * - If it succeeds, it will emit the 'authenticated' event.
+   * - If it fails and gives up, it will emit an 'exception' event (type: 'wsapi.auth', reason: detailed text).
+   *
+   * You can turn off the automatic re-auth WS API logic using `reauthWSAPIOnReconnect: false` in the WSClient config.
+   *
+   * @param wsKey - The connection this event is for (e.g. "spotV4" | "perpFuturesUSDTV4" | "perpFuturesBTCV4" | "deliveryFuturesUSDTV4" | "deliveryFuturesBTCV4" | "optionsV4")
+   * @param channel - The channel this event is for (e.g. "spot.login" to authenticate)
+   * @param params - Any request parameters for the payload (contents of req_param in the docs). Signature generation is automatic, only send parameters such as order ID as per the docs.
+   * @returns Promise - tries to resolve with async WS API response. Rejects if disconnected or exception is seen in async WS API response
+   */
+⋮----
+// This overload allows the caller to omit the 3rd param, if it isn't required (e.g. for the login call)
+async sendWSAPIRequest<
+    TWSKey extends keyof WSAPIWsKeyTopicMap,
+    TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
+    TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
+    TWSAPIResponse extends
+      | WSAPITopicResponseMap[TWSOperation]
+      | object = WSAPITopicResponseMap[TWSOperation],
+  >(
+    wsKey: TWSKey,
+    operation: TWSOperation,
+    params?: TWSParams extends void | never ? undefined : TWSParams,
+    requestFlags?: WSAPIRequestFlags,
+  ): Promise<TWSAPIResponse>;
+⋮----
+async sendWSAPIRequest<
+    TWSKey extends keyof WSAPIWsKeyTopicMap,
+    TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
+    // if this throws a type error, probably forgot to add a new operation to WsAPITopicRequestParamMap
+    TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
+    TWSAPIResponse extends
+      | WSAPITopicResponseMap[TWSOperation]
+      | object = WSAPITopicResponseMap[TWSOperation],
+  >(
+    wsKey: TWSKey,
+    operation: TWSOperation,
+    params: TWSParams & { signRequest?: boolean },
+    requestFlags?: WSAPIRequestFlags,
+): Promise<TWSAPIResponse | any>
+⋮----
+// if this throws a type error, probably forgot to add a new operation to WsAPITopicRequestParamMap
+⋮----
+/**
+     * Base Info:
+     * - https://docs.kraken.com/api/docs/websocket-v2/add_order
+     *
+     * Currently only supported for Spot markets
+     */
+⋮----
+// Some commands don't require authentication.
+⋮----
+// Sign request
+⋮----
+// Store deferred promise
+⋮----
+// Enrich returned promise with request context for easier debugging
+⋮----
+// Send event
+⋮----
+// Return deferred promise, so caller can await this call
+⋮----
+/**
+   *
+   * Internal methods - not intended for public use
+   *
+   */
+⋮----
+private getRestClientOptions(): RestClientOptions
+⋮----
+/**
+   * Note: implementing this method will wipe the WsStore state for this WsKey, once this method returns
+   */
+protected isCustomReconnectionNeeded(): boolean
+⋮----
+protected async triggerCustomReconnectionWorkflow(): Promise<void>
+⋮----
+protected async getWsUrl(wsKey: WsKey): Promise<string>
+⋮----
+/**
+       * https://docs.kraken.com/api/docs/guides/spot-ws-intro/
+       *
+       * Note: Kraken's v2 WebSockets clean up a number idiosyncrasies and ambiguities from v1 with the overall aim to enable easier integration with applications. It is intended that v1 will be maintained but future enhancements will be developed in v2.
+       *
+       * Given the above, we are only integrating with V2 for now.
+       *
+       * V2 SpotWebSocket Reference: https://docs.kraken.com/api/docs/websocket-v2/add_order/
+       */
+⋮----
+// Uses the same URL, but we maintain separate connections for easier management
+⋮----
+protected sendPingEvent(wsKey: WsKey)
+⋮----
+// let pingChannel: WsRequestPing['channel'];
+⋮----
+// Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
+⋮----
+protected sendPongEvent(wsKey: WsKey)
+⋮----
+// Send a protocol layer pong
+⋮----
+// NOT IN USE for kraken
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+protected isWsPing(_msg: any): boolean
+⋮----
+protected isWsPong(msg: any): boolean
+⋮----
+// Pre-parsed in resolveEmittableEvents into "pong" eventType:
+⋮----
+/**
+   * Parse incoming events into categories, before emitting to the user
+   */
+protected resolveEmittableEvents(
+    wsKey: WsKey,
+    event: MessageEventLike,
+): EmittableEvent[]
+⋮----
+// derivatives sends 'challenge' on successful auth-init (used for sign during subscribe)
+⋮----
+// spot confirmation for subscription success
+⋮----
+// derivatives confirmation for subscription success
+⋮----
+// WS API
+⋮----
+// WS API Exception
+⋮----
+// WS API Success
+⋮----
+} // end of WS API response processing
+⋮----
+// exceptions with derivatives v1 WS. E.g. { event: 'alert', message: 'Bad websocket message' }
+⋮----
+// Most events use event: "update" or "snapshot" for topic updates
+⋮----
+// These are request/reply pattern events (e.g. after subscribing to topics or authenticating)
+// e.g. "method":"subscribe"
+⋮----
+// derivatives events include the "feed" property to identify the channel name
+⋮----
+// Request/reply pattern for authentication success
+⋮----
+/**
+   * Determines if a topic is for a private channel, using a hardcoded list of strings
+   */
+protected isPrivateTopicRequest(request: WSTopicRequest<any>): boolean
+⋮----
+/**
+   * Not in use for Kraken
+   */
+⋮----
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+protected getWsMarketForWsKey(_wsKey: WsKey): WsMarket
+⋮----
+/**
+   * Whether key represents a private connection. Feeds into automatic auth on connect.
+   */
+protected getPrivateWSKeys(): WsKey[]
+⋮----
+protected isAuthOnConnectWsKey(wsKey: WsKey): boolean
+⋮----
+/** Force subscription requests to be sent in smaller batches, if a number is returned */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+protected getMaxTopicsPerSubscribeEvent(_wsKey: WsKey): number | null
+⋮----
+protected authPrivateConnectionsOnConnect(wsKey: WsKey): boolean
+⋮----
+// derivatives require you to send a challenge on connect
+⋮----
+/**
+   * @returns one or more correctly structured request events for performing a operations over WS. This can vary per exchange spec.
+   */
+protected async getWsRequestEvents(
+    wsKey: WsKey,
+    operation: WSOperation,
+    requests: WSTopicRequest<WSTopic>[],
+): Promise<MidflightWsRequestEvent<WSRequestOperationKraken<string>>[]>
+⋮----
+// Previously used to track topics in a request. Keeping this for subscribe/unsubscribe requests, no need for incremental values
+⋮----
+// Get token from REST client cache
+⋮----
+// Cache midflight subs on the req ID
+// Enrich response with subs for that req ID
+⋮----
+// No auth needed, it's public topics only here
+⋮----
+// Cache midflight subs on the req ID
+// Enrich response with subs for that req ID
+⋮----
+// https://docs.kraken.com/api/docs/guides/futures-websockets
+// Authenticated requests must include both the original challenge message (original_challenge) and the signed (signed_challenge) in JSON format.
+⋮----
+// Cache midflight subs on the req ID
+// Enrich response with subs for that req ID
+⋮----
+private async signMessage(
+    paramsStr: string,
+    secret: string,
+    method: SignEncodeMethod,
+    algorithm: SignAlgorithm,
+    options?: SignMessageOptions,
+): Promise<string>
+⋮----
+protected async getWsAuthRequestEvent(
+    wsKey: WsKey,
+    eventToAuth?: WSAPIAuthenticationRequestFromServer,
+): Promise<object | string | 'waitForEvent' | void>
+⋮----
+// Not needed here, handled automatically with request during subscribe
+⋮----
+// Public WS - no auth
+⋮----
+// cleanup old challenge key (in case we were reconnected)
+⋮----
+// https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
+⋮----
+/**
+   *
+   * @param requestEvent
+   * @returns A signed updated WS API request object, ready to be sent
+   */
+private async signWSAPIRequest(
+    requestEvent: WSAPIRequestOperationKrakenSpot,
+): Promise<WSAPIRequestOperationKrakenSpot>
+⋮----
+// Get token from REST client cache
+⋮----
+// authParams.broker = APIIDMain;
+
+================
 File: .gitignore
 ================
 !.gitkeep
@@ -11515,6 +12040,7 @@ File: README.md
 [![npm downloads](https://img.shields.io/npm/dt/@siebly/kraken-api)][1]
 [![last commit](https://img.shields.io/github/last-commit/sieblyio/kraken-api)][1]
 [![Telegram](https://img.shields.io/badge/chat-on%20telegram-blue.svg)](https://t.me/nodetraders)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sieblyio/kraken-api)
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@siebly/kraken-api">
@@ -12161,357 +12687,6 @@ Contributions are encouraged, I will review any incoming pull requests. See the 
 [![Star History Chart](https://api.star-history.com/svg?repos=tiagosiebler/bybit-api,tiagosiebler/okx-api,tiagosiebler/binance,tiagosiebler/bitget-api,tiagosiebler/bitmart-api,tiagosiebler/gateio-api,tiagosiebler/kucoin-api,tiagosiebler/coinbase-api,tiagosiebler/orderbooks,tiagosiebler/accountstate,tiagosiebler/awesome-crypto-examples&type=Date)](https://star-history.com/#tiagosiebler/bybit-api&tiagosiebler/okx-api&tiagosiebler/binance&tiagosiebler/bitget-api&tiagosiebler/bitmart-api&tiagosiebler/gateio-api&tiagosiebler/kucoin-api&tiagosiebler/coinbase-api&tiagosiebler/orderbooks&tiagosiebler/accountstate&tiagosiebler/awesome-crypto-examples&Date)
 
 <!-- template_star_history_end -->
-
-================
-File: src/WebsocketClient.ts
-================
-import {
-  BaseWebsocketClient,
-  EmittableEvent,
-  MidflightWsRequestEvent,
-} from './lib/BaseWSClient.js';
-import { neverGuard } from './lib/misc-util.js';
-import { RestClientOptions } from './lib/requestUtils.js';
-import {
-  hashMessage,
-  SignAlgorithm,
-  SignEncodeMethod,
-  signMessage,
-  SignMessageOptions,
-} from './lib/webCryptoAPI.js';
-import { DefaultLogger } from './lib/websocket/logger.js';
-import { RestClientCache } from './lib/websocket/rest-client-cache.js';
-import {
-  getPromiseRefForWSAPIRequest,
-  WS_KEY_MAP,
-  WsKey,
-  WSOperation,
-  WSRequestOperationKraken,
-  WSTopicRequest,
-} from './lib/websocket/websocket-util.js';
-import { WSConnectedResult } from './lib/websocket/WsStore.types.js';
-import {
-  Exact,
-  WS_API_Operations,
-  WSAPIAuthenticationRequestFromServer,
-  WSAPIRequestOperationKrakenSpot,
-  WSAPITopicRequestParamMap,
-  WSAPITopicResponseMap,
-  WSAPIWsKey,
-  WSAPIWsKeyTopicMap,
-} from './types/websockets/ws-api.js';
-import { MessageEventLike } from './types/websockets/ws-events.js';
-import {
-  WSClientConfigurableOptions,
-  WsMarket,
-} from './types/websockets/ws-general.js';
-import {
-  WS_DERIVATIVES_PRIVATE_TOPICS,
-  WS_SPOT_PRIVATE_TOPICS,
-  WSTopic,
-} from './types/websockets/ws-subscriptions.js';
-⋮----
-export interface WSAPIRequestFlags {
-  /** If true, will skip auth requirement for WS API connection */
-  authIsOptional?: boolean | undefined;
-}
-⋮----
-/** If true, will skip auth requirement for WS API connection */
-⋮----
-export class WebsocketClient extends BaseWebsocketClient<WsKey, any>
-⋮----
-constructor(options?: WSClientConfigurableOptions, logger?: DefaultLogger)
-⋮----
-/**
-   * Request connection of all dependent (public & private) websockets, instead of waiting for automatic connection by library.
-   *
-   * Returns array of promises that individually resolve when each connection is successfully opened.
-   */
-public connectAll(): Promise<WSConnectedResult | undefined>[]
-⋮----
-/**
-   * Ensures the WS API connection is active and ready.
-   *
-   * You do not need to call this, but if you call this before making any WS API requests,
-   * it can accelerate the first request (by preparing the connection in advance).
-   */
-public connectWSAPI(wsKey: WSAPIWsKey, skipAuth?: boolean): Promise<unknown>
-⋮----
-/** This call automatically ensures the connection is active AND authenticated before resolving */
-⋮----
-/**
-   * Request subscription to one or more topics. Pass topics as either an array of strings, or array of objects (if the topic has parameters).
-   * Objects should be formatted as {topic: string, params: object}.
-   *
-   * - Subscriptions are automatically routed to the correct websocket connection.
-   * - Authentication/connection is automatic.
-   * - Resubscribe after network issues is automatic.
-   *
-   * Call `unsubscribe(topics)` to remove topics
-   */
-public subscribe(
-    requests:
-      | (WSTopicRequest<WSTopic> | WSTopic)
-      | (WSTopicRequest<WSTopic> | WSTopic)[],
-    wsKey: WsKey,
-)
-⋮----
-/**
-   * Unsubscribe from one or more topics. Similar to subscribe() but in reverse.
-   *
-   * - Requests are automatically routed to the correct websocket connection.
-   * - These topics will be removed from the topic cache, so they won't be subscribed to again.
-   */
-public unsubscribe(
-    requests:
-      | (WSTopicRequest<WSTopic> | WSTopic)
-      | (WSTopicRequest<WSTopic> | WSTopic)[],
-    wsKey: WsKey,
-)
-⋮----
-/**
-   * WS API Methods - similar to the REST API, but via WebSockets
-   */
-⋮----
-/**
-   * Send a Websocket API event on a connection. Returns a promise that resolves on reply.
-   *
-   * Returned promise is rejected if an exception is detected in the reply OR the connection disconnects for any reason (even if automatic reconnect will happen).
-   *
-   * After a fresh connection, you should always send a login request first.
-   *
-   * If you authenticated once and you're reconnected later (e.g. connection temporarily lost), the SDK will by default automatically:
-   * - Detect you were authenticated to the WS API before
-   * - Try to re-authenticate (up to 5 times, in case something (bad timestamp) goes wrong)
-   * - If it succeeds, it will emit the 'authenticated' event.
-   * - If it fails and gives up, it will emit an 'exception' event (type: 'wsapi.auth', reason: detailed text).
-   *
-   * You can turn off the automatic re-auth WS API logic using `reauthWSAPIOnReconnect: false` in the WSClient config.
-   *
-   * @param wsKey - The connection this event is for (e.g. "spotV4" | "perpFuturesUSDTV4" | "perpFuturesBTCV4" | "deliveryFuturesUSDTV4" | "deliveryFuturesBTCV4" | "optionsV4")
-   * @param channel - The channel this event is for (e.g. "spot.login" to authenticate)
-   * @param params - Any request parameters for the payload (contents of req_param in the docs). Signature generation is automatic, only send parameters such as order ID as per the docs.
-   * @returns Promise - tries to resolve with async WS API response. Rejects if disconnected or exception is seen in async WS API response
-   */
-⋮----
-// This overload allows the caller to omit the 3rd param, if it isn't required (e.g. for the login call)
-async sendWSAPIRequest<
-    TWSKey extends keyof WSAPIWsKeyTopicMap,
-    TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
-    TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
-    TWSAPIResponse extends
-      | WSAPITopicResponseMap[TWSOperation]
-      | object = WSAPITopicResponseMap[TWSOperation],
-  >(
-    wsKey: TWSKey,
-    operation: TWSOperation,
-    params?: TWSParams extends void | never ? undefined : TWSParams,
-    requestFlags?: WSAPIRequestFlags,
-  ): Promise<TWSAPIResponse>;
-⋮----
-async sendWSAPIRequest<
-    TWSKey extends keyof WSAPIWsKeyTopicMap,
-    TWSOperation extends WSAPIWsKeyTopicMap[TWSKey],
-    // if this throws a type error, probably forgot to add a new operation to WsAPITopicRequestParamMap
-    TWSParams extends Exact<WSAPITopicRequestParamMap[TWSOperation]>,
-    TWSAPIResponse extends
-      | WSAPITopicResponseMap[TWSOperation]
-      | object = WSAPITopicResponseMap[TWSOperation],
-  >(
-    wsKey: TWSKey,
-    operation: TWSOperation,
-    params: TWSParams & { signRequest?: boolean },
-    requestFlags?: WSAPIRequestFlags,
-): Promise<TWSAPIResponse | any>
-⋮----
-// if this throws a type error, probably forgot to add a new operation to WsAPITopicRequestParamMap
-⋮----
-/**
-     * Base Info:
-     * - https://docs.kraken.com/api/docs/websocket-v2/add_order
-     *
-     * Currently only supported for Spot markets
-     */
-⋮----
-// Some commands don't require authentication.
-⋮----
-// Sign request
-⋮----
-// Store deferred promise
-⋮----
-// Enrich returned promise with request context for easier debugging
-⋮----
-// Send event
-⋮----
-// Return deferred promise, so caller can await this call
-⋮----
-/**
-   *
-   * Internal methods - not intended for public use
-   *
-   */
-⋮----
-private getRestClientOptions(): RestClientOptions
-⋮----
-/**
-   * Note: implementing this method will wipe the WsStore state for this WsKey, once this method returns
-   */
-protected isCustomReconnectionNeeded(): boolean
-⋮----
-protected async triggerCustomReconnectionWorkflow(): Promise<void>
-⋮----
-protected async getWsUrl(wsKey: WsKey): Promise<string>
-⋮----
-/**
-       * https://docs.kraken.com/api/docs/guides/spot-ws-intro/
-       *
-       * Note: Kraken's v2 WebSockets clean up a number idiosyncrasies and ambiguities from v1 with the overall aim to enable easier integration with applications. It is intended that v1 will be maintained but future enhancements will be developed in v2.
-       *
-       * Given the above, we are only integrating with V2 for now.
-       *
-       * V2 SpotWebSocket Reference: https://docs.kraken.com/api/docs/websocket-v2/add_order/
-       */
-⋮----
-// Uses the same URL, but we maintain separate connections for easier management
-⋮----
-protected sendPingEvent(wsKey: WsKey)
-⋮----
-// let pingChannel: WsRequestPing['channel'];
-⋮----
-// Spot: https://docs.kraken.com/api/docs/websocket-v2/ping
-⋮----
-protected sendPongEvent(wsKey: WsKey)
-⋮----
-// Send a protocol layer pong
-⋮----
-// NOT IN USE for kraken
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-protected isWsPing(_msg: any): boolean
-⋮----
-protected isWsPong(msg: any): boolean
-⋮----
-// Pre-parsed in resolveEmittableEvents into "pong" eventType:
-⋮----
-/**
-   * Parse incoming events into categories, before emitting to the user
-   */
-protected resolveEmittableEvents(
-    wsKey: WsKey,
-    event: MessageEventLike,
-): EmittableEvent[]
-⋮----
-// derivatives sends 'challenge' on successful auth-init (used for sign during subscribe)
-⋮----
-// spot confirmation for subscription success
-⋮----
-// derivatives confirmation for subscription success
-⋮----
-// WS API
-⋮----
-// WS API Exception
-⋮----
-// WS API Success
-⋮----
-} // end of WS API response processing
-⋮----
-// exceptions with derivatives v1 WS. E.g. { event: 'alert', message: 'Bad websocket message' }
-⋮----
-// Most events use event: "update" or "snapshot" for topic updates
-⋮----
-// These are request/reply pattern events (e.g. after subscribing to topics or authenticating)
-// e.g. "method":"subscribe"
-⋮----
-// derivatives events include the "feed" property to identify the channel name
-⋮----
-// Request/reply pattern for authentication success
-⋮----
-/**
-   * Determines if a topic is for a private channel, using a hardcoded list of strings
-   */
-protected isPrivateTopicRequest(request: WSTopicRequest<any>): boolean
-⋮----
-/**
-   * Not in use for Kraken
-   */
-⋮----
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-protected getWsMarketForWsKey(_wsKey: WsKey): WsMarket
-⋮----
-/**
-   * Whether key represents a private connection. Feeds into automatic auth on connect.
-   */
-protected getPrivateWSKeys(): WsKey[]
-⋮----
-protected isAuthOnConnectWsKey(wsKey: WsKey): boolean
-⋮----
-/** Force subscription requests to be sent in smaller batches, if a number is returned */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-protected getMaxTopicsPerSubscribeEvent(_wsKey: WsKey): number | null
-⋮----
-protected authPrivateConnectionsOnConnect(wsKey: WsKey): boolean
-⋮----
-// derivatives require you to send a challenge on connect
-⋮----
-/**
-   * @returns one or more correctly structured request events for performing a operations over WS. This can vary per exchange spec.
-   */
-protected async getWsRequestEvents(
-    wsKey: WsKey,
-    operation: WSOperation,
-    requests: WSTopicRequest<WSTopic>[],
-): Promise<MidflightWsRequestEvent<WSRequestOperationKraken<string>>[]>
-⋮----
-// Previously used to track topics in a request. Keeping this for subscribe/unsubscribe requests, no need for incremental values
-⋮----
-// Get token from REST client cache
-⋮----
-// Cache midflight subs on the req ID
-// Enrich response with subs for that req ID
-⋮----
-// No auth needed, it's public topics only here
-⋮----
-// Cache midflight subs on the req ID
-// Enrich response with subs for that req ID
-⋮----
-// https://docs.kraken.com/api/docs/guides/futures-websockets
-// Authenticated requests must include both the original challenge message (original_challenge) and the signed (signed_challenge) in JSON format.
-⋮----
-// Cache midflight subs on the req ID
-// Enrich response with subs for that req ID
-⋮----
-private async signMessage(
-    paramsStr: string,
-    secret: string,
-    method: SignEncodeMethod,
-    algorithm: SignAlgorithm,
-    options?: SignMessageOptions,
-): Promise<string>
-⋮----
-protected async getWsAuthRequestEvent(
-    wsKey: WsKey,
-    eventToAuth?: WSAPIAuthenticationRequestFromServer,
-): Promise<object | string | 'waitForEvent' | void>
-⋮----
-// Not needed here, handled automatically with request during subscribe
-⋮----
-// Public WS - no auth
-⋮----
-// cleanup old challenge key (in case we were reconnected)
-⋮----
-// https://docs.kraken.com/api/docs/futures-api/websocket/challenge/
-⋮----
-/**
-   *
-   * @param requestEvent
-   * @returns A signed updated WS API request object, ready to be sent
-   */
-private async signWSAPIRequest(
-    requestEvent: WSAPIRequestOperationKrakenSpot,
-): Promise<WSAPIRequestOperationKrakenSpot>
-⋮----
-// Get token from REST client cache
-⋮----
-// authParams.broker = APIIDMain;
 
 ================
 File: src/DerivativesClient.ts
@@ -13444,7 +13619,7 @@ File: package.json
 ================
 {
   "name": "@siebly/kraken-api",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Complete & robust Node.js SDK for Kraken's REST APIs and WebSockets, with TypeScript & strong end to end tests.",
   "scripts": {
     "clean": "rm -rf dist",
