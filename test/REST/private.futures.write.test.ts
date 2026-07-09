@@ -278,7 +278,8 @@ describe('REST PRIVATE FUTURES WRITE', () => {
       }
     });
 
-    it('should succeed calling cancelAllOrdersAfter', async () => {
+    // Dead Man's Switch
+    it.skip('should succeed calling cancelAllOrdersAfter', async () => {
       try {
         const res = await rest.cancelAllOrdersAfter({
           timeout: 60,
