@@ -1,3 +1,190 @@
+<!-- siebly:metadata
+siebly:
+  version: 1
+  hero:
+    headline: Kraken API JavaScript Tutorial for Node.js and TypeScript
+    badges:
+      - Kraken Spot
+      - Kraken Futures
+      - WebSockets
+      - WebSocket API
+    summary: Build Kraken integrations without hand-rolling raw HTTP requests, Kraken JWTs/request signing, WebSocket authentication, heartbeats, reconnects, or exchange-specific payload plumbing.
+    codeFilename: first-kraken-call.ts
+    codeStatus: ready to run
+    startSectionId: fast-path-first-kraken-api-calls-in-javascript
+  software:
+    description: Node.js and JavaScript SDK for Kraken Spot REST, Futures REST, WebSocket streams, and Spot WebSocket API command workflows.
+    topics:
+      - Spot REST
+      - Futures REST
+      - WebSockets
+      - WebSocket API
+  machineCatalog:
+    label: Kraken API JavaScript Tutorial
+    topics:
+      - Spot REST
+      - Futures REST
+      - public WebSockets
+      - private WebSockets
+      - WebSocket API commands
+      - production reconnect handling
+      - troubleshooting
+  sdkPagePromo:
+    descriptionBeforePackage: 'A richer JavaScript guide for building Kraken Spot REST, Futures REST, public and private WebSockets, WebSocket API trading, reconnect handling, and production rollout patterns with '
+    descriptionAfterPackage: '.'
+    highlights:
+      - Spot and Futures clients
+      - Public and private streams
+      - Promise-wrapped WebSocket API trading
+      - Production reconnect and backfill workflows
+    exampleHref: /examples/Kraken/Spot/WebSockets/wsAPI
+    exampleLabel: WebSocket API example
+    architectureClientSummary: SpotClient, DerivativesClient, WebsocketClient
+    architectureApiTitle: Kraken APIs
+    architectureApiSummary: Spot REST, Futures REST, WebSockets, WebSocket API
+  surfaceMap:
+    heading: One package, four integration paths
+    summary: The SDK keeps Kraken product boundaries explicit while giving JavaScript and TypeScript projects a single install, shared authentication patterns, and consistent async behavior.
+    appLabel: Dashboard, worker, bot, tool
+    appSummary: Any JavaScript-compatible runtime that needs Kraken data, orders, or account state.
+    apiLabel: Kraken APIs
+    apiItems:
+      - Spot REST and WebSockets
+      - Futures REST and WebSockets
+      - Spot WebSocket API commands
+      - Public and private account flows
+    packageNodes:
+      - label: SpotClient
+        summary: Spot REST
+      - label: DerivativesClient
+        summary: Futures REST
+      - label: WebsocketClient
+        summary: Public and private streams
+      - label: WebsocketAPIClient
+        summary: Spot API commands
+  coverage:
+    heading: The Kraken API pieces developers usually get stuck on
+    summary: The guide will introduce you to the key pieces of Kraken's API functionality, but presents the tutorial in surfaces you can explore one section at a time.
+    cards:
+      - heading: Kraken API Authentication
+        summary: Understand what Kraken authenticated APIs expect while letting the SDK handle JWTs and authentication workflows for you.
+      - heading: Spot and Futures REST APIs
+        summary: Use typed clients for market data, account state, order entry, and product-specific request shapes.
+      - heading: Public and private WebSockets
+        summary: Stream market data and account events with heartbeat, reconnect, and resubscribe handling.
+      - heading: WebSocket API commands
+        summary: Send Spot commands over Kraken's event-driven WebSocket API with awaitable SDK methods.
+  snippets:
+    heading: First REST API calls, WebSocket subscriptions, and order management, with just a few lines of code.
+    summary: For more detail, refer to the full guide below, but if you want to jump straight to code that gets you making requests and receiving data,
+    labels:
+      spot-rest: Spot REST API
+      public-websocket: Public WebSockets
+      private-websocket: Private WebSockets
+      spot-orders: Spot Orders
+      futures-orders: Futures Orders
+  workflows:
+    heading: Where your code stops and the SDK takes over
+    summary: Function-style stages keep the implementation order explicit, while the badges show which parts are automatic SDK behavior.
+    diagrams:
+      - heading: WebSocket stream lifecycle
+        summary: Use this pattern for public market data and private account streams that must survive normal network interruptions.
+        steps:
+          - label: subscribe(topics)
+            owner: app
+          - label: await(connect)
+            owner: sdk
+          - label: await(authenticate)
+            owner: sdk
+          - label: on(authenticated)
+            owner: event
+          - label: trigger(backfill via REST)
+            owner: app
+          - label: on(message)
+            owner: event
+      - heading: WebSocket stream private lifecycle
+        summary: When a private connection reconnects, pause sensitive commands, backfill with REST, then resume from a known state.
+        steps:
+          - label: on(reconnecting)
+            owner: event
+          - label: pause(private writes)
+            owner: app
+          - label: await(automatic reconnect)
+            owner: sdk
+          - label: await(automatic resubscribe)
+            owner: sdk
+          - label: on(reconnected)
+            owner: event
+          - label: trigger(backfill)
+            owner: app
+          - label: resume(private writes)
+            owner: app
+      - heading: WebSocket API request flow
+        summary: The SDK wraps asynchronous WebSocket API commands in promises so private calls can be awaited like REST.
+        steps:
+          - label: Call & await SDK method
+            owner: app
+          - label: await(connect)
+            owner: sdk
+          - label: await(authenticate)
+            owner: sdk
+          - label: on(authenticated)
+            owner: event
+          - label: wrapInPromise(request)
+            owner: sdk
+          - label: send(WSCommand)
+            owner: sdk
+          - label: on(response)
+            owner: event
+          - label: resolve(requestPromise)
+            owner: sdk
+          - label: Handle result
+            owner: app
+  production:
+    heading: Operational patterns for production-ready Kraken integrations
+    summary: Explore the recommended patterns for production deployments, including how to handle reconnects, key separation, client-generated IDs, safe validation, logging, and post-reconnect best practices.
+    items:
+      - Use client-generated order IDs for safer retries and reconciliation.
+      - Treat reconnects as a normal design path, not as an exceptional case.
+      - Start with public data, validate private flows, then test live writes carefully.
+      - Keep Spot & Futures API credentials & REST API clients separate.
+      - Use minimum API key permissions and avoid withdrawal scopes for private API workflows.
+      - Inject your own logger when SDK events need to feed monitoring or alerting.
+  journeys:
+    eyebrow: Choose your path
+    heading: Jump to the workflow you are building
+    actionLabel: Open section
+    cards:
+      - heading: Get market data
+        summary: Start with public Spot REST and public WebSocket streams for ticker, trade, candles, and order book workflows.
+        href: "#fast-path-first-kraken-api-calls-in-javascript"
+      - heading: Monitor accounts
+        summary: Authenticate private streams for balances, orders, executions, account events, and reconnect-aware state handling.
+        href: "#kraken-websockets-in-javascript-public-and-private-streaming"
+      - heading: Submit orders
+        summary: Use typed REST clients for Spot and Futures order management, validation, and batch placement.
+        href: "#kraken-spot-rest-api-in-javascript-and-typescript"
+      - heading: Use WebSocket API
+        summary: Use promise-wrapped WebSocket API methods when a persistent authenticated command channel is the better fit.
+        href: "#spot-websocket-api-commands-with-websocketapiclient"
+  article:
+    heading: Learn how to use the Kraken REST API & WebSockets in JavaScript
+    summary: This tutorial covers REST API and WebSocket usage for Spot and Futures, with examples for authentication, reconnects, order management, and rollout checks.
+  related:
+    cards:
+      - heading: Kraken SDK page
+        summary: Return to install snippets, direct examples, endpoint maps, and package links.
+        href: /sdk/kraken/javascript
+      - heading: Endpoint reference
+        summary: Map Kraken REST and WebSocket API methods to the current JavaScript SDK calls.
+        href: /sdk/kraken/javascript#endpoint-reference
+      - heading: Security notes
+        summary: Review package release integrity, safe SDK usage, and key-handling guidance.
+        href: /security
+      - heading: All SDK guides
+        summary: Compare Kraken with the other Siebly JavaScript and TypeScript exchange SDKs.
+        href: /sdk
+-->
 # Kraken API JavaScript Tutorial for Node.js and TypeScript
 
 Build Kraken integrations in JavaScript or TypeScript without hand-rolling raw HTTP requests, Kraken JWTs/request signing for authenticated APIs, WebSocket authentication, heartbeats, reconnects, or exchange-specific payload handling.
@@ -7,7 +194,7 @@ This Kraken JavaScript tutorial uses [`@siebly/kraken-api`](https://www.npmjs.co
 - Kraken Spot REST API
 - Kraken Futures REST API
 - Public and private Kraken WebSockets
-- Spot trading over Kraken's event-driven WebSocket API
+- Spot command workflows over Kraken's event-driven WebSocket API
 - Automatic handling for Kraken JWTs, request signing, and private-channel authentication
 
 Key Links
@@ -20,32 +207,36 @@ Key Links
 Topics covered in this guide
 
 - Why use a Kraken SDK
+- Choosing the right Kraken API surface
 - Install and API keys
+- Setup checklist before writing code
 - Start building quickstart
 - Spot REST APIs
 - Spot WebSockets
-- Spot trading over WebSocket API
+- Spot WebSocket API commands
 - Futures REST APIs
 - Futures WebSockets
-- Production notes
+- Production notes for API integrations
+- Troubleshooting common integration problems
 - FAQ and next steps
 
 ---
 
+<!-- siebly:section id="why-use-a-kraken-sdk" -->
 ## Why use a Kraken SDK
 
-A stable Kraken API integration is not just "make a few HTTP requests". There's more to it than that.
+A stable Kraken API integration has to handle separate REST authentication models, private WebSocket authentication, reconnects, and asynchronous command responses.
 
 - Spot REST and Futures REST APIs use different authentication models and request shapes.
 - Public & private WebSockets require connection lifecycle handling, authentication, and reconnection handling.
-- Spot trading over Kraken's asynchronous WebSocket API can be complicated without JavaScript Promises to glue WebSocket API responses to the requests that triggered them.
-- Production bots and trading tools need typed request schemas, consistent async behavior, resilient WebSockets, and a connectivity architecture that works.
+- Spot commands (such as order management) over Kraken's asynchronous WebSocket API can be complicated without JavaScript Promises to glue WebSocket API responses to the requests that triggered them.
+- Production API integrations need typed request schemas, consistent async behavior, resilient WebSockets, and a connectivity architecture that works.
 
 The `@siebly/kraken-api` gives you one JavaScript and TypeScript SDK for Kraken API integration in any Node.js or JavaScript-capable environment:
 
 - Complete API coverage with dedicated REST API clients for each product group, including Spot and Derivatives.
 - One `WebsocketClient` for public and private streaming across all Kraken products.
-- A `WebsocketAPIClient` for Spot trading over a persistent WebSocket connection, with the convenience of awaitable promise-wrapped WebSocket API requests. Each WebSocket API command can be awaited like a REST API request.
+- A `WebsocketAPIClient` for Spot commands over a persistent WebSocket connection, with the convenience of awaitable promise-wrapped WebSocket API requests. Each WebSocket API command can be awaited like a REST API request.
 - Automatic heartbeats, reconnect and resubscribe handling for WebSockets. Stay connected, stay in sync.
 - TypeScript-first request and response definitions for most SDK methods.
 - ESM and CJS support.
@@ -55,20 +246,22 @@ The package also includes `InstitutionalClient` and `PartnerClient`, but this gu
 
 ---
 
+<!-- siebly:section id="what-you-can-build-with-the-kraken-javascript-sdk" -->
 ## What you can build with the [Kraken JavaScript SDK](https://siebly.io/sdk/kraken/javascript)
 
 This Kraken JavaScript SDK is relevant for any integration with Kraken's APIs and WebSockets, especially if you are building:
 
-- Trading bots and execution services
 - Real-time market data dashboards
-- Internal trader tooling
 - Portfolio and balance monitors
 - Alerting and signal pipelines
 - Reconciliation or account state services
+- Internal operations tooling
+- Trading bots and execution services
 - AI-assisted engineering workflows that need a reliable & typed Kraken integration layer
 
 ---
 
+<!-- siebly:section id="who-this-guide-is-for" -->
 ## Who this guide is for
 
 This guide is written for JavaScript developers (& LLMs) who:
@@ -78,28 +271,50 @@ This guide is written for JavaScript developers (& LLMs) who:
 - Care about typed requests and responses
 - Are working with exchange REST APIs & WebSockets for the first time
 - Are already using exchange APIs elsewhere and are looking to integrate Kraken
-- Need dependable connectivity for systematic trading
+- Need dependable connectivity for market data, account monitoring, or order workflows
 - Are comparing raw Kraken integration against a maintained SDK
 
 ---
 
+<!-- siebly:section id="what-this-one-page-course-covers" -->
 ## What this one-page course covers
 
 - Installing the Kraken JavaScript SDK by Siebly
+- Choosing between Spot REST, Futures REST, WebSocket streams, and the WebSocket API
 - Creating Spot and Futures REST API clients
 - Making your first public Spot REST API request
 - Streaming public Spot market data over WebSockets
 - Subscribing to private Spot account streams
 - Placing Spot orders over Kraken's REST API
 - Managing Spot orders in batches
-- Trading Spot over Kraken's WebSocket API
+- Sending Spot commands over Kraken's WebSocket API
 - Pulling Kraken Futures market data
 - Submitting Kraken Futures orders via REST API
 - Using Kraken Futures WebSockets
 - Production patterns for reconnects, idempotency, logging, and safer rollout
+- Debugging common authentication, symbol, reconnect, and order validation problems
 
 ---
 
+<!-- siebly:section id="choose-the-right-kraken-api-surface" -->
+## Choose the right Kraken API surface
+
+Kraken exposes several API surfaces, and most integration mistakes start with choosing the wrong one for the job. Use this map before writing code.
+
+| Developer task                                              | Start with                                     | SDK client or key                                                  | Why                                                                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Check connectivity or read public market data               | Spot REST                                      | `SpotClient`                                                       | Easiest request-response path. No API keys needed for public data.                                       |
+| Stream public market data                                   | Spot WebSocket streams                         | `WebsocketClient` with `WS_KEY_MAP.spotPublicV2`                   | Better fit when a dashboard, worker, or alerting service needs continuous updates.                       |
+| Read balances, orders, fills, or account state              | Private Spot REST plus private Spot WebSockets | `SpotClient` and `WebsocketClient` with `WS_KEY_MAP.spotPrivateV2` | REST gives snapshots. WebSockets keep long-running processes updated after the initial snapshot.         |
+| Validate or submit Spot orders                              | Spot REST first                                | `SpotClient.submitOrder` with `validate: true` while testing       | Simple to inspect, log, retry, and validate before live writes.                                          |
+| Send low-latency Spot commands over a persistent connection | Spot WebSocket API                             | `WebsocketAPIClient`                                               | Useful after the integration already works over REST and a persistent command channel is the better fit. |
+| Build against Kraken Futures                                | Futures REST and Futures WebSockets            | `DerivativesClient` and derivatives `WS_KEY_MAP` entries           | Futures uses separate credentials, symbols, endpoints, and request shapes.                               |
+
+Rule of thumb: use REST when you need one clear answer to one clear request. Use WebSocket streams when you need live data or account events. Use the WebSocket API when you need a persistent authenticated command channel after the basic REST flow is already understood.
+
+---
+
+<!-- siebly:section id="how-to-get-started-with-the-kraken-api-in-javascript" -->
 ## How to get started with the Kraken API in JavaScript?
 
 If you don't have Node.js installed yet, refer to the Node.js documentation on getting started with Node.js. The Kraken JavaScript SDK is published to both [GitHub](https://github.com/sieblyio/kraken-api) and [npm](https://www.npmjs.com/package/@siebly/kraken-api).
@@ -148,14 +363,30 @@ For local Node.js examples that use a `.env` file, make `.env` loading automatic
 
 If you are only testing public endpoints, you do not need any keys at all.
 
+<!-- siebly:section id="setup-checklist-before-writing-code" -->
+## Setup checklist before writing code
+
+Use this checklist to avoid the common first-hour problems:
+
+- Install `@siebly/kraken-api` in the same project that will run the code.
+- Start with a public REST call such as `getServerTime()` or `getTicker()` before adding credentials.
+- Create Spot keys for Spot APIs and Futures keys for Futures APIs. They are not interchangeable.
+- Give API keys only the permissions needed for the workflow. Read-only analytics does not need trading permission, and trading does not need withdrawal permission.
+- Confirm your environment variables are loaded before constructing private clients.
+- Keep secrets out of browser bundles, logs, screenshots, Git commits, and prompt context.
+- Use `validate: true` for Spot order examples until you intentionally want to submit a live order.
+- Add structured logging around `response`, `message`, `reconnecting`, `reconnected`, and `exception` events before relying on a long-running WebSocket process.
+
 ---
 
+<!-- siebly:section id="fast-path-first-kraken-api-calls-in-javascript" -->
 ## Start building: first Kraken API calls in JavaScript
 
 If you only want the fastest path to a working integration, this is the section to start from.
 
 ### 1. First Spot REST API request
 
+<!-- siebly:snippet id="spot-rest" -->
 ```typescript
 import { SpotClient } from '@siebly/kraken-api';
 
@@ -185,6 +416,7 @@ See also: [Kraken JavaScript Example - How to query spot market data](https://si
 
 ### 2. First public Spot WebSocket stream
 
+<!-- siebly:snippet id="public-websocket" -->
 ```typescript
 import { WebsocketClient, WS_KEY_MAP } from '@siebly/kraken-api';
 
@@ -213,6 +445,7 @@ See also: [Kraken JavaScript Example - How to subscribe to spot market data WebS
 
 ### 3. First private Spot WebSocket stream
 
+<!-- siebly:snippet id="private-websocket" -->
 ```typescript
 import { WebsocketClient, WS_KEY_MAP } from '@siebly/kraken-api';
 
@@ -254,6 +487,7 @@ See also: [Kraken JavaScript Example - How to subscribe to spot account change W
 
 ### 4. First Spot order over REST API
 
+<!-- siebly:snippet id="spot-orders" -->
 ```typescript
 import { SpotClient } from '@siebly/kraken-api';
 
@@ -285,6 +519,7 @@ See also: [Kraken JavaScript Example - How to submit spot orders](https://siebly
 
 ### 5. First Futures order
 
+<!-- siebly:snippet id="futures-orders" -->
 ```typescript
 import { DerivativesClient } from '@siebly/kraken-api';
 
@@ -314,6 +549,7 @@ See also: [Kraken JavaScript Example - How to submit futures/derivatives orders]
 
 ---
 
+<!-- siebly:section id="kraken-spot-rest-api-in-javascript-and-typescript" -->
 ## Kraken Spot REST API in JavaScript and TypeScript
 
 Most integrations start with Spot REST APIs because it is one of the simplest ways to test basic connectivity, such as querying account state and submitting orders.
@@ -471,6 +707,7 @@ See also: [Kraken JavaScript Example - How to submit spot orders via REST API](h
 
 ---
 
+<!-- siebly:section id="kraken-websockets-in-javascript-public-and-private-streaming" -->
 ## Kraken WebSockets in JavaScript: public and private streaming
 
 For long-running processes, WebSockets are key for staying in sync with market data & account state changes. Latency-sensitive systems should subscribe & react to event-driven market & account updates, rather than depending on REST API polling at regular intervals.
@@ -627,9 +864,10 @@ See also:
 
 ---
 
-## Spot trading over Kraken's WebSocket API with `WebsocketAPIClient`
+<!-- siebly:section id="spot-websocket-api-commands-with-websocketapiclient" -->
+## Spot WebSocket API commands with `WebsocketAPIClient`
 
-Kraken supports Spot trading over a persistent WebSocket connection. While each REST API call requires a new connection to be opened & signed per API call, the WebSocket API allows a persistent WebSocket connection to be opened & authenticated once, and then reused for any WS-API commands sent by your system. This can significantly reduce latency for latency-sensitive and higher-frequency trading systems compared with using the REST API alone.
+Kraken supports authenticated Spot command workflows, such as order management, over a persistent WebSocket connection. While each REST API call requires a new connection to be opened & signed per API call, the WebSocket API allows a persistent WebSocket connection to be opened & authenticated once, and then reused for any WS-API commands sent by your system. This can reduce latency for workflows where a persistent command channel is a better fit than REST alone.
 
 If that model fits your system, `WebsocketAPIClient` gives you REST-like methods over the WebSocket API.
 
@@ -686,6 +924,7 @@ Refer to the Kraken API documentation for a detailed list of available WebSocket
 
 ---
 
+<!-- siebly:section id="kraken-futures-api-in-nodejs-and-typescript" -->
 ## Kraken Futures API in Node.js and TypeScript
 
 While it looks & feels similar, Kraken's Derivatives use a different REST API surface and different request naming conventions than the Kraken Spot APIs. The [`@siebly/kraken-api` JavaScript Kraken SDK](https://www.npmjs.com/package/@siebly/kraken-api) manages this complexity for you, so you can focus on building & integrating your workflows.
@@ -812,6 +1051,7 @@ See also: [Kraken JavaScript Example - How to submit derivatives/futures orders]
 
 ---
 
+<!-- siebly:section id="kraken-futures-websockets-in-javascript" -->
 ## Kraken Futures WebSockets in JavaScript
 
 For subscribing to futures/derivatives market & account data in JavaScript (& Node.js), the SDK automatically handles this as well via the same `WebsocketClient` utility class.
@@ -844,9 +1084,10 @@ See also:
 
 ---
 
-## Production notes for real trading systems
+<!-- siebly:section id="production-notes-for-api-integrations" -->
+## Production notes for API integrations
 
-This is where SDKs usually earn their keep.
+This is where SDKs usually earn their keep: not in the first successful request, but in the repeatable behavior around retries, reconnects, logging, and safe rollout.
 
 ### 1. Use client-generated order IDs
 
@@ -876,14 +1117,16 @@ Listen for `reconnecting` and `reconnected`. A dropped connection is not the exc
 
 The important part is detecting issues early (handled by SDK), promptly reconnecting (handled by SDK), and ensuring your system remains in sync when the SDK emits a `reconnected` event (up to your implementation).
 
-### 3. Start public, then validate private, then trade tiny
+### 3. Start public, then validate private, then change state carefully
 
 The lowest-friction rollout path is:
 
 1. Public REST APIs
 2. Public WebSockets
-3. Private account streams
-4. Small live trading tests
+3. Private read-only REST APIs
+4. Private account streams
+5. Validated write requests where supported
+6. Small live write tests only if your workflow needs them
 
 If using WebSockets for updates, integrate a backfill workflow after connecting:
 
@@ -928,6 +1171,26 @@ See also: [Kraken JavaScript Example - How to subscribe to spot market data with
 
 ---
 
+<!-- siebly:section id="troubleshooting-common-kraken-javascript-integration-problems" -->
+## Troubleshooting common Kraken JavaScript integration problems
+
+Most early Kraken API issues are not SDK installation problems. They are usually auth, product boundary, symbol, or lifecycle issues. Start here when the first example works but the next workflow does not.
+
+| Problem                                                        | Likely cause                                                                                                  | Fix                                                                                                                                                                       |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public REST works, private REST fails                          | API key is missing, loaded under the wrong environment variable, or belongs to the wrong Kraken product group | Log which key names are present, not the secret values. Confirm Spot keys are used with `SpotClient` and Futures keys are used with `DerivativesClient`.                  |
+| Private WebSocket never authenticates                          | Private stream credentials are missing or the wrong `WS_KEY_MAP` entry is used                                | Use Spot credentials with `WS_KEY_MAP.spotPrivateV2`. Use derivatives credentials with derivatives WebSocket keys.                                                        |
+| Market data request returns an unexpected pair or symbol error | Spot and Futures symbols use different formats                                                                | Treat symbols as product-specific inputs. Do not reuse one normalized symbol string across Spot REST, Futures REST, and WebSocket payloads without mapping it first.      |
+| WebSocket process reconnects and the app state looks stale     | The connection recovered, but the app did not backfill missed state                                           | Listen for `reconnected`, then query REST for the latest balances, orders, or market state before resuming normal processing.                                             |
+| Order request is rejected                                      | Size, price, pair, permission, or order type is invalid for that market                                       | Use `validate: true` for Spot orders while testing. Log sanitized request fields and compare them with the market's minimum size, precision, and permission requirements. |
+| Retries create confusing order tracking                        | The integration does not assign client-generated IDs                                                          | Use `cl_ord_id` for Spot and `cliOrdId` for Futures so retries and reconciliation can be tied back to your own request IDs.                                               |
+| The code works locally but fails in deployment                 | Environment variables or secret loading differ between local and production                                   | Make env loading explicit, fail fast when required private keys are absent, and keep public-only examples free of private client construction.                            |
+
+If a public REST request fails, debug connectivity, package installation, or runtime configuration first. If public REST works and private calls fail, debug credentials and permissions next. If REST works but WebSockets fail, debug event handling, `WS_KEY_MAP`, reconnect behavior, and private stream authentication.
+
+---
+
+<!-- siebly:section id="why-use-a-javascript-sdk-for-krakens-apis-websockets" -->
 ## Why use a JavaScript SDK for Kraken's APIs & WebSockets?
 
 If you are evaluating SDKs rather than just copying a few snippets, these are the practical reasons this SDK tends to matter:
@@ -938,12 +1201,13 @@ If you are evaluating SDKs rather than just copying a few snippets, these are th
 - Less low-value exchange plumbing in your codebase. Less to maintain, less that can break, fewer distractions.
 - Stable connectivity with automated integration tests & thousands of daily users.
 - Faster integration than building raw API connectivity with correctly crafted request signatures.
-- Faster iteration when moving from public data to private trading flows.
-- Better fit for bots, dashboards, and internal trading tools than raw request signing examples.
+- Faster iteration when moving from public data to private API flows.
+- Better fit for bots, dashboards, and internal tooling than raw request signing examples.
 - A maintained SDK with examples, endpoint references, and a wider SDK ecosystem from [Siebly.io](https://siebly.io)
 
 ---
 
+<!-- siebly:section id="faq" -->
 ## FAQ
 
 **Do I need separate keys for Spot and Futures?**
@@ -952,7 +1216,7 @@ Yes. Treat Spot and Futures as separate products with separate API credentials. 
 **Why both `WebsocketClient` and `WebsocketAPIClient`?**
 
 - `WebsocketClient` is for subscriptions and streaming topics.
-- `WebsocketAPIClient` is for Spot trading commands over Kraken's WebSocket API. Think "REST API" but via low-latency WebSockets.
+- `WebsocketAPIClient` is for Spot commands over Kraken's WebSocket API. Think "REST API" but via low-latency WebSockets.
 
 **Does the SDK handle private authentication?**
 Yes. All authentication for both REST APIs & WebSockets will be handled automatically using the underlying SDK architecture. Connectivity & authentication are both managed for you, so you can focus on integrating your system and making the API calls that you need.
@@ -962,7 +1226,7 @@ The SDK supports reconnect and resubscribe flows. Listen for `reconnecting` and 
 
 The `reconnecting` event is a good trigger to pause any risky actions until the connection is restored & ready (cancel orders and prevent new orders).
 
-The `reconnected` event is a good trigger to query the REST API for any out-of-sync account & market state before resuming normal trading activity (restore cancelled orders, resume order placement as desired).
+The `reconnected` event is a good trigger to query the REST API for any out-of-sync account & market state before resuming normal private workflows (e.g. restore cancelled orders, resume paused order placement as desired).
 
 **Can I use this Kraken API SDK in TypeScript projects?**
 Yes. The package is TypeScript-first and publishes type declarations.
@@ -983,10 +1247,15 @@ For full method coverage, see:
 
 ---
 
+<!-- siebly:section id="next-steps" -->
 ## Next steps
 
 If you want to learn more about integrating with Kraken's APIs & WebSockets:
 
+- Start from the indexable Kraken SDK guide: [Kraken JavaScript SDK guide](https://siebly.io/sdk/kraken/javascript)
+- Review the Kraken package overview: [Kraken SDK overview](https://siebly.io/sdk/kraken)
+- Compare exchange SDKs: [Siebly SDK directory](https://siebly.io/sdk)
+- Review key and package guidance: [Siebly security and release integrity](https://siebly.io/security)
 - Explore the [Kraken JavaScript examples on GitHub](https://github.com/sieblyio/kraken-api/tree/main/examples)
 - Review the full endpoint list: [Kraken JavaScript endpoint reference](https://siebly.io/sdk/kraken/javascript#endpoint-reference)
 - Check the Siebly JavaScript SDK for Kraken on npm: [`@siebly/kraken-api`](https://www.npmjs.com/package/@siebly/kraken-api)
