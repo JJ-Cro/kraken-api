@@ -13,12 +13,13 @@ siebly:
     codeStatus: ready to run
     startSectionId: fast-path-first-kraken-api-calls-in-javascript
   software:
-    description: Node.js and JavaScript SDK for Kraken Spot REST, Futures REST, WebSocket streams, and Spot WebSocket API command workflows.
+    description: Node.js and JavaScript SDK for Kraken Spot REST, Futures REST, WebSocket streams, Spot WebSocket API command workflows, and REST API and WebSocket proxy support.
     topics:
       - Spot REST
       - Futures REST
       - WebSockets
       - WebSocket API
+      - REST API and WebSocket proxies
   machineCatalog:
     label: Kraken API JavaScript Tutorial
     topics:
@@ -27,16 +28,17 @@ siebly:
       - public WebSockets
       - private WebSockets
       - WebSocket API commands
+      - HTTP and SOCKS proxies
       - production reconnect handling
       - troubleshooting
   sdkPagePromo:
-    descriptionBeforePackage: 'A richer JavaScript guide for building Kraken Spot REST, Futures REST, public and private WebSockets, WebSocket API trading, reconnect handling, and production rollout patterns with '
+    descriptionBeforePackage: 'A richer JavaScript guide for building Kraken Spot REST, Futures REST, public and private WebSockets, WebSocket API trading, proxy configuration, reconnect handling, and production rollout patterns with '
     descriptionAfterPackage: '.'
     highlights:
       - Spot and Futures clients
       - Public and private streams
       - Promise-wrapped WebSocket API trading
-      - Production reconnect and backfill workflows
+      - REST API and WebSocket proxy examples
     exampleHref: /examples/Kraken/Spot/WebSockets/wsAPI
     exampleLabel: WebSocket API example
     architectureClientSummary: SpotClient, DerivativesClient, WebsocketClient
@@ -64,10 +66,10 @@ siebly:
         summary: Spot API commands
   coverage:
     heading: The Kraken API pieces developers usually get stuck on
-    summary: The guide will introduce you to the key pieces of Kraken's API functionality, but presents the tutorial in surfaces you can explore one section at a time.
+    summary: The guide covers the Kraken API surfaces developers use first, including authentication, proxy configuration, reconnect recovery, and product-specific Spot and Futures behavior.
     cards:
-      - heading: Kraken API Authentication
-        summary: Understand what Kraken authenticated APIs expect while letting the SDK handle JWTs and authentication workflows for you.
+      - heading: Authentication and network paths
+        summary: Keep Spot token fetches, Futures challenge authentication, REST API networking, and WebSocket proxy settings explicit.
       - heading: Spot and Futures REST APIs
         summary: Use typed clients for market data, account state, order entry, and product-specific request shapes.
       - heading: Public and private WebSockets
@@ -150,6 +152,7 @@ siebly:
       - Keep Spot & Futures API credentials & REST API clients separate.
       - Use minimum API key permissions and avoid withdrawal scopes for private API workflows.
       - Inject your own logger when SDK events need to feed monitoring or alerting.
+      - Monitor proxy reachability, latency, and egress IP when a proxy is enabled.
   journeys:
     eyebrow: Choose your path
     heading: Jump to the workflow you are building
@@ -169,7 +172,7 @@ siebly:
         href: "#spot-websocket-api-commands-with-websocketapiclient"
   article:
     heading: Learn how to use the Kraken REST API & WebSockets in JavaScript
-    summary: This tutorial covers REST API and WebSocket usage for Spot and Futures, with examples for authentication, reconnects, order management, and rollout checks.
+    summary: This tutorial covers REST API and WebSocket usage for Spot and Futures, with examples for authentication, proxies, reconnects, order management, and rollout checks.
   related:
     cards:
       - heading: Kraken SDK page
@@ -187,7 +190,7 @@ siebly:
 -->
 # Kraken API JavaScript Tutorial for Node.js and TypeScript
 
-Build Kraken integrations in JavaScript or TypeScript without hand-rolling raw HTTP requests, Kraken JWTs/request signing for authenticated APIs, WebSocket authentication, heartbeats, reconnects, or exchange-specific payload handling.
+Build Kraken integrations in JavaScript or TypeScript without hand-rolling raw HTTP requests, Kraken JWTs/request signing for authenticated APIs, WebSocket authentication, heartbeats, reconnects, or exchange-specific payload handling. This guide also covers HTTP, HTTPS, and SOCKS proxy configuration for Spot and Futures connections.
 
 This Kraken JavaScript tutorial uses [`@siebly/kraken-api`](https://www.npmjs.com/package/@siebly/kraken-api), the [Kraken JavaScript SDK by Siebly.io](https://siebly.io/sdk/kraken/javascript), to walk through the API surfaces most developers need:
 
@@ -1084,6 +1087,281 @@ See also:
 
 ---
 
+<!-- siebly:section id="proxies" -->
+## Proxies for REST API and WebSocket
+
+Use a proxy when a deployment needs a fixed egress IP, must cross an approved corporate network, or has a controlled network failover path. A proxy does not change Kraken account eligibility, select Spot or Futures, or make Spot credentials valid for Futures.
+
+The broader [Using proxy with Siebly SDKs](https://siebly.io/blog/using-proxy-with-siebly-sdks) article covers the shared constructor pattern. Kraken private Spot connections need one extra setting because the SDK fetches a WebSocket token through the Spot REST API before sending an authenticated subscription or WebSocket API command.
+
+Proxy agents are a Node.js networking feature. Browser applications cannot select a raw socket agent.
+
+### HTTP or HTTPS proxy
+
+Install the agent:
+
+```bash
+npm install @siebly/kraken-api https-proxy-agent
+```
+
+Set `KRAKEN_PROXY_URL` to the full proxy URL, including URL-encoded credentials when required.
+
+This public check sends one Spot REST API call and one public Spot WebSocket subscription through the same proxy:
+
+<!-- siebly:snippet id="http-proxy" -->
+
+```typescript
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import {
+  SpotClient,
+  WebsocketClient,
+  WS_KEY_MAP,
+} from '@siebly/kraken-api';
+
+const proxyUrl = process.env.KRAKEN_PROXY_URL;
+
+if (!proxyUrl) {
+  throw new Error('Set KRAKEN_PROXY_URL before running this example.');
+}
+
+const proxyAgent = new HttpsProxyAgent(proxyUrl);
+
+const rest = new SpotClient(
+  {},
+  {
+    httpsAgent: proxyAgent,
+    proxy: false,
+  },
+);
+
+const ws = new WebsocketClient({
+  wsOptions: {
+    agent: proxyAgent,
+  },
+});
+
+ws.on('open', ({ wsKey }) => {
+  console.log('WebSocket connected through proxy:', wsKey);
+});
+ws.on('message', (event) => {
+  console.log('stream update', event);
+});
+ws.on('exception', console.error);
+
+async function main() {
+  const serverTime = await rest.getServerTime();
+  console.log('REST API connected through proxy:', serverTime);
+
+  ws.subscribe(
+    {
+      topic: 'ticker',
+      payload: {
+        symbol: ['BTC/USD'],
+      },
+    },
+    WS_KEY_MAP.spotPublicV2,
+  );
+}
+
+process.once('SIGINT', () => {
+  ws.closeAll();
+});
+
+main().catch(console.error);
+```
+
+REST API networking options belong in the second constructor argument for `SpotClient` and `DerivativesClient`:
+
+- `httpsAgent` sends the HTTPS request through the agent.
+- `proxy: false` prevents Axios from applying another proxy configuration on top of that agent.
+
+WebSocket networking options belong in `wsOptions.agent`.
+
+Public Spot and Futures streams only need the socket agent. Private Futures streams also only need the socket agent because Futures authentication uses a signed challenge sent over the WebSocket.
+
+### Private Spot streams and WebSocket API through a proxy
+
+Private Spot subscriptions, Spot Level 3 subscriptions, and `WebsocketAPIClient` commands fetch a Spot WebSocket token through REST API. Configure both network paths:
+
+- `wsOptions.agent` for the WebSocket
+- `requestOptions` for the Axios-backed token request
+
+This example authenticates a private Spot stream and the Spot WebSocket API without placing an order:
+
+<!-- siebly:snippet id="private-proxy" -->
+
+```typescript
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import {
+  WebsocketAPIClient,
+  WebsocketClient,
+  WS_KEY_MAP,
+} from '@siebly/kraken-api';
+
+const proxyUrl = process.env.KRAKEN_PROXY_URL;
+
+if (!proxyUrl) {
+  throw new Error('Set KRAKEN_PROXY_URL before running this example.');
+}
+
+const apiKey = process.env.KRAKEN_SPOT_API_KEY;
+const apiSecret = process.env.KRAKEN_SPOT_API_SECRET;
+
+if (!apiKey || !apiSecret) {
+  throw new Error(
+    'Set KRAKEN_SPOT_API_KEY and KRAKEN_SPOT_API_SECRET before running this example.',
+  );
+}
+
+const proxyAgent = new HttpsProxyAgent(proxyUrl);
+const proxyRequestOptions = {
+  httpsAgent: proxyAgent,
+  proxy: false as const,
+};
+const credentials = { apiKey, apiSecret };
+
+const streams = new WebsocketClient({
+  ...credentials,
+  wsOptions: {
+    agent: proxyAgent,
+  },
+  requestOptions: proxyRequestOptions,
+});
+
+const wsApi = new WebsocketAPIClient({
+  ...credentials,
+  attachEventListeners: false,
+  wsOptions: {
+    agent: proxyAgent,
+  },
+  requestOptions: proxyRequestOptions,
+});
+const wsApiConnection = wsApi.getWSClient();
+
+streams.on('authenticated', ({ wsKey }) => {
+  console.log('Private Spot stream authenticated:', wsKey);
+});
+streams.on('exception', console.error);
+wsApiConnection.on('authenticated', ({ wsKey }) => {
+  console.log('Spot WebSocket API authenticated:', wsKey);
+});
+wsApiConnection.on('exception', console.error);
+
+async function main() {
+  streams.subscribe(
+    {
+      topic: 'executions',
+      payload: {
+        snap_trades: true,
+        snap_orders: true,
+      },
+    },
+    WS_KEY_MAP.spotPrivateV2,
+  );
+
+  await wsApiConnection.connectWSAPI(WS_KEY_MAP.spotPrivateV2);
+  console.log('Private Spot connections are ready');
+}
+
+process.once('SIGINT', () => {
+  streams.closeAll();
+  wsApiConnection.closeAll();
+});
+
+main().catch(console.error);
+```
+
+A private Futures stream does not fetch a REST API token. Its proxy configuration only needs the socket agent:
+
+```typescript
+const futuresWs = new WebsocketClient({
+  apiKey: process.env.KRAKEN_FUTURES_API_KEY!,
+  apiSecret: process.env.KRAKEN_FUTURES_API_SECRET!,
+  wsOptions: {
+    agent: proxyAgent,
+  },
+});
+```
+
+### SOCKS5 proxy
+
+Install the SOCKS agent:
+
+```bash
+npm install @siebly/kraken-api socks-proxy-agent
+```
+
+Use `SocksProxyAgent` in the same REST API and WebSocket positions:
+
+<!-- siebly:snippet id="socks-proxy" -->
+
+```typescript
+import {
+  SpotClient,
+  WebsocketClient,
+  WS_KEY_MAP,
+} from '@siebly/kraken-api';
+import { SocksProxyAgent } from 'socks-proxy-agent';
+
+const proxyUrl = process.env.KRAKEN_SOCKS_PROXY_URL;
+
+if (!proxyUrl) {
+  throw new Error('Set KRAKEN_SOCKS_PROXY_URL before running this example.');
+}
+
+const proxyAgent = new SocksProxyAgent(proxyUrl);
+
+const rest = new SpotClient(
+  {},
+  {
+    httpsAgent: proxyAgent,
+    proxy: false,
+  },
+);
+
+const ws = new WebsocketClient({
+  wsOptions: {
+    agent: proxyAgent,
+  },
+});
+
+async function main() {
+  const serverTime = await rest.getServerTime();
+  console.log('REST API connected through SOCKS5:', serverTime);
+
+  ws.subscribe(
+    {
+      topic: 'trade',
+      payload: {
+        symbol: ['BTC/USD'],
+      },
+    },
+    WS_KEY_MAP.spotPublicV2,
+  );
+}
+
+process.once('SIGINT', () => {
+  ws.closeAll();
+});
+
+main().catch(console.error);
+```
+
+### Proxy checks
+
+- Keep proxy URLs and credentials in environment variables or a secret manager.
+- URL-encode usernames and passwords when constructing a proxy URL from separate values.
+- Make sure the proxy egress IP matches the Kraken API key's IP whitelist.
+- Test a public REST API call and public WebSocket subscription before private authentication.
+- Confirm that private Spot token requests and their WebSockets use the same intended network path.
+- Keep Spot and Futures credentials, clients, and authentication paths separate.
+- Measure request, connection, token-fetch, and reconnect latency through the proxy.
+- Treat repeated HTTP 407 responses, TLS errors, token-fetch failures, and WebSocket reconnect loops as network failures.
+- Keep the host clock synchronized. Proxy latency does not change how Kraken signatures are calculated.
+- The SDK does not rotate proxy endpoints. Handle endpoint selection outside the client when rotation is required.
+
+---
+
 <!-- siebly:section id="production-notes-for-api-integrations" -->
 ## Production notes for API integrations
 
@@ -1180,6 +1458,7 @@ Most early Kraken API issues are not SDK installation problems. They are usually
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public REST works, private REST fails                          | API key is missing, loaded under the wrong environment variable, or belongs to the wrong Kraken product group | Log which key names are present, not the secret values. Confirm Spot keys are used with `SpotClient` and Futures keys are used with `DerivativesClient`.                  |
 | Private WebSocket never authenticates                          | Private stream credentials are missing or the wrong `WS_KEY_MAP` entry is used                                | Use Spot credentials with `WS_KEY_MAP.spotPrivateV2`. Use derivatives credentials with derivatives WebSocket keys.                                                        |
+| Proxied socket opens, but private Spot authentication fails    | The Spot WebSocket token request is not using the proxy                                                        | Set `requestOptions` with the same agent used by `wsOptions.agent`, then confirm the REST API token request succeeds through the intended egress IP.                        |
 | Market data request returns an unexpected pair or symbol error | Spot and Futures symbols use different formats                                                                | Treat symbols as product-specific inputs. Do not reuse one normalized symbol string across Spot REST, Futures REST, and WebSocket payloads without mapping it first.      |
 | WebSocket process reconnects and the app state looks stale     | The connection recovered, but the app did not backfill missed state                                           | Listen for `reconnected`, then query REST for the latest balances, orders, or market state before resuming normal processing.                                             |
 | Order request is rejected                                      | Size, price, pair, permission, or order type is invalid for that market                                       | Use `validate: true` for Spot orders while testing. Log sanitized request fields and compare them with the market's minimum size, precision, and permission requirements. |
