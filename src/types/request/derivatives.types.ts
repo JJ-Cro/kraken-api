@@ -112,11 +112,17 @@ export interface FuturesAddAssignmentPreferenceParams {
   acceptShort: boolean;
   timeFrame: 'all' | 'weekdays' | 'weekends';
   enabled: boolean;
+  minimumProfitabilityPerAssignmentLongBps?: number;
+  minimumProfitabilityPerAssignmentShortBps?: number;
 }
 
 /**
  * Trading Settings
  */
+
+export interface FuturesSetRfqAssignmentMaxLeverageParams {
+  maxLeverage: number;
+}
 
 export interface FuturesUpdateSelfTradeStrategyParams {
   strategy:

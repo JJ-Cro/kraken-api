@@ -50,6 +50,7 @@ export interface WSAPIAddSpotOrderParams {
   };
   display_qty?: number;
   fee_preference?: 'base' | 'quote';
+  /** @deprecated Deprecated 18 Sep 2025. */
   no_mpp?: boolean;
   stp_type?: 'cancel_newest' | 'cancel_oldest' | 'cancel_both';
   cash_order_qty?: number;
@@ -107,6 +108,7 @@ export interface WSAPIEditSpotOrderParams {
   post_only?: boolean;
   reduce_only?: boolean;
   fee_preference?: 'base' | 'quote';
+  /** @deprecated Deprecated 18 Sep 2025. */
   no_mpp?: boolean;
   order_userref?: number;
   deadline?: string;

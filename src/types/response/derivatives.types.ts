@@ -106,6 +106,8 @@ export interface FuturesInstrument {
   retailMarginLevels?: FuturesMarginLevel[];
   marginLevels?: FuturesMarginLevel[];
   postOnly?: boolean;
+  /** Maker protection window in milliseconds. Omitted when the market has no Maker Protection. */
+  makerProtectionMillis?: number;
   /** @deprecated Effective 2026-06-22. Fee schedules are deprecated; use Spot GetTradeVolume instead. */
   feeScheduleUid?: string;
   tags?: string[];
@@ -627,6 +629,8 @@ export interface FuturesAssignmentProgramParticipant {
   acceptShort: boolean;
   timeFrame: 'all' | 'weekdays' | 'weekends';
   enabled: boolean;
+  minimumProfitabilityPerAssignmentLongBps?: number | null;
+  minimumProfitabilityPerAssignmentShortBps?: number | null;
 }
 
 export interface FuturesAssignmentProgram {
@@ -640,6 +644,8 @@ export interface FuturesAssignmentProgram {
   acceptShort: boolean;
   timeFrame: 'all' | 'weekdays' | 'weekends';
   enabled: boolean;
+  minimumProfitabilityPerAssignmentLongBps?: number | null;
+  minimumProfitabilityPerAssignmentShortBps?: number | null;
 }
 
 export interface FuturesAssignmentProgramHistory {
@@ -654,6 +660,8 @@ export interface FuturesAssignmentProgramHistory {
   timeFrame: 'all' | 'weekdays' | 'weekends';
   enabled: boolean;
   timestamp: string;
+  minimumProfitabilityPerAssignmentLongBps?: number | null;
+  minimumProfitabilityPerAssignmentShortBps?: number | null;
 }
 
 /**

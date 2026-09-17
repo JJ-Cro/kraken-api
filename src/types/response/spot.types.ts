@@ -2,9 +2,79 @@
  * Market Data
  */
 
+export type SpotAffectedService =
+  | 'spot_ws'
+  | 'spot_rest'
+  | 'spot_fix'
+  | 'spot_trading'
+  | 'futures_ws'
+  | 'futures_rest'
+  | 'futures_fix'
+  | 'futures_trading'
+  | 'all';
+
+export type SpotMaintenancePhase =
+  | 'announced'
+  | 'reminder_24h'
+  | 'approaching_30m'
+  | 'imminent_5m'
+  | 'final_warning_30s';
+
+export type SpotMaintenanceOrderSubmission =
+  | 'allowed'
+  | 'discouraged'
+  | 'blocked';
+
+export type SpotMaintenanceRecommendedAction =
+  | 'continue'
+  | 'reduce_activity'
+  | 'cancel_open_orders'
+  | 'stop_new_orders';
+
+export interface SpotScheduledMaintenanceEvent {
+  event_id: number;
+  title?: string;
+  expected_start_utc: string;
+  expected_end_utc?: string;
+  time_to_start_s?: number;
+  phase?: SpotMaintenancePhase;
+  affected_services?: SpotAffectedService[];
+  order_submission?: SpotMaintenanceOrderSubmission;
+  recommended_action?: SpotMaintenanceRecommendedAction;
+  cancel_before_utc?: string;
+  source_url?: string;
+}
+
+export interface SpotEmergencyNextStep {
+  applies_to?: SpotAffectedService[];
+  type?:
+    | 'expected_restart'
+    | 'expected_cancel_only'
+    | 'expected_post_only'
+    | 'expected_online';
+  expected_at_utc?: string;
+}
+
+export interface SpotEmergencyEvent {
+  event_id: number;
+  title?: string;
+  incident_status?: 'investigating' | 'identified' | 'monitoring';
+  impact?: 'none' | 'minor' | 'major' | 'critical';
+  affected_services?: SpotAffectedService[];
+  started_at_utc?: string;
+  next_steps?: SpotEmergencyNextStep[];
+  source_url?: string;
+}
+
 export interface SpotSystemStatus {
   status: 'online' | 'maintenance' | 'cancel_only' | 'post_only';
   timestamp: string;
+  upcoming_maintenance?: SpotScheduledMaintenanceEvent[];
+  emergency?: SpotEmergencyEvent[];
+}
+
+export interface SpotMaintenanceSchedule {
+  events: SpotScheduledMaintenanceEvent[];
 }
 
 export interface SpotAssetInfo {
@@ -30,7 +100,9 @@ export interface SpotAssetPair {
   lot_multiplier: number;
   leverage_buy?: number[];
   leverage_sell?: number[];
+  /** @deprecated Always empty as of 8 Sep 2026. Use SpotClient.getTradingVolume() with fee_schedule. */
   fees?: number[][];
+  /** @deprecated Always empty as of 8 Sep 2026. Use SpotClient.getTradingVolume() with fee_schedule. */
   fees_maker?: number[][];
   fee_volume_currency?: string;
   margin_call?: number;
@@ -138,9 +210,28 @@ export interface SpotRecentSpreadsResponse {
  * Account Data
  */
 
-/** @deprecated Kraken deprecated `.F` suffixed balance assets */
 export interface SpotAccountBalance {
   [assetName: string]: string;
+}
+
+export interface SpotWalletAccountFlags {
+  user_defined: boolean;
+  active: boolean;
+}
+
+export interface SpotWalletAccount {
+  account_id: string;
+  flags: SpotWalletAccountFlags;
+  status: 'active' | 'disabled' | 'closed' | 'unknown';
+  type: 'main' | 'spot' | 'pay' | 'prop_paper' | 'prop_real' | 'unknown';
+  name?: string | null;
+}
+
+export interface SpotListWalletAccountsResponse {
+  accounts: SpotWalletAccount[];
+  cursor: {
+    next: string | null;
+  };
 }
 
 export interface SpotExtendedBalanceAsset {
