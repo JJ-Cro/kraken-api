@@ -307,7 +307,7 @@ export class SpotClient extends BaseRestClient {
    *
    * Retrieve the wallet accounts associated with the authenticated user.
    */
-  listWalletAccounts(): Promise<
+  getWalletAccounts(): Promise<
     SpotAPISuccessResponse<SpotListWalletAccountsResponse>
   > {
     return this.postPrivate('0/private/ListWalletAccounts', { body: {} });

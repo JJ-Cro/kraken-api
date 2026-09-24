@@ -13,7 +13,7 @@ const client = new SpotClient({
   apiSecret: 'insert_api_secret_here',
 });
 
-client.listWalletAccounts(params)
+client.getWalletAccounts(params)
   .then((response) => {
     console.log(response);
   })

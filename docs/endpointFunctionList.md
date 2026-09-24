@@ -65,7 +65,7 @@ This table includes all endpoints from the official Exchange API docs and corres
 | [getRecentSpreads()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L266) |  | GET | `0/public/Spread` |
 | [getAccountBalance()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L284) | :closed_lock_with_key:  | POST | `0/private/Balance` |
 | [getApiKeyInfo()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L299) | :closed_lock_with_key:  | POST | `0/private/GetApiKeyInfo` |
-| [listWalletAccounts()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L310) | :closed_lock_with_key:  | POST | `0/private/ListWalletAccounts` |
+| [getWalletAccounts()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L310) | :closed_lock_with_key:  | POST | `0/private/ListWalletAccounts` |
 | [getExtendedBalance()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L322) | :closed_lock_with_key:  | POST | `0/private/BalanceEx` |
 | [getCreditLines()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L333) | :closed_lock_with_key:  | POST | `0/private/CreditLines` |
 | [getTradeBalance()](https://github.com/sieblyio/kraken-api/blob/main/src/SpotClient.ts#L344) | :closed_lock_with_key:  | POST | `0/private/TradeBalance` |
