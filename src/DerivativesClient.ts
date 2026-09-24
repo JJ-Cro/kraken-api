@@ -18,6 +18,7 @@ import {
   FuturesInitiateWalletTransferParams,
   FuturesMarketHistoryBaseParams,
   FuturesSendOrderParams,
+  FuturesSetRfqAssignmentMaxLeverageParams,
   FuturesSubmitToSpotParams,
   FuturesUpdateSelfTradeStrategyParams,
 } from './types/request/derivatives.types.js';
@@ -163,6 +164,17 @@ export class DerivativesClient extends BaseRestClient {
     DerivativesAPISuccessResponse<{ instruments: FuturesInstrument[] }>
   > {
     return this.get('derivatives/api/v3/instruments');
+  }
+
+  /**
+   * Get trading instruments
+   *
+   * Returns specifications for all currently accessible markets and indices.
+   */
+  getTradingInstruments(): Promise<
+    DerivativesAPISuccessResponse<{ instruments: FuturesInstrument[] }>
+  > {
+    return this.getPrivate('derivatives/api/v3/trading/instruments');
   }
 
   /**
@@ -377,6 +389,41 @@ export class DerivativesClient extends BaseRestClient {
     return this.putPrivate('derivatives/api/v3/leveragepreferences', {
       query: params,
     });
+  }
+
+  /**
+   * Get the off-book max leverage cap
+   *
+   * Returns the account-level off-book maximum leverage cap, or null when no cap is configured.
+   */
+  getRfqAssignmentMaxLeverage(): Promise<
+    DerivativesAPISuccessResponse<{ maxLeverage: number | null }>
+  > {
+    return this.getPrivate('derivatives/api/v3/rfq-assignment/max-leverage');
+  }
+
+  /**
+   * Set the off-book max leverage cap
+   *
+   * Sets the account-level off-book maximum leverage cap for the authenticated master account.
+   */
+  setRfqAssignmentMaxLeverage(
+    params: FuturesSetRfqAssignmentMaxLeverageParams,
+  ): Promise<DerivativesAPISuccessResponse<{ maxLeverage: number | null }>> {
+    return this.putPrivate('derivatives/api/v3/rfq-assignment/max-leverage', {
+      query: params,
+    });
+  }
+
+  /**
+   * Clear the off-book max leverage cap
+   *
+   * Clears the account-level off-book maximum leverage cap for the authenticated master account.
+   */
+  deleteRfqAssignmentMaxLeverage(): Promise<
+    DerivativesAPISuccessResponse<{ maxLeverage: number | null }>
+  > {
+    return this.deletePrivate('derivatives/api/v3/rfq-assignment/max-leverage');
   }
 
   /**

@@ -70,6 +70,11 @@ export interface SpotGetRecentSpreadsParams {
  * Account Data
  */
 
+export interface SpotGetAccountBalanceParams {
+  rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
+}
+
 export interface SpotGetApiKeyInfoParams {
   otp?: string;
 }
@@ -116,6 +121,14 @@ export interface SpotGetTradesHistoryParams {
   consolidate_taker?: boolean;
   ledgers?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
+  pair?: string;
+  aclass?:
+    | 'forex'
+    | 'equity_pair'
+    | 'futures_contract'
+    | 'synthetic_pair'
+    | 'external_pair';
+  limit?: number;
 }
 
 export interface SpotQueryTradesParams {
@@ -132,6 +145,7 @@ export interface SpotGetOpenPositionsParams {
 }
 
 export interface SpotGetLedgersInfoParams {
+  account_id?: string;
   asset?: string;
   aclass?: string;
   type?:
@@ -209,6 +223,7 @@ export interface SpotSubmitOrderParams {
   'close[price2]'?: string;
   deadline?: string;
   validate?: boolean;
+  broker?: string;
 }
 
 export interface SpotAmendOrderParams {

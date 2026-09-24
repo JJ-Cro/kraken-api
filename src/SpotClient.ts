@@ -6,6 +6,7 @@ import {
   OauthUpdateFastApiKeyParams,
   SpotAccountTransferParams,
   SpotAmendOrderParams,
+  SpotGetAccountBalanceParams,
   SpotGetApiKeyInfoParams,
   SpotGetAssetPairsParams,
   SpotGetClosedOrdersParams,
@@ -65,6 +66,8 @@ import {
   SpotLedgersInfoResponse,
   SpotLevel3OrderBookResponse,
   SpotListEarnAllocationsResponse,
+  SpotListWalletAccountsResponse,
+  SpotMaintenanceSchedule,
   SpotOHLCResponse,
   SpotOpenOrdersResponse,
   SpotOpenPositionsResponse,
@@ -147,6 +150,17 @@ export class SpotClient extends BaseRestClient {
    */
   getSystemStatus(): Promise<SpotAPISuccessResponse<SpotSystemStatus>> {
     return this.get('0/public/SystemStatus');
+  }
+
+  /**
+   * Get Maintenance Schedule
+   *
+   * Get all scheduled maintenance events in the next 7-day window.
+   */
+  getMaintenanceSchedule(): Promise<
+    SpotAPISuccessResponse<SpotMaintenanceSchedule>
+  > {
+    return this.get('0/public/MaintenanceSchedule');
   }
 
   /**
@@ -265,11 +279,16 @@ export class SpotClient extends BaseRestClient {
    * Get Account Balance
    *
    * Retrieve all cash balances, net of pending withdrawals.
+   * Pass account_id to retrieve balances for a specific wallet.
    */
-  getAccountBalance(params?: {
-    rebase_multiplier?: 'rebased' | 'base';
-  }): Promise<SpotAPISuccessResponse<SpotAccountBalance>> {
-    return this.postPrivate('0/private/Balance', { body: params });
+  getAccountBalance(
+    params?: SpotGetAccountBalanceParams,
+  ): Promise<SpotAPISuccessResponse<SpotAccountBalance>> {
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/Balance', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -281,6 +300,17 @@ export class SpotClient extends BaseRestClient {
     params?: SpotGetApiKeyInfoParams,
   ): Promise<SpotAPISuccessResponse<SpotApiKeyInfo>> {
     return this.postPrivate('0/private/GetApiKeyInfo', { body: params });
+  }
+
+  /**
+   * List Wallet Accounts
+   *
+   * Retrieve the wallet accounts associated with the authenticated user.
+   */
+  getWalletAccounts(): Promise<
+    SpotAPISuccessResponse<SpotListWalletAccountsResponse>
+  > {
+    return this.postPrivate('0/private/ListWalletAccounts', { body: {} });
   }
 
   /**
@@ -401,11 +431,16 @@ export class SpotClient extends BaseRestClient {
    * Get Ledgers Info
    *
    * Retrieve information about ledger entries. 50 results are returned at a time, the most recent by default.
+   * Pass account_id to retrieve ledger entries for a specific wallet.
    */
   getLedgersInfo(
     params?: SpotGetLedgersInfoParams,
   ): Promise<SpotAPISuccessResponse<SpotLedgersInfoResponse>> {
-    return this.postPrivate('0/private/Ledgers', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/Ledgers', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
