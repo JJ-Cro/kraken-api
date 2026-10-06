@@ -12,6 +12,8 @@ export const REST_CLIENT_TYPE_ENUM = {
   institutional: 'institutional',
   /** Partner */
   partner: 'partner',
+  /** Affiliate reporting */
+  affiliate: 'affiliate',
 } as const;
 
 export type RestClientType =
@@ -23,6 +25,7 @@ const krakenURLMap = {
   [REST_CLIENT_TYPE_ENUM.derivativesDemo]: 'https://demo-futures.kraken.com',
   [REST_CLIENT_TYPE_ENUM.institutional]: 'https://api.kraken.com',
   [REST_CLIENT_TYPE_ENUM.partner]: 'https://embed.kraken.com',
+  [REST_CLIENT_TYPE_ENUM.affiliate]: 'https://api.kraken.com',
 } as const;
 
 export interface RestClientOptions {

@@ -247,9 +247,14 @@ export interface SpotExtendedBalance {
 
 export interface SpotCreditLinesAsset {
   balance: string;
-  credit_limit: string;
+  /** @deprecated 30 Sep 2026. The credit limit field is credit. */
+  credit_limit?: string;
+  credit?: string;
   credit_used: string;
-  available_credit: string;
+  /** @deprecated 30 Sep 2026. Not returned. */
+  available_credit?: string;
+  rollover_fees?: string;
+  reserve_fees?: string;
 }
 
 export interface SpotCreditLinesMonitor {
@@ -318,6 +323,11 @@ export interface SpotOpenOrder {
   price: string;
   stopprice: string;
   limitprice: string;
+  displayvol?: string;
+  displayvolremain?: string;
+  ext_ord_id?: string;
+  link_id?: string;
+  reduce_only?: boolean;
   trigger?: 'last' | 'index';
   margin?: boolean;
   misc: string;
@@ -331,10 +341,15 @@ export interface SpotOpenOrder {
   trades?: string[];
 }
 
+export interface SpotPageCursor {
+  next: string | null;
+}
+
 export interface SpotOpenOrdersResponse {
   open: {
     [orderId: string]: SpotOpenOrder;
   };
+  cursor?: SpotPageCursor | null;
 }
 
 export interface SpotClosedOrder extends SpotOpenOrder {
@@ -347,6 +362,7 @@ export interface SpotClosedOrdersResponse {
     [orderId: string]: SpotClosedOrder;
   };
   count?: number;
+  cursor?: SpotPageCursor | null;
 }
 
 export interface SpotQueryOrdersResponse {
@@ -388,6 +404,7 @@ export interface SpotTrade {
   ledgers?: string[];
   trade_id: number;
   maker: boolean;
+  ext_exec_id?: string;
   posstatus?: string;
   cprice?: number;
   ccost?: number;
@@ -403,6 +420,7 @@ export interface SpotTradesHistoryResponse {
   trades: {
     [tradeId: string]: SpotTrade;
   };
+  cursor?: SpotPageCursor | null;
 }
 
 export interface SpotQueryTradesResponse {
@@ -411,6 +429,7 @@ export interface SpotQueryTradesResponse {
 
 export interface SpotOpenPosition {
   ordertxid: string;
+  class?: string;
   posstatus: 'open';
   pair: string;
   time: number;
@@ -432,6 +451,25 @@ export interface SpotOpenPosition {
 export interface SpotOpenPositionsResponse {
   [positionId: string]: SpotOpenPosition;
 }
+
+export interface SpotConsolidatedOpenPosition {
+  pair: string;
+  class: string;
+  positions: string;
+  type: string;
+  leverage: string;
+  cost: string;
+  fee: string;
+  vol: string;
+  vol_closed: string;
+  margin: string;
+  value?: string;
+  net?: string;
+}
+
+export type SpotOpenPositionsResult =
+  | SpotOpenPositionsResponse
+  | SpotConsolidatedOpenPosition[];
 
 export interface SpotLedgerEntry {
   refid: string;
@@ -470,11 +508,16 @@ export interface SpotLedgersInfoResponse {
   ledger: {
     [ledgerId: string]: SpotLedgerEntry;
   };
-  count?: number;
+  count?: number | null;
+  cursor?: SpotPageCursor | null;
+}
+
+export interface SpotQueryLedgerEntry extends SpotLedgerEntry {
+  amount_token?: string;
 }
 
 export interface SpotQueryLedgersResponse {
-  [ledgerId: string]: SpotLedgerEntry;
+  [ledgerId: string]: SpotQueryLedgerEntry;
 }
 
 export interface SpotFeeTierInfo {

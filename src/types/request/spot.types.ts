@@ -83,7 +83,12 @@ export interface SpotGetOpenOrdersParams {
   trades?: boolean;
   userref?: number;
   cl_ord_id?: string;
+  consolidate_taker?: boolean;
+  with_cursor?: boolean;
+  limit?: number;
+  cursor?: string;
   rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
 }
 
 export interface SpotGetClosedOrdersParams {
@@ -92,19 +97,25 @@ export interface SpotGetClosedOrdersParams {
   cl_ord_id?: string;
   start?: number;
   end?: number;
+  /** @deprecated 30 Sep 2026. Use with_cursor and cursor. Must be absent or 0 when with_cursor is true. */
   ofs?: number;
+  with_cursor?: boolean;
+  cursor?: string;
   closetime?: 'open' | 'close' | 'both';
   consolidate_taker?: boolean;
   without_count?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
 }
 
 export interface SpotQueryOrdersParams {
   trades?: boolean;
   userref?: number;
   txid: string;
+  cl_ord_id?: string;
   consolidate_taker?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
 }
 
 export interface SpotGetTradesHistoryParams {
@@ -117,11 +128,15 @@ export interface SpotGetTradesHistoryParams {
   trades?: boolean;
   start?: number;
   end?: number;
+  /** @deprecated 30 Sep 2026. Use with_cursor and cursor. Must be absent or 0 when with_cursor is true. */
   ofs?: number;
+  with_cursor?: boolean;
+  cursor?: string;
   consolidate_taker?: boolean;
   ledgers?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
   pair?: string;
+  account_id?: string;
   aclass?:
     | 'forex'
     | 'equity_pair'
@@ -134,7 +149,9 @@ export interface SpotGetTradesHistoryParams {
 export interface SpotQueryTradesParams {
   txid: string;
   trades?: boolean;
+  ledgers?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
 }
 
 export interface SpotGetOpenPositionsParams {
@@ -142,11 +159,13 @@ export interface SpotGetOpenPositionsParams {
   docalcs?: boolean;
   consolidation?: 'market';
   rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
 }
 
 export interface SpotGetLedgersInfoParams {
   account_id?: string;
-  asset?: string;
+  asset?: string | SpotTradeVolumePairInput[];
+  /** @deprecated 30 Sep 2026. Use the { asset, aclass } list form of asset. */
   aclass?: string;
   type?:
     | 'all'
@@ -165,15 +184,20 @@ export interface SpotGetLedgersInfoParams {
     | 'nft_rebate';
   start?: number;
   end?: number;
+  /** @deprecated 6 Oct 2026. Use with_cursor and cursor. Must be absent or 0 when with_cursor is true. */
   ofs?: number;
+  with_cursor?: boolean;
+  cursor?: string;
   without_count?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
 }
 
 export interface SpotQueryLedgersParams {
   id: string;
+  /** @deprecated 30 Sep 2026. Do not rely on this parameter. */
   trades?: boolean;
   rebase_multiplier?: 'rebased' | 'base';
+  account_id?: string;
 }
 
 export interface SpotRequestExportReportParams {

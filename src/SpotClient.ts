@@ -70,7 +70,7 @@ import {
   SpotMaintenanceSchedule,
   SpotOHLCResponse,
   SpotOpenOrdersResponse,
-  SpotOpenPositionsResponse,
+  SpotOpenPositionsResult,
   SpotOrderAmendsResponse,
   SpotOrderBookResponse,
   SpotPostTradeDataResponse,
@@ -321,8 +321,13 @@ export class SpotClient extends BaseRestClient {
    */
   getExtendedBalance(params?: {
     rebase_multiplier?: 'rebased' | 'base';
+    account_id?: string;
   }): Promise<SpotAPISuccessResponse<SpotExtendedBalance>> {
-    return this.postPrivate('0/private/BalanceEx', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/BalanceEx', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -332,8 +337,13 @@ export class SpotClient extends BaseRestClient {
    */
   getCreditLines(params?: {
     rebase_multiplier?: 'rebased' | 'base';
+    account_id?: string;
   }): Promise<SpotAPISuccessResponse<SpotCreditLines | null>> {
-    return this.postPrivate('0/private/CreditLines', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/CreditLines', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -343,8 +353,13 @@ export class SpotClient extends BaseRestClient {
    */
   getTradeBalance(params?: {
     rebase_multiplier?: 'rebased' | 'base';
+    account_id?: string;
   }): Promise<SpotAPISuccessResponse<SpotTradeBalance>> {
-    return this.postPrivate('0/private/TradeBalance', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/TradeBalance', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -355,7 +370,11 @@ export class SpotClient extends BaseRestClient {
   getOpenOrders(
     params?: SpotGetOpenOrdersParams,
   ): Promise<SpotAPISuccessResponse<SpotOpenOrdersResponse>> {
-    return this.postPrivate('0/private/OpenOrders', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/OpenOrders', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -367,7 +386,11 @@ export class SpotClient extends BaseRestClient {
   getClosedOrders(
     params?: SpotGetClosedOrdersParams,
   ): Promise<SpotAPISuccessResponse<SpotClosedOrdersResponse>> {
-    return this.postPrivate('0/private/ClosedOrders', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/ClosedOrders', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -378,7 +401,11 @@ export class SpotClient extends BaseRestClient {
   getOrders(
     params: SpotQueryOrdersParams,
   ): Promise<SpotAPISuccessResponse<SpotQueryOrdersResponse>> {
-    return this.postPrivate('0/private/QueryOrders', { body: params });
+    const { account_id, ...body } = params;
+    return this.postPrivate('0/private/QueryOrders', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -390,8 +417,13 @@ export class SpotClient extends BaseRestClient {
   getOrderAmends(params: {
     order_id: string;
     rebase_multiplier?: 'rebased' | 'base';
+    account_id?: string;
   }): Promise<SpotAPISuccessResponse<SpotOrderAmendsResponse>> {
-    return this.postPrivate('0/private/OrderAmends', { body: params });
+    const { account_id, ...body } = params;
+    return this.postPrivate('0/private/OrderAmends', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -402,7 +434,11 @@ export class SpotClient extends BaseRestClient {
   getTradesHistory(
     params?: SpotGetTradesHistoryParams,
   ): Promise<SpotAPISuccessResponse<SpotTradesHistoryResponse>> {
-    return this.postPrivate('0/private/TradesHistory', { body: params });
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/TradesHistory', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -413,7 +449,11 @@ export class SpotClient extends BaseRestClient {
   getTrades(
     params: SpotQueryTradesParams,
   ): Promise<SpotAPISuccessResponse<SpotQueryTradesResponse>> {
-    return this.postPrivate('0/private/QueryTrades', { body: params });
+    const { account_id, ...body } = params;
+    return this.postPrivate('0/private/QueryTrades', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -423,8 +463,12 @@ export class SpotClient extends BaseRestClient {
    */
   getOpenPositions(
     params?: SpotGetOpenPositionsParams,
-  ): Promise<SpotAPISuccessResponse<SpotOpenPositionsResponse>> {
-    return this.postPrivate('0/private/OpenPositions', { body: params });
+  ): Promise<SpotAPISuccessResponse<SpotOpenPositionsResult>> {
+    const { account_id, ...body } = params ?? {};
+    return this.postPrivate('0/private/OpenPositions', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
@@ -451,7 +495,11 @@ export class SpotClient extends BaseRestClient {
   getLedgers(
     params: SpotQueryLedgersParams,
   ): Promise<SpotAPISuccessResponse<SpotQueryLedgersResponse>> {
-    return this.postPrivate('0/private/QueryLedgers', { body: params });
+    const { account_id, ...body } = params;
+    return this.postPrivate('0/private/QueryLedgers', {
+      body,
+      query: account_id ? { account_id } : undefined,
+    });
   }
 
   /**
