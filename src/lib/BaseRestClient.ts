@@ -42,6 +42,7 @@ interface SignedRequest<
   queryParamsWithSign: string;
   timestamp: number;
   recvWindow: number;
+  nonce?: string;
 }
 
 interface UnsignedRequest<T extends object | undefined = {}> {
@@ -589,6 +590,47 @@ export abstract class BaseRestClient {
 
           break;
         }
+        case REST_CLIENT_TYPE_ENUM.affiliate: {
+          const nonce = this.getNextRequestNonce();
+          const serialisedQueryParams = serializeParams(
+            res.requestQuery,
+            strictParamValidation,
+            encodeQueryStringValues,
+            prefixWith,
+            repeatArrayValuesAsKVPairs,
+          );
+
+          const bodyForSign =
+            method === 'GET' || isEmptyObject(res.requestData, true)
+              ? ''
+              : JSON.stringify(res.requestData);
+          const signedPath = serialisedQueryParams
+            ? `${endpoint}?${serialisedQueryParams}`
+            : endpoint;
+          const signInput = `${nonce}${bodyForSign}`;
+
+          if (!this.hasAccessToken()) {
+            const signMessageInput =
+              signedPath + (await hashMessage(signInput, 'binary', 'SHA-256'));
+
+            const sign = await this.signMessage(
+              signMessageInput,
+              this.apiSecret!,
+              'base64',
+              'SHA-512',
+              {
+                isSecretB64Encoded: true,
+                isInputBinaryString: true,
+              },
+            );
+
+            res.sign = sign;
+          }
+
+          res.nonce = nonce;
+          res.queryParamsWithSign = serialisedQueryParams;
+          break;
+        }
         case REST_CLIENT_TYPE_ENUM.derivatives: {
           const serialisedQueryParams = serializeParams(
             res.requestQuery,
@@ -744,6 +786,15 @@ export abstract class BaseRestClient {
           'API-Key': this.apiKey,
           'API-Sign': signResult.sign,
           'Content-Type': 'application/json',
+          Accept: 'application/json',
+        };
+        break;
+      }
+      case REST_CLIENT_TYPE_ENUM.affiliate: {
+        signHeaders = {
+          'API-Key': this.apiKey,
+          'API-Sign': signResult.sign,
+          'API-Nonce': signResult.nonce ?? '',
           Accept: 'application/json',
         };
         break;
