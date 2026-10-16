@@ -956,7 +956,6 @@ import { DerivativesClient } from '@siebly/kraken-api';
 const client = new DerivativesClient({
   apiKey: process.env.API_FUTURES_KEY!,
   apiSecret: process.env.API_FUTURES_SECRET!,
-  // testnet: true throws. Kraken retired the Futures demo on 14 July 2026.
 });
 ```
 
