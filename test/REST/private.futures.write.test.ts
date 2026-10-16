@@ -55,7 +55,7 @@ describe('REST PRIVATE FUTURES LIVE READ', () => {
       }
     });
 
-    it('should succeed calling getAssignmentPrograms', async () => {
+    it('should get assignment programs or report unaccepted terms', async () => {
       try {
         const res = await rest.getAssignmentPrograms();
 
@@ -65,11 +65,15 @@ describe('REST PRIVATE FUTURES LIVE READ', () => {
         });
       } catch (e: any) {
         console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
-        expect(e).not.toBeDefined();
+        // Live accounts may not have accepted the assignment program terms.
+        expect(e?.body).toMatchObject({
+          result: 'error',
+          error: 'assignmentProgramTermsNotAcceptedFrontend',
+        });
       }
     });
 
-    it('should succeed calling getAssignmentPreferencesHistory', async () => {
+    it('should get assignment preferences history or report unaccepted terms', async () => {
       try {
         const res = await rest.getAssignmentPreferencesHistory();
 
@@ -79,7 +83,11 @@ describe('REST PRIVATE FUTURES LIVE READ', () => {
         });
       } catch (e: any) {
         console.log(`err "${expect.getState().currentTestName}"`, e?.body || e);
-        expect(e).not.toBeDefined();
+        // Live accounts may not have accepted the assignment program terms.
+        expect(e?.body).toMatchObject({
+          result: 'error',
+          error: 'assignmentProgramTermsNotAcceptedFrontend',
+        });
       }
     });
 
@@ -101,8 +109,8 @@ describe('REST PRIVATE FUTURES LIVE READ', () => {
       try {
         const res = await rest.getOrderEvents();
 
+        // History responses do not include the trading API's result field.
         expect(res).toMatchObject({
-          result: 'success',
           elements: expect.any(Array),
         });
       } catch (e: any) {
@@ -115,8 +123,8 @@ describe('REST PRIVATE FUTURES LIVE READ', () => {
       try {
         const res = await rest.getExecutionEvents();
 
+        // History responses do not include the trading API's result field.
         expect(res).toMatchObject({
-          result: 'success',
           elements: expect.any(Array),
         });
       } catch (e: any) {
