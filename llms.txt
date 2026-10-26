@@ -72,6 +72,7 @@ examples/
     Public/
       marketData.ts
     WebSockets/
+      orderbookLocalWs.ts
       privateWs.ts
       publicWs.ts
       wsAPI.RAW.ts
@@ -2188,6 +2189,194 @@ File: .prettierrc
 }
 
 ================
+File: jest.config.ts
+================
+/**
+ * For a detailed explanation regarding each configuration property, visit:
+ * https://jestjs.io/docs/configuration
+ */
+⋮----
+import type { Config } from 'jest';
+⋮----
+// All imported modules in your tests should be mocked automatically
+// automock: false,
+⋮----
+// Stop running tests after `n` failures
+// bail: 0,
+bail: false, // enable to stop test when an error occur,
+⋮----
+// The directory where Jest should store its cached dependency information
+// cacheDirectory: "/private/var/folders/kf/2k3sz4px6c9cbyzj1h_b192h0000gn/T/jest_dx",
+⋮----
+// Automatically clear mock calls, instances, contexts and results before every test
+⋮----
+// Indicates whether the coverage information should be collected while executing the test
+⋮----
+// An array of glob patterns indicating a set of files for which coverage information should be collected
+⋮----
+// The directory where Jest should output its coverage files
+⋮----
+// An array of regexp pattern strings used to skip coverage collection
+// coveragePathIgnorePatterns: [
+//   "/node_modules/"
+// ],
+⋮----
+// Indicates which provider should be used to instrument code for coverage
+⋮----
+// A list of reporter names that Jest uses when writing coverage reports
+// coverageReporters: [
+//   "json",
+//   "text",
+//   "lcov",
+//   "clover"
+// ],
+⋮----
+// An object that configures minimum threshold enforcement for coverage results
+// coverageThreshold: undefined,
+⋮----
+// A path to a custom dependency extractor
+// dependencyExtractor: undefined,
+⋮----
+// Make calling deprecated APIs throw helpful error messages
+// errorOnDeprecated: false,
+⋮----
+// The default configuration for fake timers
+// fakeTimers: {
+//   "enableGlobally": false
+// },
+⋮----
+// Force coverage collection from ignored files using an array of glob patterns
+// forceCoverageMatch: [],
+⋮----
+// A path to a module which exports an async function that is triggered once before all test suites
+// globalSetup: undefined,
+⋮----
+// A path to a module which exports an async function that is triggered once after all test suites
+// globalTeardown: undefined,
+⋮----
+// A set of global variables that need to be available in all test environments
+// globals: {},
+⋮----
+// The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
+maxWorkers: '1', // run tests sequentially to avoid nonce issues
+⋮----
+// An array of directory names to be searched recursively up from the requiring module's location
+// moduleDirectories: [
+//   "node_modules"
+// ],
+⋮----
+// An array of file extensions your modules use
+⋮----
+// modulePaths: ['src'],
+⋮----
+// A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
+// moduleNameMapper: {},
+⋮----
+// An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
+// modulePathIgnorePatterns: [],
+⋮----
+// Activates notifications for test results
+// notify: false,
+⋮----
+// An enum that specifies notification mode. Requires { notify: true }
+// notifyMode: "failure-change",
+⋮----
+// A preset that is used as a base for Jest's configuration
+// preset: undefined,
+⋮----
+// Run tests from one or more projects
+// projects: undefined,
+⋮----
+// Use this configuration option to add custom reporters to Jest
+// reporters: undefined,
+⋮----
+// Automatically reset mock state before every test
+// resetMocks: false,
+⋮----
+// Reset the module registry before running each individual test
+// resetModules: false,
+⋮----
+// A path to a custom resolver
+// resolver: undefined,
+⋮----
+// Automatically restore mock state and implementation before every test
+// restoreMocks: false,
+⋮----
+// The root directory that Jest should scan for tests and modules within
+// rootDir: undefined,
+⋮----
+// A list of paths to directories that Jest should use to search for files in
+// roots: [
+//   "<rootDir>"
+// ],
+⋮----
+// Allows you to use a custom runner instead of Jest's default test runner
+// runner: "jest-runner",
+⋮----
+// The paths to modules that run some code to configure or set up the testing environment before each test
+// setupFiles: [],
+⋮----
+// A list of paths to modules that run some code to configure or set up the testing framework before each test
+// setupFilesAfterEnv: [],
+⋮----
+// The number of seconds after which a test is considered as slow and reported as such in the results.
+// slowTestThreshold: 5,
+⋮----
+// A list of paths to snapshot serializer modules Jest should use for snapshot testing
+// snapshotSerializers: [],
+⋮----
+// The test environment that will be used for testing
+// testEnvironment: "jest-environment-node",
+⋮----
+// Options that will be passed to the testEnvironment
+// testEnvironmentOptions: {},
+⋮----
+// Adds a location field to test results
+// testLocationInResults: false,
+⋮----
+// The glob patterns Jest uses to detect test files
+⋮----
+// "**/__tests__/**/*.[jt]s?(x)",
+⋮----
+// An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
+// testPathIgnorePatterns: [
+//   "/node_modules/"
+// ],
+⋮----
+// The regexp pattern or array of patterns that Jest uses to detect test files
+// testRegex: [],
+⋮----
+// This option allows the use of a custom results processor
+// testResultsProcessor: undefined,
+⋮----
+// This option allows use of a custom test runner
+// testRunner: "jest-circus/runner",
+⋮----
+// A map from regular expressions to paths to transformers
+// transform: undefined,
+⋮----
+// An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
+// transformIgnorePatterns: [
+//   "/node_modules/",
+//   "\\.pnp\\.[^\\/]+$"
+// ],
+⋮----
+// Prevents import esm module error from v1 axios release, issue #5026
+⋮----
+// An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
+// unmockedModulePathPatterns: undefined,
+⋮----
+// Indicates whether each individual test should be reported during the run
+// verbose: undefined,
+verbose: true, // report individual test
+⋮----
+// An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
+// watchPathIgnorePatterns: [],
+⋮----
+// Whether to use watchman for file crawling
+// watchman: true,
+
+================
 File: LICENSE.md
 ================
 Copyright 2025 Tiago Siebler
@@ -3333,6 +3522,70 @@ validate: true, // Only validate, don't submit
 // submitLimitOrderWithFlags();
 // submitBatchOrders();
 // submitBatchOrdersValidateOnly();
+
+================
+File: examples/Spot/WebSockets/orderbookLocalWs.ts
+================
+/**
+ * Maintain a local BTC/USD Spot book, validate CRC32 checksums, resubscribe on
+ * mismatch, and log the best bid and ask after each valid snapshot or update.
+ * From the repo root, install dependencies with `npm ci`, then run:
+ * TS_NODE_COMPILER_OPTIONS='{"module":"ESNext"}' node --loader ts-node/esm examples/Spot/WebSockets/orderbookLocalWs.ts
+ * No API credentials are required.
+ */
+import { WebsocketClient, WSTopicRequest } from '../../../src/index.js';
+// Installed SDK: import { WebsocketClient, WSTopicRequest } from '@siebly/kraken-api';
+⋮----
+interface Level {
+  price: number | string;
+  qty: number | string;
+}
+⋮----
+interface Book {
+  asks: Map<string, Level>;
+  bids: Map<string, Level>;
+}
+⋮----
+type BookMessage = {
+  channel: 'book';
+  type: 'snapshot' | 'update';
+  data?: {
+    symbol: string;
+    asks?: Level[];
+    bids?: Level[];
+    checksum: number;
+  }[];
+};
+⋮----
+type InstrumentMessage = {
+  channel: 'instrument';
+  data?: {
+    pairs?: {
+      symbol: string;
+      price_precision: number;
+      qty_precision: number;
+    }[];
+  };
+};
+⋮----
+// instrument: price_precision / qty_precision. REST AssetPairs: pair_decimals / lot_decimals.
+⋮----
+// JSON.parse drops trailing zeros. Restore pair precision before removing the
+// decimal point and leading zeros (0.1 at qty precision 8 becomes 10000000).
+function token(value: number | string, decimals: number)
+⋮----
+function crc32(text: string)
+⋮----
+function sorted(side: Map<string, Level>, highFirst: boolean)
+⋮----
+// WebsocketClient handles reconnects, heartbeats and resubscription after a
+// reconnect; this example maintains the local book and handles checksum resync.
+⋮----
+// CRC32 of the top 10 asks (low to high), then bids (high to low).
+// https://docs.kraken.com/exchange/guides/websockets/book-checksum-v2
+const sideText = (levels: Level[])
+⋮----
+// Drop the mismatched book and subscribe again for a fresh snapshot.
 
 ================
 File: examples/Spot/WebSockets/privateWs.ts
@@ -6135,194 +6388,6 @@ File: .nvmrc
 v24.18.0
 
 ================
-File: jest.config.ts
-================
-/**
- * For a detailed explanation regarding each configuration property, visit:
- * https://jestjs.io/docs/configuration
- */
-⋮----
-import type { Config } from 'jest';
-⋮----
-// All imported modules in your tests should be mocked automatically
-// automock: false,
-⋮----
-// Stop running tests after `n` failures
-// bail: 0,
-bail: false, // enable to stop test when an error occur,
-⋮----
-// The directory where Jest should store its cached dependency information
-// cacheDirectory: "/private/var/folders/kf/2k3sz4px6c9cbyzj1h_b192h0000gn/T/jest_dx",
-⋮----
-// Automatically clear mock calls, instances, contexts and results before every test
-⋮----
-// Indicates whether the coverage information should be collected while executing the test
-⋮----
-// An array of glob patterns indicating a set of files for which coverage information should be collected
-⋮----
-// The directory where Jest should output its coverage files
-⋮----
-// An array of regexp pattern strings used to skip coverage collection
-// coveragePathIgnorePatterns: [
-//   "/node_modules/"
-// ],
-⋮----
-// Indicates which provider should be used to instrument code for coverage
-⋮----
-// A list of reporter names that Jest uses when writing coverage reports
-// coverageReporters: [
-//   "json",
-//   "text",
-//   "lcov",
-//   "clover"
-// ],
-⋮----
-// An object that configures minimum threshold enforcement for coverage results
-// coverageThreshold: undefined,
-⋮----
-// A path to a custom dependency extractor
-// dependencyExtractor: undefined,
-⋮----
-// Make calling deprecated APIs throw helpful error messages
-// errorOnDeprecated: false,
-⋮----
-// The default configuration for fake timers
-// fakeTimers: {
-//   "enableGlobally": false
-// },
-⋮----
-// Force coverage collection from ignored files using an array of glob patterns
-// forceCoverageMatch: [],
-⋮----
-// A path to a module which exports an async function that is triggered once before all test suites
-// globalSetup: undefined,
-⋮----
-// A path to a module which exports an async function that is triggered once after all test suites
-// globalTeardown: undefined,
-⋮----
-// A set of global variables that need to be available in all test environments
-// globals: {},
-⋮----
-// The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
-maxWorkers: '1', // run tests sequentially to avoid nonce issues
-⋮----
-// An array of directory names to be searched recursively up from the requiring module's location
-// moduleDirectories: [
-//   "node_modules"
-// ],
-⋮----
-// An array of file extensions your modules use
-⋮----
-// modulePaths: ['src'],
-⋮----
-// A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-// moduleNameMapper: {},
-⋮----
-// An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
-// modulePathIgnorePatterns: [],
-⋮----
-// Activates notifications for test results
-// notify: false,
-⋮----
-// An enum that specifies notification mode. Requires { notify: true }
-// notifyMode: "failure-change",
-⋮----
-// A preset that is used as a base for Jest's configuration
-// preset: undefined,
-⋮----
-// Run tests from one or more projects
-// projects: undefined,
-⋮----
-// Use this configuration option to add custom reporters to Jest
-// reporters: undefined,
-⋮----
-// Automatically reset mock state before every test
-// resetMocks: false,
-⋮----
-// Reset the module registry before running each individual test
-// resetModules: false,
-⋮----
-// A path to a custom resolver
-// resolver: undefined,
-⋮----
-// Automatically restore mock state and implementation before every test
-// restoreMocks: false,
-⋮----
-// The root directory that Jest should scan for tests and modules within
-// rootDir: undefined,
-⋮----
-// A list of paths to directories that Jest should use to search for files in
-// roots: [
-//   "<rootDir>"
-// ],
-⋮----
-// Allows you to use a custom runner instead of Jest's default test runner
-// runner: "jest-runner",
-⋮----
-// The paths to modules that run some code to configure or set up the testing environment before each test
-// setupFiles: [],
-⋮----
-// A list of paths to modules that run some code to configure or set up the testing framework before each test
-// setupFilesAfterEnv: [],
-⋮----
-// The number of seconds after which a test is considered as slow and reported as such in the results.
-// slowTestThreshold: 5,
-⋮----
-// A list of paths to snapshot serializer modules Jest should use for snapshot testing
-// snapshotSerializers: [],
-⋮----
-// The test environment that will be used for testing
-// testEnvironment: "jest-environment-node",
-⋮----
-// Options that will be passed to the testEnvironment
-// testEnvironmentOptions: {},
-⋮----
-// Adds a location field to test results
-// testLocationInResults: false,
-⋮----
-// The glob patterns Jest uses to detect test files
-⋮----
-// "**/__tests__/**/*.[jt]s?(x)",
-⋮----
-// An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-// testPathIgnorePatterns: [
-//   "/node_modules/"
-// ],
-⋮----
-// The regexp pattern or array of patterns that Jest uses to detect test files
-// testRegex: [],
-⋮----
-// This option allows the use of a custom results processor
-// testResultsProcessor: undefined,
-⋮----
-// This option allows use of a custom test runner
-// testRunner: "jest-circus/runner",
-⋮----
-// A map from regular expressions to paths to transformers
-// transform: undefined,
-⋮----
-// An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-// transformIgnorePatterns: [
-//   "/node_modules/",
-//   "\\.pnp\\.[^\\/]+$"
-// ],
-⋮----
-// Prevents import esm module error from v1 axios release, issue #5026
-⋮----
-// An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
-// unmockedModulePathPatterns: undefined,
-⋮----
-// Indicates whether each individual test should be reported during the run
-// verbose: undefined,
-verbose: true, // report individual test
-⋮----
-// An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
-// watchPathIgnorePatterns: [],
-⋮----
-// Whether to use watchman for file crawling
-// watchman: true,
-
-================
 File: examples/Derivatives/Private/testnet.ts
 ================
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -6990,6 +7055,307 @@ export function getNormalisedTopicRequests(
 // passed as string, convert to object
 ⋮----
 // already a normalised object, thanks to user
+
+================
+File: src/lib/BaseRestClient.ts
+================
+import axios, { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
+// NOTE: https.Agent is Node.js-only and not available in browser environments
+// Browser builds (via webpack) exclude this module - see webpack.config.js fallback settings
+import https from 'https';
+⋮----
+import { neverGuard } from './misc-util.js';
+import {
+  APIIDMain,
+  APIIDMainKey,
+  getRestBaseUrl,
+  isEmptyObject,
+  REST_CLIENT_TYPE_ENUM,
+  RestClientOptions,
+  RestClientType,
+  serializeParams,
+} from './requestUtils.js';
+import {
+  checkWebCryptoAPISupported,
+  hashMessage,
+  SignAlgorithm,
+  SignEncodeMethod,
+  signMessage,
+  SignMessageOptions,
+} from './webCryptoAPI.js';
+⋮----
+interface SignedRequest<
+  T extends object | undefined = {},
+  TReqData = object,
+  TReqQuery = object,
+> {
+  originalParams: T;
+  paramsWithSign?: T & { sign: string };
+  // all request params intended for request body (e.g. POST)
+  requestData?: TReqData;
+  // all params intended for request query string (e.g. GET)
+  requestQuery?: TReqQuery;
+  serializedParams: string;
+  sign: string;
+  queryParamsWithSign: string;
+  timestamp: number;
+  recvWindow: number;
+  nonce?: string;
+}
+⋮----
+// all request params intended for request body (e.g. POST)
+⋮----
+// all params intended for request query string (e.g. GET)
+⋮----
+interface UnsignedRequest<T extends object | undefined = {}> {
+  originalParams: T;
+  paramsWithSign: T;
+  queryParamsWithSign: undefined;
+}
+⋮----
+type SignMethod = 'kraken';
+⋮----
+/**
+ * Some requests require some params to be in the query string and some in the body. Some even support passing params via headers.
+ * This type anticipates these are possible in any combination.
+ *
+ * The request builder will automatically handle where parameters should go.
+ */
+type ParamsInQueryBodyOrHeader = {
+  query?: object;
+  body?: object;
+  headers?: object;
+};
+⋮----
+// request: {
+//   url: response.config.url,
+//   method: response.config.method,
+//   data: response.config.data,
+//   headers: response.config.headers,
+// },
+⋮----
+/**
+ * Impure, mutates params to remove any values that have a key but are undefined.
+ */
+function deleteUndefinedValues(params?: any): void
+⋮----
+export abstract class BaseRestClient
+⋮----
+// A unique incrementing nonce
+⋮----
+/** Defines the client type (affecting how requests & signatures behave) */
+abstract getClientType(): RestClientType;
+⋮----
+/**
+   * Create an instance of the REST client. Pass API credentials in the object in the first parameter.
+   * @param {RestClientOptions} [restClientOptions={}] options to configure REST API connectivity
+   * @param {AxiosRequestConfig} [networkOptions={}] HTTP networking options for axios
+   */
+constructor(
+    restClientOptions: RestClientOptions = {},
+    networkOptions: AxiosRequestConfig = {},
+)
+⋮----
+/** Throw errors if any request params are empty */
+⋮----
+/** in ms == 5 minutes by default */
+⋮----
+/** inject custom request options based on axios specs - see axios docs for more guidance on AxiosRequestConfig: https://github.com/axios/axios#request-config */
+⋮----
+// If enabled, configure a https agent with keepAlive enabled
+// NOTE: This is Node.js-only functionality. In browser environments, this code is skipped
+// as the 'https' module is excluded via webpack fallback configuration.
+// Browser connection pooling is handled automatically by the browser itself.
+⋮----
+// Extract existing https agent parameters, if provided, to prevent the keepAlive flag from overwriting an existing https agent completely
+⋮----
+// For more advanced configuration, raise an issue on GitHub or use the "networkOptions"
+// parameter to define a custom httpsAgent with the desired properties
+⋮----
+// Check Web Crypto API support when credentials are provided
+⋮----
+// Throw if one of the 3 values is missing, but at least one of them is set
+⋮----
+/**
+   * Generates a timestamp for signing API requests.
+   *
+   * This method can be overridden or customized using `customTimestampFn`
+   * to implement a custom timestamp synchronization mechanism.
+   * If no custom function is provided, it defaults to the current system time.
+   */
+private getSignTimestampMs(): number
+⋮----
+private getNextRequestNonce(): string
+⋮----
+private hasValidCredentials()
+⋮----
+setAccessToken(newAccessToken: string)
+⋮----
+hasAccessToken(): boolean
+⋮----
+protected get(endpoint: string, params?: object)
+⋮----
+// GET only supports params in the query string
+⋮----
+protected post(endpoint: string, params?: ParamsInQueryBodyOrHeader)
+⋮----
+protected getPrivate(endpoint: string, params?: object)
+⋮----
+// GET only supports params in the query string
+⋮----
+protected postPrivate(endpoint: string, params?: ParamsInQueryBodyOrHeader)
+⋮----
+protected deletePrivate(
+    endpoint: string,
+    params?: ParamsInQueryBodyOrHeader,
+)
+⋮----
+protected putPrivate(endpoint: string, params?: ParamsInQueryBodyOrHeader)
+⋮----
+// protected patchPrivate(endpoint: string, params?: any) {
+protected patchPrivate(endpoint: string, params?: ParamsInQueryBodyOrHeader)
+⋮----
+/**
+   * @private Make a HTTP request to a specific endpoint. Private endpoint API calls are automatically signed.
+   */
+private async _call(
+    method: Method,
+    endpoint: string,
+    params?: ParamsInQueryBodyOrHeader,
+    isPublicApi?: boolean,
+): Promise<any>
+⋮----
+// Sanity check to make sure it's only ever prefixed by one forward slash
+⋮----
+// Build a request and handle signature process
+⋮----
+// Dispatch request
+⋮----
+// Throw if API returns an error (e.g. insufficient balance)
+⋮----
+// const res = {
+//   result: 'error',
+//   error: 'authenticationError',
+//   serverTime: '2025-10-29T15:02:39.341Z',
+// };
+⋮----
+/**
+   * @private generic handler to parse request exceptions
+   */
+parseException(e: any, requestParams: any): unknown
+⋮----
+// Something happened in setting up the request that triggered an error
+⋮----
+// request made but no response received
+⋮----
+// The request was made and the server responded with a status code
+// that falls out of the range of 2xx
+⋮----
+// console.error('err: ', response?.data);
+⋮----
+// Prevent credentials from leaking into error messages
+⋮----
+private async signMessage(
+    paramsStr: string,
+    secret: string,
+    method: SignEncodeMethod,
+    algorithm: SignAlgorithm,
+    options?: SignMessageOptions,
+): Promise<string>
+⋮----
+/**
+   * @private sign request and set recv window
+   */
+private async signRequest<
+    T extends ParamsInQueryBodyOrHeader | undefined = {},
+  >(
+    data: T,
+    endpoint: string,
+    method: Method,
+    signMethod: SignMethod,
+): Promise<SignedRequest<T>>
+⋮----
+// handle JSON preprocessing for requests, including embedded stringify
+⋮----
+// Don't prefix with ? as part of sign. Prefix after sign
+⋮----
+// Array values are repeated into key value pairs
+// E.g. orderIds:[1,2] becomes orderIds=1&orderIds=2
+⋮----
+// Set default nonce, if not set yet
+⋮----
+// Allow nonce override in reuqest
+// Should never fallback to new nonce, since it's pre-set above with default val
+⋮----
+// for spot, serialise GET params, use JSON for POST
+⋮----
+// Only sign when no access token is provided
+⋮----
+// node:crypto equivalent
+// const sign = createHmac(
+//   'sha512',
+//   Buffer.from(this.apiSecret!, 'base64'),
+// )
+//   .update(signMessage, 'binary')
+//   .digest('base64');
+⋮----
+// Check if this is a base64 decoding error (invalid API credentials)
+⋮----
+// Re-throw other errors as-is
+⋮----
+// ONLY the query params. The rest goes in the body, if there is a body.
+⋮----
+const nonce = ''; //this.getNextRequestNonce();
+⋮----
+// Only sign when no access token is provided
+⋮----
+// node:crypto equivalent
+// const sign = createHmac(
+//   'sha512',
+//   Buffer.from(this.apiSecret!, 'base64'),
+// )
+//   .update(signMessage, 'binary')
+//   .digest('base64');
+⋮----
+// Submitted as query string in form body
+⋮----
+private async prepareSignParams<TParams extends object | undefined>(
+    method: Method,
+    endpoint: string,
+    signMethod: SignMethod,
+    params?: TParams,
+    isPublicApi?: true,
+  ): Promise<UnsignedRequest<TParams>>;
+⋮----
+private async prepareSignParams<TParams extends object | undefined>(
+    method: Method,
+    endpoint: string,
+    signMethod: SignMethod,
+    params?: TParams,
+    isPublicApi?: false | undefined,
+  ): Promise<SignedRequest<TParams>>;
+⋮----
+private async prepareSignParams<TParams extends object | undefined>(
+    method: Method,
+    endpoint: string,
+    signMethod: SignMethod,
+    params?: TParams,
+    isPublicApi?: boolean,
+)
+⋮----
+/** Returns an axios request object. Handles signing process automatically if this is a private API call */
+private async buildRequest(
+    method: Method,
+    endpoint: string,
+    url: string,
+    params?: ParamsInQueryBodyOrHeader,
+    isPublicApi?: boolean,
+): Promise<AxiosRequestConfig>
+⋮----
+// Support for Authorization header, if provided:
+// https://github.com/tiagosiebler/kucoin-api/issues/2
+// Use restClient.setAccessToken(newToken), if you need to store a new access token
+// Not supported for Kraken at this time
 
 ================
 File: src/types/response/derivatives.types.ts
@@ -8553,307 +8919,6 @@ getRampProspectiveQuote(
 getRampCheckoutUrl(
     params: PartnerGetRampCheckoutUrlParams,
 ): Promise<PartnerGetRampCheckoutUrlResponse>
-
-================
-File: src/lib/BaseRestClient.ts
-================
-import axios, { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
-// NOTE: https.Agent is Node.js-only and not available in browser environments
-// Browser builds (via webpack) exclude this module - see webpack.config.js fallback settings
-import https from 'https';
-⋮----
-import { neverGuard } from './misc-util.js';
-import {
-  APIIDMain,
-  APIIDMainKey,
-  getRestBaseUrl,
-  isEmptyObject,
-  REST_CLIENT_TYPE_ENUM,
-  RestClientOptions,
-  RestClientType,
-  serializeParams,
-} from './requestUtils.js';
-import {
-  checkWebCryptoAPISupported,
-  hashMessage,
-  SignAlgorithm,
-  SignEncodeMethod,
-  signMessage,
-  SignMessageOptions,
-} from './webCryptoAPI.js';
-⋮----
-interface SignedRequest<
-  T extends object | undefined = {},
-  TReqData = object,
-  TReqQuery = object,
-> {
-  originalParams: T;
-  paramsWithSign?: T & { sign: string };
-  // all request params intended for request body (e.g. POST)
-  requestData?: TReqData;
-  // all params intended for request query string (e.g. GET)
-  requestQuery?: TReqQuery;
-  serializedParams: string;
-  sign: string;
-  queryParamsWithSign: string;
-  timestamp: number;
-  recvWindow: number;
-  nonce?: string;
-}
-⋮----
-// all request params intended for request body (e.g. POST)
-⋮----
-// all params intended for request query string (e.g. GET)
-⋮----
-interface UnsignedRequest<T extends object | undefined = {}> {
-  originalParams: T;
-  paramsWithSign: T;
-  queryParamsWithSign: undefined;
-}
-⋮----
-type SignMethod = 'kraken';
-⋮----
-/**
- * Some requests require some params to be in the query string and some in the body. Some even support passing params via headers.
- * This type anticipates these are possible in any combination.
- *
- * The request builder will automatically handle where parameters should go.
- */
-type ParamsInQueryBodyOrHeader = {
-  query?: object;
-  body?: object;
-  headers?: object;
-};
-⋮----
-// request: {
-//   url: response.config.url,
-//   method: response.config.method,
-//   data: response.config.data,
-//   headers: response.config.headers,
-// },
-⋮----
-/**
- * Impure, mutates params to remove any values that have a key but are undefined.
- */
-function deleteUndefinedValues(params?: any): void
-⋮----
-export abstract class BaseRestClient
-⋮----
-// A unique incrementing nonce
-⋮----
-/** Defines the client type (affecting how requests & signatures behave) */
-abstract getClientType(): RestClientType;
-⋮----
-/**
-   * Create an instance of the REST client. Pass API credentials in the object in the first parameter.
-   * @param {RestClientOptions} [restClientOptions={}] options to configure REST API connectivity
-   * @param {AxiosRequestConfig} [networkOptions={}] HTTP networking options for axios
-   */
-constructor(
-    restClientOptions: RestClientOptions = {},
-    networkOptions: AxiosRequestConfig = {},
-)
-⋮----
-/** Throw errors if any request params are empty */
-⋮----
-/** in ms == 5 minutes by default */
-⋮----
-/** inject custom request options based on axios specs - see axios docs for more guidance on AxiosRequestConfig: https://github.com/axios/axios#request-config */
-⋮----
-// If enabled, configure a https agent with keepAlive enabled
-// NOTE: This is Node.js-only functionality. In browser environments, this code is skipped
-// as the 'https' module is excluded via webpack fallback configuration.
-// Browser connection pooling is handled automatically by the browser itself.
-⋮----
-// Extract existing https agent parameters, if provided, to prevent the keepAlive flag from overwriting an existing https agent completely
-⋮----
-// For more advanced configuration, raise an issue on GitHub or use the "networkOptions"
-// parameter to define a custom httpsAgent with the desired properties
-⋮----
-// Check Web Crypto API support when credentials are provided
-⋮----
-// Throw if one of the 3 values is missing, but at least one of them is set
-⋮----
-/**
-   * Generates a timestamp for signing API requests.
-   *
-   * This method can be overridden or customized using `customTimestampFn`
-   * to implement a custom timestamp synchronization mechanism.
-   * If no custom function is provided, it defaults to the current system time.
-   */
-private getSignTimestampMs(): number
-⋮----
-private getNextRequestNonce(): string
-⋮----
-private hasValidCredentials()
-⋮----
-setAccessToken(newAccessToken: string)
-⋮----
-hasAccessToken(): boolean
-⋮----
-protected get(endpoint: string, params?: object)
-⋮----
-// GET only supports params in the query string
-⋮----
-protected post(endpoint: string, params?: ParamsInQueryBodyOrHeader)
-⋮----
-protected getPrivate(endpoint: string, params?: object)
-⋮----
-// GET only supports params in the query string
-⋮----
-protected postPrivate(endpoint: string, params?: ParamsInQueryBodyOrHeader)
-⋮----
-protected deletePrivate(
-    endpoint: string,
-    params?: ParamsInQueryBodyOrHeader,
-)
-⋮----
-protected putPrivate(endpoint: string, params?: ParamsInQueryBodyOrHeader)
-⋮----
-// protected patchPrivate(endpoint: string, params?: any) {
-protected patchPrivate(endpoint: string, params?: ParamsInQueryBodyOrHeader)
-⋮----
-/**
-   * @private Make a HTTP request to a specific endpoint. Private endpoint API calls are automatically signed.
-   */
-private async _call(
-    method: Method,
-    endpoint: string,
-    params?: ParamsInQueryBodyOrHeader,
-    isPublicApi?: boolean,
-): Promise<any>
-⋮----
-// Sanity check to make sure it's only ever prefixed by one forward slash
-⋮----
-// Build a request and handle signature process
-⋮----
-// Dispatch request
-⋮----
-// Throw if API returns an error (e.g. insufficient balance)
-⋮----
-// const res = {
-//   result: 'error',
-//   error: 'authenticationError',
-//   serverTime: '2025-10-29T15:02:39.341Z',
-// };
-⋮----
-/**
-   * @private generic handler to parse request exceptions
-   */
-parseException(e: any, requestParams: any): unknown
-⋮----
-// Something happened in setting up the request that triggered an error
-⋮----
-// request made but no response received
-⋮----
-// The request was made and the server responded with a status code
-// that falls out of the range of 2xx
-⋮----
-// console.error('err: ', response?.data);
-⋮----
-// Prevent credentials from leaking into error messages
-⋮----
-private async signMessage(
-    paramsStr: string,
-    secret: string,
-    method: SignEncodeMethod,
-    algorithm: SignAlgorithm,
-    options?: SignMessageOptions,
-): Promise<string>
-⋮----
-/**
-   * @private sign request and set recv window
-   */
-private async signRequest<
-    T extends ParamsInQueryBodyOrHeader | undefined = {},
-  >(
-    data: T,
-    endpoint: string,
-    method: Method,
-    signMethod: SignMethod,
-): Promise<SignedRequest<T>>
-⋮----
-// handle JSON preprocessing for requests, including embedded stringify
-⋮----
-// Don't prefix with ? as part of sign. Prefix after sign
-⋮----
-// Array values are repeated into key value pairs
-// E.g. orderIds:[1,2] becomes orderIds=1&orderIds=2
-⋮----
-// Set default nonce, if not set yet
-⋮----
-// Allow nonce override in reuqest
-// Should never fallback to new nonce, since it's pre-set above with default val
-⋮----
-// for spot, serialise GET params, use JSON for POST
-⋮----
-// Only sign when no access token is provided
-⋮----
-// node:crypto equivalent
-// const sign = createHmac(
-//   'sha512',
-//   Buffer.from(this.apiSecret!, 'base64'),
-// )
-//   .update(signMessage, 'binary')
-//   .digest('base64');
-⋮----
-// Check if this is a base64 decoding error (invalid API credentials)
-⋮----
-// Re-throw other errors as-is
-⋮----
-// ONLY the query params. The rest goes in the body, if there is a body.
-⋮----
-const nonce = ''; //this.getNextRequestNonce();
-⋮----
-// Only sign when no access token is provided
-⋮----
-// node:crypto equivalent
-// const sign = createHmac(
-//   'sha512',
-//   Buffer.from(this.apiSecret!, 'base64'),
-// )
-//   .update(signMessage, 'binary')
-//   .digest('base64');
-⋮----
-// Submitted as query string in form body
-⋮----
-private async prepareSignParams<TParams extends object | undefined>(
-    method: Method,
-    endpoint: string,
-    signMethod: SignMethod,
-    params?: TParams,
-    isPublicApi?: true,
-  ): Promise<UnsignedRequest<TParams>>;
-⋮----
-private async prepareSignParams<TParams extends object | undefined>(
-    method: Method,
-    endpoint: string,
-    signMethod: SignMethod,
-    params?: TParams,
-    isPublicApi?: false | undefined,
-  ): Promise<SignedRequest<TParams>>;
-⋮----
-private async prepareSignParams<TParams extends object | undefined>(
-    method: Method,
-    endpoint: string,
-    signMethod: SignMethod,
-    params?: TParams,
-    isPublicApi?: boolean,
-)
-⋮----
-/** Returns an axios request object. Handles signing process automatically if this is a private API call */
-private async buildRequest(
-    method: Method,
-    endpoint: string,
-    url: string,
-    params?: ParamsInQueryBodyOrHeader,
-    isPublicApi?: boolean,
-): Promise<AxiosRequestConfig>
-⋮----
-// Support for Authorization header, if provided:
-// https://github.com/tiagosiebler/kucoin-api/issues/2
-// Use restClient.setAccessToken(newToken), if you need to store a new access token
-// Not supported for Kraken at this time
 
 ================
 File: src/types/request/derivatives.types.ts
@@ -14934,88 +14999,7 @@ ws.subscribe({ topic: 'ticker', payload: { symbol: ['BTC/USD'] } }, 'spotPublicV
 
 ### Spot orderbook over WebSocket
 
-`WebsocketClient` reconnects, answers heartbeats, and resubscribes. The local book is yours. Kraken's [checksum](https://docs.kraken.com/exchange/guides/websockets/book-checksum-v2) is a CRC32 of the top 10 asks (low to high) then the top 10 bids (high to low). `JSON.parse` drops trailing zeros, so format each price and qty with `toFixed` at the pair precision, then drop `.` and leading zeros (`0.1` at qty precision 8 becomes `10000000`).
-
-```javascript
-import { WebsocketClient } from '@siebly/kraken-api';
-
-const depth = 10;
-const bookTopic = { topic: 'book', payload: { symbol: ['BTC/USD'], depth } };
-const books = new Map();
-// instrument: price_precision / qty_precision. REST AssetPairs: pair_decimals / lot_decimals.
-const precision = new Map();
-
-function token(value, decimals) {
-  return Number(value).toFixed(decimals).replace('.', '').replace(/^0+/, '') || '0';
-}
-
-function crc32(text) {
-  let crc = ~0;
-  for (let i = 0; i < text.length; i++) {
-    crc ^= text.charCodeAt(i);
-    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-  }
-  return ~crc >>> 0;
-}
-
-function sorted(side, highFirst) {
-  return [...side.values()].sort((a, b) => {
-    const delta = Number(a.price) - Number(b.price);
-    return highFirst ? -delta : delta;
-  });
-}
-
-const ws = new WebsocketClient();
-ws.subscribe([{ topic: 'instrument' }, bookTopic], 'spotPublicV2');
-
-ws.on('message', (msg) => {
-  if (msg.channel === 'instrument') {
-    for (const pair of msg.data?.pairs || []) {
-      precision.set(pair.symbol, [pair.price_precision, pair.qty_precision]);
-    }
-    return;
-  }
-  if (msg.channel !== 'book' || !Array.isArray(msg.data)) return;
-
-  for (const row of msg.data) {
-    const pairDp = precision.get(row.symbol);
-    if (!pairDp) continue;
-
-    let book = books.get(row.symbol);
-    if (!book || msg.type === 'snapshot') {
-      book = { asks: new Map(), bids: new Map() };
-      books.set(row.symbol, book);
-    }
-    for (const [name, levels] of [
-      ['asks', row.asks],
-      ['bids', row.bids],
-    ]) {
-      for (const level of levels || []) {
-        const key = String(level.price);
-        if (Number(level.qty) === 0) book[name].delete(key);
-        else book[name].set(key, level);
-      }
-    }
-
-    const [priceDp, qtyDp] = pairDp;
-    const asks = sorted(book.asks, false).slice(0, depth);
-    const bids = sorted(book.bids, true).slice(0, depth);
-    book.asks = new Map(asks.map((level) => [String(level.price), level]));
-    book.bids = new Map(bids.map((level) => [String(level.price), level]));
-    const sideText = (levels) =>
-      levels
-        .slice(0, 10)
-        .map((level) => token(level.price, priceDp) + token(level.qty, qtyDp))
-        .join('');
-    if (crc32(sideText(asks) + sideText(bids)) === row.checksum) continue;
-
-    books.delete(row.symbol);
-    ws.subscribe(bookTopic, 'spotPublicV2');
-  }
-});
-```
-
-A raw `ws` socket misses reconnect, resubscribe after reconnect, heartbeats, and this checksum resync. On a mismatch, the sample drops that book and subscribes again so the next snapshot replaces it.
+Use `WebsocketClient` to maintain a Spot orderbook over WebSocket with checksum validation, as shown in the runnable [local orderbook example](./examples/Spot/WebSockets/orderbookLocalWs.ts). The example applies snapshots and updates, restores pair precision for CRC32 validation, resubscribes on checksum mismatch, and logs the best bid and ask. The SDK handles reconnects, heartbeats, and resubscription after reconnect; the example supplies the local book and checksum resync logic that a raw `ws` socket leaves to you.
 
 ### Public WebSocket Streams
 
