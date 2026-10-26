@@ -56,6 +56,7 @@ Complete & robust JavaScript & Node.js SDK for the Kraken REST APIs and WebSocke
     - [Derivatives (Futures) Trading](#derivatives-futures-trading)
   - [WebSockets](#websockets)
     - [Why not raw ws?](#why-not-raw-ws)
+    - [Spot orderbook over WebSocket](#spot-orderbook-over-websocket)
     - [Public WebSocket Streams](#public-websocket-streams)
     - [Private WebSocket Streams](#private-websocket-streams)
     - [WebSocket API (WebsocketAPIClient)](#websocket-api-websocketapiclient)
@@ -362,7 +363,7 @@ A raw `ws` socket leaves reconnect, liveness, resubscribe, and auth to you. `Web
 - Heartbeats (native ping/pong, plus Kraken `heartbeat` / `pong` frames) so a silent socket is treated as dead and reconnected.
 - Private auth: Spot WebSocket tokens are fetched from REST, cached, and refreshed before they expire. Futures private streams use the signed challenge flow, and a reconnect re-authenticates.
 
-Kraken book payloads include a checksum. This SDK does not validate it. Check the checksum yourself on `book` messages if you need that guarantee.
+Kraken book payloads include a checksum. This SDK does not validate it. [Spot orderbook over WebSocket](#spot-orderbook-over-websocket) keeps a local book and checks that checksum.
 
 ```javascript
 import { WebsocketClient } from '@siebly/kraken-api';
@@ -370,6 +371,122 @@ const ws = new WebsocketClient();
 ws.on('message', (data) => console.log(data));
 ws.subscribe({ topic: 'ticker', payload: { symbol: ['BTC/USD'] } }, 'spotPublicV2');
 ```
+
+### Spot orderbook over WebSocket
+
+Subscribe with the SDK. It reconnects, answers heartbeats, and resubscribes. You still own the local book.
+
+```javascript
+import { WebsocketClient } from '@siebly/kraken-api';
+
+const ws = new WebsocketClient();
+const bookTopic = {
+  topic: 'book',
+  payload: { symbol: ['BTC/USD'], depth: 10 },
+};
+ws.subscribe(bookTopic, 'spotPublicV2');
+```
+
+Kraken's [book checksum](https://docs.kraken.com/exchange/guides/websockets/book-checksum-v2) is a CRC32 of the top 10 asks (low to high) then the top 10 bids (high to low). For each price and qty, delete `.` and leading zeros (`"0.00100000"` becomes `"100000"`), then join price + qty. The checksum is always the top 10 levels, whatever `depth` you subscribed.
+
+`price` and `qty` have to stay those decimal strings. This client's `message` event is `JSON.parse`d, and that drops trailing zeros (`"0.10000000"` arrives as `0.1`), so the hash will not match Kraken's. The sample below keeps the strings when it still has them, and resubscribes once if the hash fails.
+
+```javascript
+import { WebsocketClient } from '@siebly/kraken-api';
+
+const depth = 10;
+const bookTopic = {
+  topic: 'book',
+  payload: { symbol: ['BTC/USD'], depth },
+};
+const books = new Map();
+let resynced = false;
+
+function token(value) {
+  return String(value).replace('.', '').replace(/^0+/, '') || '0';
+}
+
+function crc32(text) {
+  let crc = ~0;
+  for (let i = 0; i < text.length; i++) {
+    crc ^= text.charCodeAt(i);
+    for (let bit = 0; bit < 8; bit++) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+    }
+  }
+  return ~crc >>> 0;
+}
+
+function bookChecksum(asks, bids) {
+  const text = (levels) =>
+    levels
+      .slice(0, 10)
+      .map((level) => token(level.price) + token(level.qty))
+      .join('');
+  return crc32(text(asks) + text(bids));
+}
+
+function sorted(side, highFirst) {
+  return [...side.values()].sort((a, b) => {
+    const delta = Number(a.price) - Number(b.price);
+    return highFirst ? -delta : delta;
+  });
+}
+
+function applyLevels(side, levels) {
+  for (const level of levels || []) {
+    const key = String(level.price);
+    if (Number(level.qty) === 0) side.delete(key);
+    else side.set(key, level);
+  }
+}
+
+function trim(side, highFirst) {
+  const kept = sorted(side, highFirst).slice(0, depth);
+  side.clear();
+  for (const level of kept) side.set(String(level.price), level);
+}
+
+const ws = new WebsocketClient();
+ws.subscribe(bookTopic, 'spotPublicV2');
+
+ws.on('message', (msg) => {
+  if (msg.channel !== 'book' || !Array.isArray(msg.data)) return;
+
+  for (const row of msg.data) {
+    let book = books.get(row.symbol);
+    if (!book || msg.type === 'snapshot') {
+      book = { asks: new Map(), bids: new Map() };
+      books.set(row.symbol, book);
+    }
+
+    applyLevels(book.asks, row.asks);
+    applyLevels(book.bids, row.bids);
+    trim(book.asks, false);
+    trim(book.bids, true);
+
+    const asks = sorted(book.asks, false);
+    const bids = sorted(book.bids, true);
+    if (bookChecksum(asks, bids) === row.checksum) {
+      resynced = false;
+      continue;
+    }
+
+    book.asks.clear();
+    book.bids.clear();
+    if (resynced) continue;
+    resynced = true;
+    ws.subscribe(bookTopic, 'spotPublicV2');
+  }
+});
+```
+
+A raw `ws` socket misses all of this:
+
+- Reconnect after the socket drops.
+- Resubscribe to `book` once that new socket is up. The next snapshot replaces the book. Do not merge deltas from before the gap.
+- Heartbeats, so a silent socket is noticed.
+- Checksum resync: drop the local book and subscribe again when the CRC32 does not match.
 
 ### Public WebSocket Streams
 
