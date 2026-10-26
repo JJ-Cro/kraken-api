@@ -374,56 +374,28 @@ ws.subscribe({ topic: 'ticker', payload: { symbol: ['BTC/USD'] } }, 'spotPublicV
 
 ### Spot orderbook over WebSocket
 
-Subscribe with the SDK. It reconnects, answers heartbeats, and resubscribes. You still own the local book.
-
-```javascript
-import { WebsocketClient } from '@siebly/kraken-api';
-
-const ws = new WebsocketClient();
-const bookTopic = {
-  topic: 'book',
-  payload: { symbol: ['BTC/USD'], depth: 10 },
-};
-ws.subscribe(bookTopic, 'spotPublicV2');
-```
-
-Kraken's [book checksum](https://docs.kraken.com/exchange/guides/websockets/book-checksum-v2) is a CRC32 of the top 10 asks (low to high) then the top 10 bids (high to low). For each price and qty, delete `.` and leading zeros (`"0.00100000"` becomes `"100000"`), then join price + qty. The checksum is always the top 10 levels, whatever `depth` you subscribed.
-
-`price` and `qty` have to stay those decimal strings. This client's `message` event is `JSON.parse`d, and that drops trailing zeros (`"0.10000000"` arrives as `0.1`), so the hash will not match Kraken's. The sample below keeps the strings when it still has them, and resubscribes once if the hash fails.
+`WebsocketClient` reconnects, answers heartbeats, and resubscribes. The local book is yours. Kraken's [checksum](https://docs.kraken.com/exchange/guides/websockets/book-checksum-v2) is a CRC32 of the top 10 asks (low to high) then the top 10 bids (high to low). `JSON.parse` drops trailing zeros, so format each price and qty with `toFixed` at the pair precision, then drop `.` and leading zeros (`0.1` at qty precision 8 becomes `10000000`).
 
 ```javascript
 import { WebsocketClient } from '@siebly/kraken-api';
 
 const depth = 10;
-const bookTopic = {
-  topic: 'book',
-  payload: { symbol: ['BTC/USD'], depth },
-};
+const bookTopic = { topic: 'book', payload: { symbol: ['BTC/USD'], depth } };
 const books = new Map();
-let resynced = false;
+// instrument: price_precision / qty_precision. REST AssetPairs: pair_decimals / lot_decimals.
+const precision = new Map();
 
-function token(value) {
-  return String(value).replace('.', '').replace(/^0+/, '') || '0';
+function token(value, decimals) {
+  return Number(value).toFixed(decimals).replace('.', '').replace(/^0+/, '') || '0';
 }
 
 function crc32(text) {
   let crc = ~0;
   for (let i = 0; i < text.length; i++) {
     crc ^= text.charCodeAt(i);
-    for (let bit = 0; bit < 8; bit++) {
-      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-    }
+    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
   }
   return ~crc >>> 0;
-}
-
-function bookChecksum(asks, bids) {
-  const text = (levels) =>
-    levels
-      .slice(0, 10)
-      .map((level) => token(level.price) + token(level.qty))
-      .join('');
-  return crc32(text(asks) + text(bids));
 }
 
 function sorted(side, highFirst) {
@@ -433,60 +405,57 @@ function sorted(side, highFirst) {
   });
 }
 
-function applyLevels(side, levels) {
-  for (const level of levels || []) {
-    const key = String(level.price);
-    if (Number(level.qty) === 0) side.delete(key);
-    else side.set(key, level);
-  }
-}
-
-function trim(side, highFirst) {
-  const kept = sorted(side, highFirst).slice(0, depth);
-  side.clear();
-  for (const level of kept) side.set(String(level.price), level);
-}
-
 const ws = new WebsocketClient();
-ws.subscribe(bookTopic, 'spotPublicV2');
+ws.subscribe([{ topic: 'instrument' }, bookTopic], 'spotPublicV2');
 
 ws.on('message', (msg) => {
+  if (msg.channel === 'instrument') {
+    for (const pair of msg.data?.pairs || []) {
+      precision.set(pair.symbol, [pair.price_precision, pair.qty_precision]);
+    }
+    return;
+  }
   if (msg.channel !== 'book' || !Array.isArray(msg.data)) return;
 
   for (const row of msg.data) {
+    const pairDp = precision.get(row.symbol);
+    if (!pairDp) continue;
+
     let book = books.get(row.symbol);
     if (!book || msg.type === 'snapshot') {
       book = { asks: new Map(), bids: new Map() };
       books.set(row.symbol, book);
     }
-
-    applyLevels(book.asks, row.asks);
-    applyLevels(book.bids, row.bids);
-    trim(book.asks, false);
-    trim(book.bids, true);
-
-    const asks = sorted(book.asks, false);
-    const bids = sorted(book.bids, true);
-    if (bookChecksum(asks, bids) === row.checksum) {
-      resynced = false;
-      continue;
+    for (const [name, levels] of [
+      ['asks', row.asks],
+      ['bids', row.bids],
+    ]) {
+      for (const level of levels || []) {
+        const key = String(level.price);
+        if (Number(level.qty) === 0) book[name].delete(key);
+        else book[name].set(key, level);
+      }
     }
 
-    book.asks.clear();
-    book.bids.clear();
-    if (resynced) continue;
-    resynced = true;
+    const [priceDp, qtyDp] = pairDp;
+    const asks = sorted(book.asks, false).slice(0, depth);
+    const bids = sorted(book.bids, true).slice(0, depth);
+    book.asks = new Map(asks.map((level) => [String(level.price), level]));
+    book.bids = new Map(bids.map((level) => [String(level.price), level]));
+    const sideText = (levels) =>
+      levels
+        .slice(0, 10)
+        .map((level) => token(level.price, priceDp) + token(level.qty, qtyDp))
+        .join('');
+    if (crc32(sideText(asks) + sideText(bids)) === row.checksum) continue;
+
+    books.delete(row.symbol);
     ws.subscribe(bookTopic, 'spotPublicV2');
   }
 });
 ```
 
-A raw `ws` socket misses all of this:
-
-- Reconnect after the socket drops.
-- Resubscribe to `book` once that new socket is up. The next snapshot replaces the book. Do not merge deltas from before the gap.
-- Heartbeats, so a silent socket is noticed.
-- Checksum resync: drop the local book and subscribe again when the CRC32 does not match.
+A raw `ws` socket misses reconnect, resubscribe after reconnect, heartbeats, and this checksum resync. On a mismatch, the sample drops that book and subscribes again so the next snapshot replaces it.
 
 ### Public WebSocket Streams
 
